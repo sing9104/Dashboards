@@ -291,6 +291,65 @@
     display: none !important;
   }
 
+  .exec-filter-pill {
+    padding: 5px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background: var(--color-white);
+    color: var(--color-dark);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .exec-filter-pill:hover {
+    border-color: var(--color-secondary);
+    background: #f0f7ff;
+  }
+  .exec-filter-pill.active {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+  }
+
+  .exec-stage-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+  .exec-stage-badge.won { background: #D4EDDA; color: #155724; }
+  .exec-stage-badge.negotiation { background: #CCE5FF; color: #004085; }
+  .exec-stage-badge.proposal { background: #FFF3CD; color: #856404; }
+  .exec-stage-badge.qualification { background: #E2E3E5; color: #383D41; }
+  .exec-stage-badge.prospecting { background: #F8D7DA; color: #721C24; }
+
+  .exec-attainment-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .exec-attainment-track {
+    flex: 1;
+    height: 8px;
+    background: #eef1f5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .exec-attainment-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+  .exec-attainment-pct {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    min-width: 44px;
+    text-align: right;
+  }
+
   .back-button {
     background: var(--color-light);
     border: 1px solid var(--color-border);
@@ -722,9 +781,13 @@
           <tr>
             <th>Name</th>
             <th>Division</th>
-            <th>Revenue (All Years)</th>
-            <th>Deals Closed</th>
+            <th>Revenue</th>
+            <th>Deals Won</th>
             <th>Win Rate</th>
+            <th>Pipeline Value</th>
+            <th>Weighted Pipeline</th>
+            <th>Open Opps</th>
+            <th>Avg Deal Size</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -741,18 +804,67 @@
     <div class="charts-row" id="charts-detail"></div>
     <div class="section">
       <div class="section-title">Deals</div>
+      <div id="exec-deal-filters" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="exec-filter-pill active" data-filter="all" onclick="filterExecDeals('all', this)">All</button>
+        <button class="exec-filter-pill" data-filter="Won" onclick="filterExecDeals('Won', this)">Won</button>
+        <button class="exec-filter-pill" data-filter="Negotiation" onclick="filterExecDeals('Negotiation', this)">Negotiation</button>
+        <button class="exec-filter-pill" data-filter="Proposal" onclick="filterExecDeals('Proposal', this)">Proposal</button>
+        <button class="exec-filter-pill" data-filter="Qualification" onclick="filterExecDeals('Qualification', this)">Qualification</button>
+        <button class="exec-filter-pill" data-filter="Prospecting" onclick="filterExecDeals('Prospecting', this)">Prospecting</button>
+      </div>
+      <div id="exec-deal-count" style="font-size:11px;color:var(--color-neutral);margin-bottom:8px;"></div>
       <table id="deals-table">
         <thead>
           <tr>
             <th>Deal ID</th>
             <th>Account</th>
+            <th>Property</th>
             <th>Value</th>
             <th>Stage</th>
+            <th>Close Date</th>
             <th>Year</th>
             <th>Quarter</th>
           </tr>
         </thead>
         <tbody id="deals-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Open Opportunities</div>
+      <div id="exec-opp-count" style="font-size:11px;color:var(--color-neutral);margin-bottom:8px;"></div>
+      <table id="opps-table">
+        <thead>
+          <tr>
+            <th>Opp ID</th>
+            <th>Account</th>
+            <th>Property</th>
+            <th>Value</th>
+            <th>Stage</th>
+            <th>Probability</th>
+            <th>Weighted Value</th>
+            <th>Expected Close</th>
+            <th>Quarter</th>
+          </tr>
+        </thead>
+        <tbody id="opps-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Pipeline Summary by Stage</div>
+      <table id="stage-summary-table">
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Count</th>
+            <th>Total Value</th>
+            <th>Weighted Value</th>
+            <th>Avg Deal Size</th>
+            <th style="min-width:140px">Distribution</th>
+          </tr>
+        </thead>
+        <tbody id="stage-summary-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -1755,7 +1867,7 @@ function calculateKPIs(execName) {
 
 function renderOverview() {
   const execs = getFilteredExecs();
-  
+
   const viewTitle = document.querySelector('#overview-view .view-title');
   if (currentDivision === 'all') {
     viewTitle.textContent = 'Sales Executive Performance';
@@ -1763,47 +1875,188 @@ function renderOverview() {
     viewTitle.textContent = currentDivision + ' — Sales Executive Performance';
   }
 
-  // KPI Grid
-  const totalRevenue = execs.reduce((sum, exec) => sum + calculateKPIs(exec.name).revenue, 0);
-  const totalDeals = execs.reduce((sum, exec) => sum + calculateKPIs(exec.name).dealsWon, 0);
-  const totalOpps = execs.reduce((sum, exec) => sum + calculateKPIs(exec.name).dealsPipeline, 0);
+  // Aggregate KPIs
+  let totalRevenue = 0, totalDeals = 0, totalOpps = 0, totalPipeline = 0, totalWeightedPipeline = 0;
+  execs.forEach(exec => {
+    const kpis = calculateKPIs(exec.name);
+    totalRevenue += kpis.revenue;
+    totalDeals += kpis.dealsWon;
+    totalOpps += kpis.dealsPipeline;
+    const opps = getFilteredOpportunitiesWithProperty(exec.name);
+    totalPipeline += opps.reduce((s, o) => s + o.value, 0);
+    totalWeightedPipeline += opps.reduce((s, o) => s + (o.value * o.probability), 0);
+  });
 
   const kpiHTML = `
     <div class="kpi-card">
       <div class="kpi-label">Total Revenue</div>
       <div class="kpi-value">${formatCurrency(totalRevenue)}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Deals Closed</div>
-      <div class="kpi-value">${totalDeals}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Pipeline</div>
-      <div class="kpi-value">${totalOpps}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${totalDeals} won deals</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Avg Deal Size</div>
       <div class="kpi-value">${totalDeals > 0 ? formatCurrency(totalRevenue / totalDeals) : '$0'}</div>
     </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pipeline Value</div>
+      <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(totalPipeline)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${totalOpps} open opportunities</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Weighted Pipeline</div>
+      <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(totalWeightedPipeline)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">Probability adjusted</div>
+    </div>
   `;
   document.getElementById('kpi-overview').innerHTML = kpiHTML;
 
-  // Charts placeholder
-  document.getElementById('charts-overview').innerHTML = '<div class="chart-placeholder">Revenue by Month</div><div class="chart-placeholder">Pipeline by Stage</div>';
+  // Overview Charts — Revenue by Exec + Pipeline by Stage
+  const execRevData = execs.map(e => ({name: e.name, revenue: calculateKPIs(e.name).revenue})).sort((a,b) => b.revenue - a.revenue);
+  const maxExecRev = execRevData.length > 0 ? execRevData[0].revenue : 1;
+  let revChartHTML = '<div style="padding:4px 0">';
+  execRevData.forEach((e, i) => {
+    revChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;cursor:pointer" onclick="showDetail('${e.name}')">
+        <span style="width:120px;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name}</span>
+        <div style="flex:1;height:16px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${(e.revenue/maxExecRev*100).toFixed(1)}%;background:${COLORS[i % COLORS.length]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:11px;font-weight:600;min-width:60px;text-align:right">${formatCurrency(e.revenue)}</span>
+      </div>
+    `;
+  });
+  revChartHTML += '</div>';
+
+  // Pipeline by Stage aggregate
+  const stageOrder = ['Negotiation', 'Proposal', 'Qualification', 'Prospecting'];
+  const stageColors = { Negotiation: '#2E5C8A', Proposal: '#FFC000', Qualification: '#A0A0A0', Prospecting: '#C5504E' };
+  let allOpps = [];
+  execs.forEach(e => { allOpps = allOpps.concat(getFilteredOpportunitiesWithProperty(e.name)); });
+  let stageChartHTML = '<div style="padding:4px 0">';
+  stageOrder.forEach(stage => {
+    const stageOpps = allOpps.filter(o => o.stage === stage);
+    if (stageOpps.length === 0) return;
+    const totalV = stageOpps.reduce((s, o) => s + o.value, 0);
+    stageChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:100px;font-size:12px;font-weight:500">${stage}</span>
+        <div style="flex:1;height:18px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${totalPipeline > 0 ? (totalV/totalPipeline*100).toFixed(1) : 0}%;background:${stageColors[stage]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:12px;font-weight:600;min-width:70px;text-align:right">${formatCurrency(totalV)}</span>
+        <span style="font-size:11px;color:var(--color-neutral);min-width:30px;text-align:right">${stageOpps.length}</span>
+      </div>
+    `;
+  });
+  stageChartHTML += '</div>';
+
+  document.getElementById('charts-overview').innerHTML = `
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Revenue by Sales Exec</div>
+      ${revChartHTML}
+    </div>
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Pipeline by Stage</div>
+      ${allOpps.length > 0 ? stageChartHTML : '<div style="color:var(--color-neutral);text-align:center;padding:20px">No open opportunities</div>'}
+    </div>
+  `;
 
   // Execs Table
   const tbody = document.getElementById('execs-tbody');
   tbody.innerHTML = '';
   execs.forEach(exec => {
     const kpis = calculateKPIs(exec.name);
+    const opps = getFilteredOpportunitiesWithProperty(exec.name);
+    const pipeVal = opps.reduce((s, o) => s + o.value, 0);
+    const wtdPipe = opps.reduce((s, o) => s + (o.value * o.probability), 0);
+    const avgDeal = kpis.dealsWon > 0 ? kpis.revenue / kpis.dealsWon : 0;
     const row = document.createElement('tr');
+    row.style.cursor = 'pointer';
+    row.onclick = function() { showDetail(exec.name); };
     row.innerHTML = `
       <td><strong>${exec.name}</strong></td>
       <td>${exec.division}</td>
-      <td>${formatCurrency(kpis.revenue)}</td>
+      <td style="font-weight:600">${formatCurrency(kpis.revenue)}</td>
       <td>${kpis.dealsWon}</td>
       <td>${kpis.winRate}</td>
-      <td><button onclick="showDetail('${exec.name}')" style="padding: 4px 8px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Details</button></td>
+      <td style="color:var(--color-secondary)">${formatCurrency(pipeVal)}</td>
+      <td style="color:var(--color-secondary)">${formatCurrency(wtdPipe)}</td>
+      <td>${opps.length}</td>
+      <td>${formatCurrency(avgDeal)}</td>
+      <td><button onclick="event.stopPropagation(); showDetail('${exec.name}')" style="padding: 4px 8px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size:11px;">Details →</button></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function getPropertyNameForDeal(dealId) {
+  for (const div of DATA.divisions) {
+    for (const prop of div.properties) {
+      if (prop.deals.some(d => d.id === dealId)) return prop.name;
+      if (prop.opportunities && prop.opportunities.some(o => o.id === dealId)) return prop.name;
+    }
+  }
+  return '—';
+}
+
+function getFilteredDealsWithProperty(execName) {
+  let deals = [];
+  DATA.divisions.forEach(div => {
+    div.properties.forEach(prop => {
+      prop.deals.forEach(deal => {
+        if (deal.owner === execName) {
+          deals.push({...deal, propertyName: prop.name});
+        }
+      });
+    });
+  });
+  return filterByYear(deals);
+}
+
+function getFilteredOpportunitiesWithProperty(execName) {
+  let opps = [];
+  DATA.divisions.forEach(div => {
+    div.properties.forEach(prop => {
+      if (prop.opportunities) {
+        prop.opportunities.forEach(opp => {
+          if (opp.owner === execName) {
+            opps.push({...opp, propertyName: prop.name});
+          }
+        });
+      }
+    });
+  });
+  return filterByYear(opps);
+}
+
+let currentExecDealFilter = 'all';
+
+function filterExecDeals(stage, btn) {
+  currentExecDealFilter = stage;
+  document.querySelectorAll('#exec-deal-filters .exec-filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const deals = getFilteredDealsWithProperty(currentExec);
+  const filtered = stage === 'all' ? deals : deals.filter(d => d.stage === stage);
+  renderExecDealsTable(filtered);
+  document.getElementById('exec-deal-count').textContent = filtered.length + ' deal' + (filtered.length !== 1 ? 's' : '') + (stage !== 'all' ? ' (' + stage + ')' : '');
+}
+
+function renderExecDealsTable(deals) {
+  const tbody = document.getElementById('deals-tbody');
+  tbody.innerHTML = '';
+  const sorted = [...deals].sort((a, b) => new Date(b.close_date || '2099-01-01') - new Date(a.close_date || '2099-01-01'));
+  sorted.forEach(deal => {
+    const stageClass = deal.stage.toLowerCase().replace(/\s+/g, '');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td style="font-family:monospace;font-size:11px">${deal.id}</td>
+      <td><strong>${deal.account}</strong></td>
+      <td style="font-size:12px;color:var(--color-neutral)">${deal.propertyName}</td>
+      <td style="font-weight:600">${formatCurrency(deal.value)}</td>
+      <td><span class="exec-stage-badge ${stageClass}">${deal.stage}</span></td>
+      <td>${deal.close_date || '—'}</td>
+      <td>${deal.year}</td>
+      <td>${deal.quarter}</td>
     `;
     tbody.appendChild(row);
   });
@@ -1811,52 +2064,164 @@ function renderOverview() {
 
 function showDetail(execName) {
   currentExec = execName;
+  currentExecDealFilter = 'all';
   const exec = DATA.salesExecs.find(e => e.name === execName);
-  
+
   document.getElementById('overview-view').classList.add('hidden');
   document.getElementById('detail-view').classList.remove('hidden');
   document.getElementById('breadcrumb-content').textContent = execName;
   document.getElementById('detail-title').textContent = execName + ' — Performance Details';
 
-  const kpis = calculateKPIs(execName);
+  const deals = getFilteredDealsWithProperty(execName);
+  const wonDeals = deals.filter(d => d.stage === 'Won');
+  const opps = getFilteredOpportunitiesWithProperty(execName);
+  const revenue = wonDeals.reduce((sum, d) => sum + d.value, 0);
+  const pipelineVal = opps.reduce((sum, o) => sum + o.value, 0);
+  const weightedPipeline = opps.reduce((sum, o) => sum + (o.value * o.probability), 0);
+  const winRate = deals.length > 0 ? ((wonDeals.length / deals.length) * 100).toFixed(1) + '%' : '0%';
+  const avgDeal = wonDeals.length > 0 ? revenue / wonDeals.length : 0;
+
   const detailKpiHTML = `
     <div class="kpi-card">
       <div class="kpi-label">Total Revenue</div>
-      <div class="kpi-value">${formatCurrency(kpis.revenue)}</div>
+      <div class="kpi-value">${formatCurrency(revenue)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${wonDeals.length} won deals</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Deals Closed</div>
-      <div class="kpi-value">${kpis.dealsWon}</div>
+      <div class="kpi-label">Avg Deal Size</div>
+      <div class="kpi-value">${formatCurrency(avgDeal)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${deals.length} total deals</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Pipeline Value</div>
-      <div class="kpi-value">${formatCurrency(getFilteredOpportunities(execName).reduce((sum, o) => sum + o.value, 0))}</div>
+      <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(pipelineVal)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${opps.length} opportunities</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Weighted Pipeline</div>
+      <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(weightedPipeline)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">Probability adjusted</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Win Rate</div>
-      <div class="kpi-value">${kpis.winRate}</div>
+      <div class="kpi-value">${winRate}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${wonDeals.length} of ${deals.length}</div>
     </div>
   `;
   document.getElementById('kpi-detail').innerHTML = detailKpiHTML;
 
-  document.getElementById('charts-detail').innerHTML = '<div class="chart-placeholder">Performance Trend</div><div class="chart-placeholder">Deal Sources</div>';
+  // Revenue by Property bar chart
+  const propRevenue = {};
+  wonDeals.forEach(d => {
+    propRevenue[d.propertyName] = (propRevenue[d.propertyName] || 0) + d.value;
+  });
+  const propArr = Object.entries(propRevenue).sort((a, b) => b[1] - a[1]);
+  const maxPropRev = propArr.length > 0 ? propArr[0][1] : 1;
+  let revenueChartHTML = '<div style="padding:4px 0">';
+  propArr.forEach(([name, val], i) => {
+    revenueChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:140px;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</span>
+        <div style="flex:1;height:20px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${(val/maxPropRev*100).toFixed(1)}%;background:${COLORS[i % COLORS.length]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:12px;font-weight:600;min-width:70px;text-align:right">${formatCurrency(val)}</span>
+      </div>
+    `;
+  });
+  revenueChartHTML += '</div>';
+
+  // Pipeline by Stage chart
+  const stageOrder = ['Negotiation', 'Proposal', 'Qualification', 'Prospecting'];
+  const stageColors = { Negotiation: '#2E5C8A', Proposal: '#FFC000', Qualification: '#A0A0A0', Prospecting: '#C5504E' };
+  let pipelineChartHTML = '<div style="padding:4px 0">';
+  stageOrder.forEach(stage => {
+    const stageOpps = opps.filter(o => o.stage === stage);
+    if (stageOpps.length === 0) return;
+    const totalV = stageOpps.reduce((s, o) => s + o.value, 0);
+    pipelineChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:100px;font-size:12px;font-weight:500">${stage}</span>
+        <div style="flex:1;height:20px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pipelineVal > 0 ? (totalV/pipelineVal*100).toFixed(1) : 0}%;background:${stageColors[stage]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:12px;font-weight:600;min-width:70px;text-align:right">${formatCurrency(totalV)}</span>
+        <span style="font-size:11px;color:var(--color-neutral);min-width:35px;text-align:right">${stageOpps.length}</span>
+      </div>
+    `;
+  });
+  pipelineChartHTML += '</div>';
+
+  document.getElementById('charts-detail').innerHTML = `
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Revenue by Property</div>
+      ${propArr.length > 0 ? revenueChartHTML : '<div style="color:var(--color-neutral);text-align:center;padding:20px">No won deals</div>'}
+    </div>
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Pipeline by Stage</div>
+      ${opps.length > 0 ? pipelineChartHTML : '<div style="color:var(--color-neutral);text-align:center;padding:20px">No open opportunities</div>'}
+    </div>
+  `;
+
+  // Reset filter pills
+  document.querySelectorAll('#exec-deal-filters .exec-filter-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('#exec-deal-filters .exec-filter-pill[data-filter="all"]').classList.add('active');
 
   // Deals Table
-  const deals = getFilteredDeals(execName);
-  const dealsTbody = document.getElementById('deals-tbody');
-  dealsTbody.innerHTML = '';
-  deals.forEach(deal => {
+  document.getElementById('exec-deal-count').textContent = deals.length + ' deal' + (deals.length !== 1 ? 's' : '');
+  renderExecDealsTable(deals);
+
+  // Opportunities Table
+  document.getElementById('exec-opp-count').textContent = opps.length + ' open opportunit' + (opps.length !== 1 ? 'ies' : 'y') + ' — ' + formatCurrency(pipelineVal) + ' total pipeline (weighted: ' + formatCurrency(weightedPipeline) + ')';
+  const oppsTbody = document.getElementById('opps-tbody');
+  oppsTbody.innerHTML = '';
+  const sortedOpps = [...opps].sort((a, b) => {
+    const si = stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage);
+    return si !== 0 ? si : b.value - a.value;
+  });
+  sortedOpps.forEach(opp => {
+    const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '');
     const row = document.createElement('tr');
-    const stageClass = deal.stage === 'Won' ? 'badge--success' : deal.stage === 'In Progress' ? 'badge--warning' : 'badge--danger';
     row.innerHTML = `
-      <td>${deal.id}</td>
-      <td>${deal.account}</td>
-      <td>${formatCurrency(deal.value)}</td>
-      <td><span class="badge ${stageClass}">${deal.stage}</span></td>
-      <td>${deal.year}</td>
-      <td>${deal.quarter}</td>
+      <td style="font-family:monospace;font-size:11px">${opp.id}</td>
+      <td><strong>${opp.account}</strong></td>
+      <td style="font-size:12px;color:var(--color-neutral)">${opp.propertyName}</td>
+      <td style="font-weight:600">${formatCurrency(opp.value)}</td>
+      <td><span class="exec-stage-badge ${stageClass}">${opp.stage}</span></td>
+      <td>${(opp.probability * 100).toFixed(0)}%</td>
+      <td>${formatCurrency(Math.round(opp.value * opp.probability))}</td>
+      <td>${opp.expected_close}</td>
+      <td>${opp.quarter} ${opp.year}</td>
     `;
-    dealsTbody.appendChild(row);
+    oppsTbody.appendChild(row);
+  });
+
+  // Stage Summary Table
+  const stageTbody = document.getElementById('stage-summary-tbody');
+  stageTbody.innerHTML = '';
+  stageOrder.forEach(stage => {
+    const stageOpps = opps.filter(o => o.stage === stage);
+    if (stageOpps.length === 0) return;
+    const totalV = stageOpps.reduce((s, o) => s + o.value, 0);
+    const weightedV = stageOpps.reduce((s, o) => s + o.value * o.probability, 0);
+    const avgV = totalV / stageOpps.length;
+    const sharePct = pipelineVal > 0 ? (totalV / pipelineVal * 100) : 0;
+    const stageClass = stage.toLowerCase().replace(/\s+/g, '');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><span class="exec-stage-badge ${stageClass}">${stage}</span></td>
+      <td>${stageOpps.length}</td>
+      <td style="font-weight:600">${formatCurrency(totalV)}</td>
+      <td>${formatCurrency(Math.round(weightedV))}</td>
+      <td>${formatCurrency(Math.round(avgV))}</td>
+      <td>
+        <div class="exec-attainment-bar">
+          <div class="exec-attainment-track"><div class="exec-attainment-fill" style="width:${sharePct}%;background:${stageColors[stage]}"></div></div>
+          <span class="exec-attainment-pct">${sharePct.toFixed(1)}%</span>
+        </div>
+      </td>
+    `;
+    stageTbody.appendChild(row);
   });
 }
 
