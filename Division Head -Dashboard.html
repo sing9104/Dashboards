@@ -73,6 +73,14 @@
     }
     .breadcrumb a { color: var(--color-secondary); cursor: pointer; text-decoration: none; }
     .breadcrumb a:hover { text-decoration: underline; }
+    .selector-bar { background: var(--color-white); border-bottom: 1px solid var(--color-border); padding: var(--spacing-md) var(--spacing-lg); display: flex; align-items: center; gap: var(--spacing-lg); }
+    .selector-bar label { font-weight: 600; font-size: var(--font-size-base); color: var(--color-dark); }
+    .division-select { padding: 8px 14px; font-size: var(--font-size-base); border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-white); min-width: 280px; cursor: pointer; color: var(--color-dark); font-family: inherit; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .division-select:focus { outline: none; border-color: var(--color-secondary); box-shadow: 0 0 0 3px rgba(91,155,213,0.15); }
+    .division-info { font-size: var(--font-size-sm); color: var(--color-neutral); display: flex; align-items: center; gap: var(--spacing-sm); }
+    .division-info__badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: var(--font-size-sm); font-weight: 500; }
+    .division-info__badge--head { background: #E2F0D9; color: #548235; }
+    .division-info__badge--count { background: #E3F2FD; color: #1565C0; }
     .back-btn {
       background: var(--color-secondary);
       color: var(--color-white);
@@ -182,6 +190,14 @@
 
   <div class="breadcrumb">
     <span id="breadcrumb-content">Sales Executives</span>
+  </div>
+
+  <div class="selector-bar">
+    <label for="divisionSelect">Division:</label>
+    <select id="divisionSelect" class="division-select" onchange="selectDivision(this.value)">
+      <option value="all">All Divisions</option>
+    </select>
+    <div class="division-info" id="divisionInfo"></div>
   </div>
 
   <div class="container">
@@ -883,12 +899,51 @@
     function getExecWeightedPipeline(exec, year) { const opps = getExecOpportunities(exec.name, year); return opps.filter(o => o.stage !== 'Won').reduce((sum, o) => sum + (o.value * o.probability), 0); }
 
     let currentYear = 'all';
+    let currentDivision = 'all';
+
+    // Populate division dropdown
+    (function populateDivisionDropdown() {
+      const select = document.getElementById('divisionSelect');
+      DATA.divisions.forEach(div => {
+        const opt = document.createElement('option');
+        opt.value = div.name;
+        opt.textContent = div.name;
+        select.appendChild(opt);
+      });
+    })();
+
+    function selectDivision(value) {
+      currentDivision = value;
+      updateDivisionInfo();
+      // If we're in detail view, go back to overview
+      document.getElementById('detail-view').classList.add('hidden');
+      document.getElementById('overview-view').classList.remove('hidden');
+      document.getElementById('breadcrumb-content').textContent = 'Sales Executives';
+      renderOverview();
+    }
+
+    function updateDivisionInfo() {
+      const infoEl = document.getElementById('divisionInfo');
+      if (currentDivision === 'all') {
+        const totalExecs = DATA.salesExecs.length;
+        infoEl.innerHTML = '<span class="division-info__badge division-info__badge--count">' + totalExecs + ' Sales Execs</span><span class="division-info__badge division-info__badge--count">' + DATA.divisions.length + ' Divisions</span>';
+      } else {
+        const div = DATA.divisions.find(d => d.name === currentDivision);
+        const execCount = DATA.salesExecs.filter(e => e.division === currentDivision).length;
+        infoEl.innerHTML = '<span class="division-info__badge division-info__badge--head">Head: ' + (div ? div.head : '') + '</span><span class="division-info__badge division-info__badge--count">' + execCount + ' Sales Execs</span>';
+      }
+    }
+
+    function getFilteredExecs() {
+      if (currentDivision === 'all') return DATA.salesExecs;
+      return DATA.salesExecs.filter(e => e.division === currentDivision);
+    }
 
     document.querySelectorAll('.year-btn').forEach(btn => { btn.addEventListener('click', function() { document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); currentYear = this.dataset.year; renderOverview(); }); });
     document.getElementById('back-btn').addEventListener('click', function() { document.getElementById('detail-view').classList.add('hidden'); document.getElementById('overview-view').classList.remove('hidden'); document.getElementById('breadcrumb-content').textContent = 'Sales Executives'; renderOverview(); });
 
     function renderOverview() {
-      const execs = DATA.salesExecs;
+      const execs = getFilteredExecs();
       let totalSales = 0, totalTarget = 0, totalPipeline = 0, totalWeightedPipeline = 0;
       const attainments = [];
 
@@ -902,6 +957,14 @@
       });
 
       const overallAttainment = totalTarget > 0 ? ((totalSales / totalTarget) * 100).toFixed(0) : '0';
+
+      // Update view title
+      const viewTitle = document.querySelector('#overview-view .view-title');
+      if (currentDivision === 'all') {
+        viewTitle.textContent = 'Sales Executive Performance';
+      } else {
+        viewTitle.textContent = currentDivision + ' — Sales Executive Performance';
+      }
 
       document.getElementById('kpi-execs').textContent = execs.length;
       document.getElementById('kpi-gross-sales').textContent = fmt(totalSales);
@@ -1052,6 +1115,7 @@
       document.getElementById('pipeline-tbody').innerHTML = pipelineHTML;
     }
 
+    updateDivisionInfo();
     renderOverview();
   </script>
 </body>
