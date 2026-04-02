@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Data Model — Entity Relationship Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e1e4e8; overflow: hidden; height: 100vh; }
+
+  /* Top bar */
+  .topbar { position: fixed; top: 0; left: 0; right: 0; height: 52px; background: #161822; border-bottom: 1px solid #2a2d3a; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 100; }
+  .topbar h1 { font-size: 15px; font-weight: 600; color: #c9d1d9; letter-spacing: -0.01em; }
+  .topbar .subtitle { font-size: 12px; color: #6b7280; margin-left: 12px; }
+  .legend { display: flex; gap: 16px; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8b949e; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* Canvas */
+  #canvas { width: 100%; height: 100%; padding-top: 52px; cursor: grab; }
+  #canvas:active { cursor: grabbing; }
+  #canvas svg { width: 100%; height: 100%; }
+
+  /* Entity card styles */
+  .entity-group { cursor: pointer; }
+  .entity-group:hover .entity-bg { filter: brightness(1.15); }
+  .entity-bg { rx: 12; ry: 12; transition: filter 0.2s; }
+  .entity-header { rx: 12; ry: 12; }
+  .entity-title { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; fill: #fff; letter-spacing: 0.02em; }
+  .entity-field { font-family: 'Inter', sans-serif; font-size: 11px; fill: #c9d1d9; }
+  .entity-type { font-family: 'Inter', sans-serif; font-size: 10px; fill: #6b7280; text-anchor: end; }
+  .entity-pk { font-family: 'Inter', sans-serif; font-size: 9px; fill: #f0c040; font-weight: 600; }
+  .entity-fk { font-family: 'Inter', sans-serif; font-size: 9px; fill: #58a6ff; font-weight: 600; }
+  .entity-icon { font-size: 14px; }
+
+  /* Relationship lines */
+  .rel-line { stroke-width: 1.5; fill: none; opacity: 0.5; transition: opacity 0.2s; }
+  .rel-line.highlighted { opacity: 1; stroke-width: 2.5; }
+  .rel-label { font-family: 'Inter', sans-serif; font-size: 9px; fill: #6b7280; }
+  .rel-cardinality { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; }
+
+  /* Tooltip */
+  .tooltip { position: fixed; background: #1c1f2b; border: 1px solid #2a2d3a; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #c9d1d9; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 200; max-width: 280px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .tooltip.visible { opacity: 1; }
+  .tooltip h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .tooltip p { font-size: 11px; color: #8b949e; line-height: 1.5; }
+
+  /* Zoom controls */
+  .controls { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 4px; z-index: 100; }
+  .controls button { width: 36px; height: 36px; background: #1c1f2b; border: 1px solid #2a2d3a; border-radius: 8px; color: #c9d1d9; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+  .controls button:hover { background: #2a2d3a; }
+
+  /* Mini-map */
+  .minimap { position: fixed; bottom: 20px; left: 20px; width: 180px; height: 120px; background: #161822; border: 1px solid #2a2d3a; border-radius: 8px; z-index: 100; overflow: hidden; }
+  .minimap svg { width: 100%; height: 100%; }
+  .minimap-viewport { fill: rgba(88,166,255,0.12); stroke: #58a6ff; stroke-width: 1; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:baseline;">
+    <h1>CRM Data Model</h1>
+    <span class="subtitle">11 Entities &middot; General B2B Sales</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#58a6ff;"></div> Core</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7c3aed;"></div> Pipeline</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div> Product</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Financial</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Org</div>
+    <div class="legend-item"><span style="color:#f0c040;">PK</span> Primary Key</div>
+    <div class="legend-item"><span style="color:#58a6ff;">FK</span> Foreign Key</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="zoomIn()" title="Zoom In">+</button>
+  <button onclick="zoomOut()" title="Zoom Out">−</button>
+  <button onclick="resetView()" title="Reset">⟲</button>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div id="canvas">
+<svg id="diagram" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6" fill="#58a6ff" opacity="0.6"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6" fill="#7c3aed" opacity="0.6"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6" fill="#10b981" opacity="0.6"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6" fill="#f59e0b" opacity="0.6"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6" fill="#ef4444" opacity="0.6"/>
+    </marker>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g id="viewport">
+    <!-- Relationships drawn first (behind entities) -->
+    <g id="relationships"></g>
+    <!-- Entities drawn on top -->
+    <g id="entities"></g>
+  </g>
+</svg>
+</div>
+
+<script>
+// ─── Data Model ──────────────────────────────────────────
+const entities = [
+  {
+    id: 'division', name: 'Division', icon: '🏢', color: '#ef4444', category: 'Org',
+    x: 100, y: 80,
+    fields: [
+      { name: 'division_id', type: 'UUID', pk: true },
+      { name: 'name', type: 'VARCHAR(100)' },
+      { name: 'description', type: 'TEXT' },
+      { name: 'head_user_id', type: 'UUID', fk: true },
+      { name: 'created_at', type: 'TIMESTAMP' },
+      { name: 'status', type: 'ENUM' }
+    ],
+    description: 'Business unit that organizes Users, Accounts, and targets. Top-level org structure.'
+  },
+  {
+    id: 'user', name: 'Users', icon: '👤', color: '#58a6ff', category: 'Core',
+    x: 420, y: 60,
+    fields: [
+      { name: 'user_id', type: 'UUID', pk: true },
+      { name: 'division_id', type: 'UUID', fk: true },
+      { name: 'first_name', type: 'VARCHAR(50)' },
+      { name: 'last_name', type: 'VARCHAR(50)' },
+      { name: 'email', type: 'VARCHAR(100)' },
+      { name: 'role', type: 'ENUM' },
+      { name: 'is_active', type: 'BOOLEAN' }
+    ],
+    description: 'Sales reps and system users. Belong to a Division and own Opportunities & Deals.'
+  },
+  {
+    id: 'account', name: 'Accounts', icon: '🏦', color: '#58a6ff', category: 'Core',
+    x: 740, y: 60,
+    fields: [
+      { name: 'account_id', type: 'UUID', pk: true },
+      { name: 'division_id', type: 'UUID', fk: true },
+      { name: 'owner_user_id', type: 'UUID', fk: true },
+      { name: 'name', type: 'VARCHAR(150)' },
+      { name: 'industry', type: 'VARCHAR(80)' },
+      { name: 'website', type: 'VARCHAR(200)' },
+      { name: 'revenue', type: 'DECIMAL(15,2)' },
+      { name: 'status', type: 'ENUM' }
+    ],
+    description: 'Companies/organizations. Each belongs to a Division and is owned by a User.'
+  },
+  {
+    id: 'contact', name: 'Contacts', icon: '📇', color: '#58a6ff', category: 'Core',
+    x: 1060, y: 60,
+    fields: [
+      { name: 'contact_id', type: 'UUID', pk: true },
+      { name: 'account_id', type: 'UUID', fk: true },
+      { name: 'first_name', type: 'VARCHAR(50)' },
+      { name: 'last_name', type: 'VARCHAR(50)' },
+      { name: 'email', type: 'VARCHAR(100)' },
+      { name: 'phone', type: 'VARCHAR(20)' },
+      { name: 'title', type: 'VARCHAR(80)' },
+      { name: 'is_primary', type: 'BOOLEAN' }
+    ],
+    description: 'Individual people at an Account. Each Contact belongs to exactly one Account.'
+  },
+  {
+    id: 'opportunity', name: 'Opportunities', icon: '🎯', color: '#7c3aed', category: 'Pipeline',
+    x: 420, y: 360,
+    fields: [
+      { name: 'opportunity_id', type: 'UUID', pk: true },
+      { name: 'account_id', type: 'UUID', fk: true },
+      { name: 'owner_user_id', type: 'UUID', fk: true },
+      { name: 'contact_id', type: 'UUID', fk: true },
+      { name: 'property_id', type: 'UUID', fk: true },
+      { name: 'name', type: 'VARCHAR(150)' },
+      { name: 'stage', type: 'ENUM' },
+      { name: 'est_value', type: 'DECIMAL(15,2)' },
+      { name: 'probability', type: 'INT' },
+      { name: 'expected_close', type: 'DATE' }
+    ],
+    description: 'Early-stage sales leads. Progress through pipeline stages and convert into Deals when won.'
+  },
+  {
+    id: 'deal', name: 'Deals', icon: '🤝', color: '#7c3aed', category: 'Pipeline',
+    x: 740, y: 360,
+    fields: [
+      { name: 'deal_id', type: 'UUID', pk: true },
+      { name: 'opportunity_id', type: 'UUID', fk: true },
+      { name: 'account_id', type: 'UUID', fk: true },
+      { name: 'owner_user_id', type: 'UUID', fk: true },
+      { name: 'property_id', type: 'UUID', fk: true },
+      { name: 'total_value', type: 'DECIMAL(15,2)' },
+      { name: 'stage', type: 'ENUM' },
+      { name: 'close_date', type: 'DATE' },
+      { name: 'contract_ref', type: 'VARCHAR(80)' }
+    ],
+    description: 'Converted Opportunities. Each Deal is tied to an Account, User, and Property.'
+  },
+  {
+    id: 'property', name: 'Property', icon: '📦', color: '#10b981', category: 'Product',
+    x: 100, y: 360,
+    fields: [
+      { name: 'property_id', type: 'UUID', pk: true },
+      { name: 'division_id', type: 'UUID', fk: true },
+      { name: 'name', type: 'VARCHAR(150)' },
+      { name: 'category', type: 'VARCHAR(80)' },
+      { name: 'description', type: 'TEXT' },
+      { name: 'base_price', type: 'DECIMAL(15,2)' },
+      { name: 'status', type: 'ENUM' }
+    ],
+    description: 'Product or asset type/category. Groups Inventory items and is the basis for Sales Targets.'
+  },
+  {
+    id: 'inventory', name: 'Inventory', icon: '📋', color: '#10b981', category: 'Product',
+    x: 100, y: 620,
+    fields: [
+      { name: 'inventory_id', type: 'UUID', pk: true },
+      { name: 'property_id', type: 'UUID', fk: true },
+      { name: 'sku', type: 'VARCHAR(50)' },
+      { name: 'quantity', type: 'INT' },
+      { name: 'unit_cost', type: 'DECIMAL(12,2)' },
+      { name: 'warehouse', type: 'VARCHAR(80)' },
+      { name: 'reorder_level', type: 'INT' }
+    ],
+    description: 'Specific stock items under a Property (product type). Tracks quantity and unit costs.'
+  },
+  {
+    id: 'payment', name: 'Payments', icon: '💳', color: '#f59e0b', category: 'Financial',
+    x: 740, y: 620,
+    fields: [
+      { name: 'payment_id', type: 'UUID', pk: true },
+      { name: 'deal_id', type: 'UUID', fk: true },
+      { name: 'amount', type: 'DECIMAL(15,2)' },
+      { name: 'payment_date', type: 'DATE' },
+      { name: 'method', type: 'ENUM' },
+      { name: 'status', type: 'ENUM' },
+      { name: 'reference', type: 'VARCHAR(80)' }
+    ],
+    description: 'Payments made against Deals. Tracks installments, milestones, and closing payments.'
+  },
+  {
+    id: 'sales_target', name: 'Sales Targets', icon: '🎯', color: '#f59e0b', category: 'Financial',
+    x: 420, y: 620,
+    fields: [
+      { name: 'target_id', type: 'UUID', pk: true },
+      { name: 'user_id', type: 'UUID', fk: true },
+      { name: 'property_id', type: 'UUID', fk: true },
+      { name: 'fiscal_year', type: 'INT' },
+      { name: 'original_target', type: 'DECIMAL(15,2)' },
+      { name: 'q1_revised', type: 'DECIMAL(15,2)', nullable: true },
+      { name: 'q2_revised', type: 'DECIMAL(15,2)', nullable: true },
+      { name: 'q3_revised', type: 'DECIMAL(15,2)', nullable: true },
+      { name: 'q4_revised', type: 'DECIMAL(15,2)', nullable: true }
+    ],
+    description: 'Single annual target per User per Property. Revised quarterly — each revision replaces the full-year target. Current target = latest non-null revision, else original.'
+  },
+  {
+    id: 'deal_inventory', name: 'Deal Inventory', icon: '🧾', color: '#7c3aed', category: 'Pipeline',
+    x: 1060, y: 460,
+    fields: [
+      { name: 'deal_inventory_id', type: 'UUID', pk: true },
+      { name: 'deal_id', type: 'UUID', fk: true },
+      { name: 'inventory_id', type: 'UUID', fk: true },
+      { name: 'quantity_sold', type: 'INT' },
+      { name: 'unit_price', type: 'DECIMAL(12,2)' },
+      { name: 'discount', type: 'DECIMAL(5,2)' },
+      { name: 'line_total', type: 'DECIMAL(15,2)' }
+    ],
+    description: 'Line items on a Deal — links a Deal to Inventory items with quantity sold, pricing, and discounts.'
+  }
+];
+
+const relationships = [
+  { from: 'division', to: 'user', label: 'has many', card: '1 : N', color: '#ef4444', desc: 'A Division contains many Users' },
+  { from: 'division', to: 'account', label: 'has many', card: '1 : N', color: '#ef4444', desc: 'A Division contains many Accounts' },
+  { from: 'division', to: 'property', label: 'has many', card: '1 : N', color: '#ef4444', desc: 'A Division has many Properties; each Property belongs to one Division' },
+  { from: 'user', to: 'account', label: 'owns', card: '1 : N', color: '#58a6ff', desc: 'A User owns many Accounts' },
+  { from: 'account', to: 'contact', label: 'has many', card: '1 : N', color: '#58a6ff', desc: 'An Account has many Contacts' },
+  { from: 'account', to: 'opportunity', label: 'has many', card: '1 : N', color: '#58a6ff', desc: 'An Account has many Opportunities' },
+  { from: 'user', to: 'opportunity', label: 'owns', card: '1 : N', color: '#7c3aed', desc: 'A User (sales rep) owns many Opportunities' },
+  { from: 'opportunity', to: 'deal', label: 'converts to', card: '1 : 1', color: '#7c3aed', desc: 'An Opportunity converts into a Deal when won' },
+  { from: 'account', to: 'deal', label: 'has many', card: '1 : N', color: '#58a6ff', desc: 'An Account can have many Deals' },
+  { from: 'user', to: 'deal', label: 'owns', card: '1 : N', color: '#7c3aed', desc: 'A User owns many Deals' },
+  { from: 'deal', to: 'payment', label: 'has many', card: '1 : N', color: '#f59e0b', desc: 'A Deal has many Payments (installments/milestones)' },
+  { from: 'property', to: 'inventory', label: 'has many', card: '1 : N', color: '#10b981', desc: 'A Property (product type) has many Inventory items' },
+  { from: 'property', to: 'opportunity', label: 'linked to', card: '1 : N', color: '#10b981', desc: 'Opportunities are linked to a Property (product type)' },
+  { from: 'property', to: 'deal', label: 'linked to', card: '1 : N', color: '#10b981', desc: 'Deals are linked to a Property (product type)' },
+  { from: 'user', to: 'sales_target', label: 'has targets', card: '1 : N', color: '#f59e0b', desc: 'A User has Sales Targets per Property' },
+  { from: 'property', to: 'sales_target', label: 'has targets', card: '1 : N', color: '#f59e0b', desc: 'A Property has a single annual Sales Target per fiscal year, with optional quarterly revisions' },
+  { from: 'contact', to: 'opportunity', label: 'linked to', card: '1 : N', color: '#7c3aed', desc: 'A Contact can be the primary contact on many Opportunities' },
+  { from: 'deal', to: 'deal_inventory', label: 'has many', card: '1 : N', color: '#7c3aed', desc: 'A Deal has many Deal Inventory records (line items showing what was sold)' },
+  { from: 'inventory', to: 'deal_inventory', label: 'sold via', card: '1 : N', color: '#10b981', desc: 'An Inventory item can appear in many Deal Inventory records across different Deals' },
+];
+
+// ─── Rendering ───────────────────────────────────────────
+const CARD_W = 260;
+const ROW_H = 20;
+const HEADER_H = 36;
+const PAD = 12;
+
+const svg = document.getElementById('diagram');
+const viewport = document.getElementById('viewport');
+const entitiesG = document.getElementById('entities');
+const relsG = document.getElementById('relationships');
+const tooltip = document.getElementById('tooltip');
+
+// Calculate card heights
+entities.forEach(e => {
+  e.cardH = HEADER_H + PAD + e.fields.length * ROW_H + PAD;
+});
+
+// Draw entities
+entities.forEach(e => {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.classList.add('entity-group');
+  g.setAttribute('data-id', e.id);
+  g.setAttribute('transform', `translate(${e.x}, ${e.y})`);
+
+  // Shadow
+  const shadow = rect(CARD_W, e.cardH, 2, 4, '#000', 0.25, 12);
+  g.appendChild(shadow);
+
+  // Card background
+  const bg = rect(CARD_W, e.cardH, 0, 0, '#1c1f2b', 1, 12);
+  bg.classList.add('entity-bg');
+  bg.setAttribute('stroke', e.color);
+  bg.setAttribute('stroke-width', '1');
+  bg.setAttribute('stroke-opacity', '0.4');
+  g.appendChild(bg);
+
+  // Header background
+  const hdr = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  hdr.setAttribute('width', CARD_W);
+  hdr.setAttribute('height', HEADER_H);
+  hdr.setAttribute('rx', 12);
+  hdr.setAttribute('ry', 12);
+  hdr.setAttribute('fill', e.color);
+  hdr.setAttribute('fill-opacity', '0.18');
+  g.appendChild(hdr);
+
+  // Header bottom fill (square corners at bottom of header)
+  const hdrBot = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  hdrBot.setAttribute('y', HEADER_H - 12);
+  hdrBot.setAttribute('width', CARD_W);
+  hdrBot.setAttribute('height', 12);
+  hdrBot.setAttribute('fill', e.color);
+  hdrBot.setAttribute('fill-opacity', '0.18');
+  g.appendChild(hdrBot);
+
+  // Divider line
+  const divider = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  divider.setAttribute('x1', 0); divider.setAttribute('x2', CARD_W);
+  divider.setAttribute('y1', HEADER_H); divider.setAttribute('y2', HEADER_H);
+  divider.setAttribute('stroke', e.color); divider.setAttribute('stroke-opacity', '0.25');
+  g.appendChild(divider);
+
+  // Icon + Title
+  const icon = text(12, 24, e.icon, 'entity-icon');
+  g.appendChild(icon);
+  const title = text(30, 24, e.name.toUpperCase(), 'entity-title');
+  title.setAttribute('fill', e.color);
+  g.appendChild(title);
+
+  // Category badge
+  const badge = text(CARD_W - 10, 24, e.category, 'entity-type');
+  badge.setAttribute('fill', e.color);
+  badge.setAttribute('fill-opacity', '0.6');
+  g.appendChild(badge);
+
+  // Fields
+  e.fields.forEach((f, i) => {
+    const fy = HEADER_H + PAD + i * ROW_H + 14;
+
+    // Key badge
+    if (f.pk) {
+      const pkLabel = text(12, fy, 'PK', 'entity-pk');
+      g.appendChild(pkLabel);
+    } else if (f.fk) {
+      const fkLabel = text(12, fy, 'FK', 'entity-fk');
+      g.appendChild(fkLabel);
+    }
+
+    // Field name
+    const fname = text(32, fy, f.name, 'entity-field');
+    if (f.pk) fname.setAttribute('fill', '#f0c040');
+    if (f.fk) fname.setAttribute('fill', '#58a6ff');
+    g.appendChild(fname);
+
+    // Field type
+    const ftype = text(CARD_W - 10, fy, f.type, 'entity-type');
+    g.appendChild(ftype);
+  });
+
+  // Drag behavior
+  let dragging = false, dragOffX = 0, dragOffY = 0;
+  g.addEventListener('mousedown', ev => {
+    if (ev.button !== 0) return;
+    ev.stopPropagation();
+    dragging = true;
+    const pt = svgPoint(ev);
+    dragOffX = pt.x - e.x;
+    dragOffY = pt.y - e.y;
+    g.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mousemove', ev => {
+    if (!dragging) return;
+    const pt = svgPoint(ev);
+    e.x = pt.x - dragOffX;
+    e.y = pt.y - dragOffY;
+    g.setAttribute('transform', `translate(${e.x}, ${e.y})`);
+    drawRelationships();
+  });
+  window.addEventListener('mouseup', () => {
+    if (dragging) { dragging = false; g.style.cursor = 'pointer'; }
+  });
+
+  // Tooltip
+  g.addEventListener('mouseenter', ev => {
+    tooltip.innerHTML = `<h3>${e.icon} ${e.name}</h3><p>${e.description}</p>`;
+    tooltip.classList.add('visible');
+  });
+  g.addEventListener('mousemove', ev => {
+    tooltip.style.left = (ev.clientX + 16) + 'px';
+    tooltip.style.top = (ev.clientY + 16) + 'px';
+  });
+  g.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+
+  // Hover highlight relationships
+  g.addEventListener('mouseenter', () => highlightEntity(e.id));
+  g.addEventListener('mouseleave', () => clearHighlights());
+
+  entitiesG.appendChild(g);
+});
+
+function drawRelationships() {
+  relsG.innerHTML = '';
+  const entityMap = {};
+  entities.forEach(e => entityMap[e.id] = e);
+
+  relationships.forEach(r => {
+    const from = entityMap[r.from];
+    const to = entityMap[r.to];
+    if (!from || !to) return;
+
+    // Calculate connection points (center of edges)
+    const fc = { x: from.x + CARD_W / 2, y: from.y + from.cardH / 2 };
+    const tc = { x: to.x + CARD_W / 2, y: to.y + to.cardH / 2 };
+
+    // Determine best edge
+    let fx, fy, tx, ty;
+    const dx = tc.x - fc.x;
+    const dy = tc.y - fc.y;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Horizontal connection
+      if (dx > 0) {
+        fx = from.x + CARD_W; fy = fc.y;
+        tx = to.x; ty = tc.y;
+      } else {
+        fx = from.x; fy = fc.y;
+        tx = to.x + CARD_W; ty = tc.y;
+      }
+    } else {
+      // Vertical connection
+      if (dy > 0) {
+        fx = fc.x; fy = from.y + from.cardH;
+        tx = tc.x; ty = to.y;
+      } else {
+        fx = fc.x; fy = from.y;
+        tx = tc.x; ty = to.y + to.cardH;
+      }
+    }
+
+    // Curved path
+    const mx = (fx + tx) / 2;
+    const my = (fy + ty) / 2;
+    let path;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      path = `M${fx},${fy} C${mx},${fy} ${mx},${ty} ${tx},${ty}`;
+    } else {
+      path = `M${fx},${fy} C${fx},${my} ${tx},${my} ${tx},${ty}`;
+    }
+
+    const colorKey = r.color === '#58a6ff' ? 'blue' : r.color === '#7c3aed' ? 'purple' : r.color === '#10b981' ? 'green' : r.color === '#f59e0b' ? 'amber' : 'red';
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', path);
+    line.setAttribute('stroke', r.color);
+    line.setAttribute('marker-end', `url(#arrow-${colorKey})`);
+    line.classList.add('rel-line');
+    line.setAttribute('data-from', r.from);
+    line.setAttribute('data-to', r.to);
+    relsG.appendChild(line);
+
+    // Cardinality label
+    const labelX = mx;
+    const labelY = my - 8;
+    const cardLabel = text(labelX, labelY, r.card, 'rel-cardinality');
+    cardLabel.setAttribute('fill', r.color);
+    cardLabel.setAttribute('text-anchor', 'middle');
+    cardLabel.setAttribute('data-from', r.from);
+    cardLabel.setAttribute('data-to', r.to);
+    relsG.appendChild(cardLabel);
+
+    // Relationship name
+    const nameLabel = text(labelX, labelY + 14, r.label, 'rel-label');
+    nameLabel.setAttribute('text-anchor', 'middle');
+    nameLabel.setAttribute('data-from', r.from);
+    nameLabel.setAttribute('data-to', r.to);
+    relsG.appendChild(nameLabel);
+  });
+}
+
+function highlightEntity(id) {
+  document.querySelectorAll('.rel-line').forEach(line => {
+    if (line.getAttribute('data-from') === id || line.getAttribute('data-to') === id) {
+      line.classList.add('highlighted');
+    } else {
+      line.style.opacity = '0.12';
+    }
+  });
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.rel-line').forEach(line => {
+    line.classList.remove('highlighted');
+    line.style.opacity = '';
+  });
+}
+
+// ─── Helpers ─────────────────────────────────────────────
+function rect(w, h, dx, dy, fill, opacity, r) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  el.setAttribute('x', dx); el.setAttribute('y', dy);
+  el.setAttribute('width', w); el.setAttribute('height', h);
+  el.setAttribute('rx', r); el.setAttribute('ry', r);
+  el.setAttribute('fill', fill); el.setAttribute('fill-opacity', opacity);
+  return el;
+}
+
+function text(x, y, content, cls) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  el.setAttribute('x', x); el.setAttribute('y', y);
+  el.classList.add(cls);
+  el.textContent = content;
+  return el;
+}
+
+function svgPoint(ev) {
+  const pt = svg.createSVGPoint();
+  pt.x = ev.clientX; pt.y = ev.clientY;
+  return pt.matrixTransform(viewport.getScreenCTM().inverse());
+}
+
+// ─── Pan & Zoom ──────────────────────────────────────────
+let scale = 1, panX = 40, panY = 30;
+let isPanning = false, panStartX, panStartY;
+
+function updateTransform() {
+  viewport.setAttribute('transform', `translate(${panX},${panY}) scale(${scale})`);
+}
+
+svg.addEventListener('mousedown', ev => {
+  if (ev.target.closest('.entity-group')) return;
+  isPanning = true;
+  panStartX = ev.clientX - panX;
+  panStartY = ev.clientY - panY;
+  svg.style.cursor = 'grabbing';
+});
+window.addEventListener('mousemove', ev => {
+  if (!isPanning) return;
+  panX = ev.clientX - panStartX;
+  panY = ev.clientY - panStartY;
+  updateTransform();
+});
+window.addEventListener('mouseup', () => {
+  isPanning = false;
+  svg.style.cursor = 'grab';
+});
+
+svg.addEventListener('wheel', ev => {
+  ev.preventDefault();
+  const delta = ev.deltaY > 0 ? 0.92 : 1.08;
+  const newScale = Math.min(3, Math.max(0.3, scale * delta));
+  // Zoom toward cursor
+  const rect = svg.getBoundingClientRect();
+  const mx = ev.clientX - rect.left;
+  const my = ev.clientY - rect.top;
+  panX = mx - (mx - panX) * (newScale / scale);
+  panY = my - (my - panY) * (newScale / scale);
+  scale = newScale;
+  updateTransform();
+}, { passive: false });
+
+function zoomIn() { scale = Math.min(3, scale * 1.2); updateTransform(); }
+function zoomOut() { scale = Math.max(0.3, scale * 0.8); updateTransform(); }
+function resetView() { scale = 1; panX = 40; panY = 30; updateTransform(); }
+
+// ─── Init ────────────────────────────────────────────────
+updateTransform();
+drawRelationships();
+</script>
+</body>
+</html>

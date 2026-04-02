@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Exec Dashboard | CerebroCRM</title>
+  <style>
+    :root {
+      --color-primary: #2E5C8A;
+      --color-secondary: #5B9BD5;
+      --color-success: #70AD47;
+      --color-warning: #FFC000;
+      --color-danger: #C5504E;
+      --color-neutral: #A0A0A0;
+      --color-light: #F5F5F5;
+      --color-white: #FFFFFF;
+      --color-dark: #1F1F1F;
+      --color-border: #D9D9D9;
+      --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-size-base: 13px;
+      --font-size-sm: 11px;
+      --font-size-lg: 15px;
+      --font-size-xl: 18px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+      --spacing-xl: 24px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+      --shadow-md: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font-family);
+      font-size: var(--font-size-base);
+      color: var(--color-dark);
+      background-color: #FAFAFA;
+      line-height: 1.4;
+    }
+    .topbar {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      color: var(--color-white);
+      padding: var(--spacing-md) var(--spacing-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-md);
+      border-bottom: 2px solid var(--color-primary);
+    }
+    .topbar-left { display: flex; align-items: center; gap: var(--spacing-lg); }
+    .branding { font-size: var(--font-size-lg); font-weight: 600; letter-spacing: 0.5px; }
+    .branding-sub { font-size: var(--font-size-sm); opacity: 0.85; }
+    .year-toggle { display: flex; gap: var(--spacing-xs); }
+    .year-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: var(--color-white);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      transition: all 0.2s;
+    }
+    .year-btn.active { background: var(--color-white); color: var(--color-primary); font-weight: 600; }
+    .year-btn:hover { background: rgba(255,255,255,0.3); }
+    .breadcrumb {
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-border);
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral);
+    }
+    .breadcrumb a { color: var(--color-secondary); cursor: pointer; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .back-btn {
+      background: var(--color-secondary);
+      color: var(--color-white);
+      border: none;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      margin-right: var(--spacing-md);
+      transition: background 0.2s;
+    }
+    .back-btn:hover { background: var(--color-primary); }
+    .container { padding: var(--spacing-lg); max-width: 1600px; margin: 0 auto; }
+    .view-title { font-size: var(--font-size-xl); font-weight: 600; margin-bottom: var(--spacing-lg); color: var(--color-dark); }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+    .kpi-card {
+      background: var(--color-white);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+    .kpi-label { font-size: var(--font-size-sm); color: var(--color-neutral); margin-bottom: var(--spacing-xs); text-transform: uppercase; letter-spacing: 0.3px; }
+    .kpi-value { font-size: var(--font-size-lg); font-weight: 600; color: var(--color-primary); }
+    .charts-section { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+    @media (max-width: 1200px) { .charts-section { grid-template-columns: 1fr; } }
+    .chart-card {
+      background: var(--color-white);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+    }
+    .chart-title { font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--spacing-md); color: var(--color-dark); }
+    .chart-container { height: 300px; position: relative; }
+    .bar-chart { display: flex; flex-direction: column; gap: var(--spacing-sm); height: 100%; }
+    .bar-row { display: flex; align-items: center; gap: var(--spacing-sm); font-size: var(--font-size-sm); }
+    .bar-label { width: 100px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; }
+    .bar-container { flex: 1; height: 20px; background: var(--color-light); border-radius: 2px; position: relative; overflow: visible; }
+    .bar-fill { height: 100%; background: var(--color-secondary); border-radius: 2px; position: relative; transition: width 0.3s; }
+    .bar-target { position: absolute; width: 2px; height: 120%; background: var(--color-danger); top: -10%; }
+    .bar-value { width: 60px; flex-shrink: 0; text-align: right; }
+    .attainment-bar { height: 24px; background: var(--color-light); border-radius: 4px; overflow: hidden; display: flex; gap: 0; }
+    .attainment-segment { display: flex; align-items: center; justify-content: center; color: var(--color-white); font-size: var(--font-size-sm); font-weight: 600; }
+    .segment-100 { background: var(--color-success); }
+    .segment-85 { background: var(--color-warning); }
+    .segment-70 { background: #E69500; }
+    .segment-below { background: var(--color-danger); }
+    table { width: 100%; border-collapse: collapse; background: var(--color-white); border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; }
+    thead { background: #F0F4F8; border-bottom: 2px solid var(--color-border); }
+    th { padding: var(--spacing-md); text-align: left; font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.3px; border-right: 1px solid var(--color-border); }
+    th:last-child { border-right: none; }
+    td { padding: var(--spacing-md); border-bottom: 1px solid #EBEBEB; border-right: 1px solid #EBEBEB; font-size: var(--font-size-base); }
+    td:last-child { border-right: none; }
+    tbody tr { cursor: pointer; transition: background 0.2s; }
+    tbody tr:hover { background: #F9FBFD; }
+    .numeric { text-align: right; font-variant-numeric: tabular-nums; }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: var(--font-size-sm); font-weight: 500; }
+    .stage-won { background: #E2F0D9; color: #548235; }
+    .stage-negotiation { background: #E7E6E6; color: #595959; }
+    .stage-proposal { background: #FCE4D6; color: #9C6500; }
+    .stage-qualification { background: #FFF2CC; color: #9C6500; }
+    .stage-prospecting { background: #FFFFCC; color: #9C6500; }
+    .sparkline { height: 20px; width: 60px; display: inline-block; }
+    .filter-pills { display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-md); }
+    .filter-pill {
+      background: #F0F4F8;
+      border: 1px solid var(--color-border);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      transition: all 0.2s;
+    }
+    .filter-pill.active { background: var(--color-secondary); color: var(--color-white); border-color: var(--color-secondary); }
+    .filter-pill:hover { border-color: var(--color-secondary); }
+    .section-title { font-size: var(--font-size-lg); font-weight: 600; margin-top: var(--spacing-lg); margin-bottom: var(--spacing-md); color: var(--color-dark); border-top: 2px solid var(--color-border); padding-top: var(--spacing-md); }
+    .waterfall-chart { height: 280px; position: relative; }
+    .waterfall-bar { display: flex; align-items: flex-end; height: 100%; gap: var(--spacing-md); }
+    .waterfall-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--spacing-xs); }
+    .waterfall-rect { width: 100%; background: var(--color-secondary); border-radius: 2px 2px 0 0; position: relative; min-height: 20px; }
+    .waterfall-label { font-size: var(--font-size-sm); text-align: center; color: var(--color-neutral); white-space: nowrap; }
+    .waterfall-value { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="branding">CerebroCRM</div>
+        <div class="branding-sub">Sales Executive Dashboard</div>
+      </div>
+    </div>
+    <div class="year-toggle">
+      <button class="year-btn active" data-year="all">All Years</button>
+      <button class="year-btn" data-year="2025">FY 2025</button>
+      <button class="year-btn" data-year="2026">FY 2026</button>
+    </div>
+  </div>
+
+  <div class="breadcrumb">
+    <span id="breadcrumb-content">Sales Executives</span>
+  </div>
+
+  <div class="container">
+    <div id="overview-view">
+      <div class="view-title">Sales Executive Performance</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Total Sales Execs</div><div class="kpi-value" id="kpi-execs">22</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Gross Sales</div><div class="kpi-value" id="kpi-gross-sales">$0M</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Current Target</div><div class="kpi-value" id="kpi-target">$0M</div></div>
+        <div class="kpi-card"><div class="kpi-label">Overall Attainment</div><div class="kpi-value" id="kpi-attainment">0%</div></div>
+        <div class="kpi-card"><div class="kpi-label">Open Pipeline</div><div class="kpi-value" id="kpi-pipeline">$0M</div></div>
+        <div class="kpi-card"><div class="kpi-label">Weighted Pipeline</div><div class="kpi-value" id="kpi-weighted-pipeline">$0M</div></div>
+      </div>
+
+      <div class="charts-section">
+        <div class="chart-card">
+          <div class="chart-title">Top 10 Sales Execs by Sales</div>
+          <div class="chart-container"><div class="bar-chart" id="top-execs-chart"></div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Attainment Distribution</div>
+          <div class="chart-container" style="height: auto; padding: var(--spacing-md) 0;"><div class="attainment-bar" id="attainment-dist"></div></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">All Sales Executives</div>
+        <table id="execs-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Division</th><th>Title</th><th class="numeric">Gross Sales</th><th class="numeric">Original Target</th><th class="numeric">Current Target</th><th class="numeric">Variance</th><th>Attainment</th><th class="numeric">Pipeline</th><th class="numeric">Opps</th><th class="numeric">Deals Won</th><th>Trend</th>
+            </tr>
+          </thead>
+          <tbody id="execs-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="detail-view" class="hidden">
+      <button class="back-btn" id="back-btn">← Back to Overview</button>
+      <div class="view-title" id="detail-title"></div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label" id="detail-exec-name"></div><div class="kpi-value" id="detail-gross-sales">$0M</div></div>
+        <div class="kpi-card"><div class="kpi-label">Current Target</div><div class="kpi-value" id="detail-current-target">$0M</div><div style="font-size: var(--font-size-sm); color: var(--color-neutral); margin-top: var(--spacing-xs);"><span id="detail-original-target">Original: $0M</span> | <span id="detail-delta">Delta: $0M</span></div></div>
+        <div class="kpi-card"><div class="kpi-label">Attainment</div><div class="kpi-value" id="detail-attainment">0%</div></div>
+        <div class="kpi-card"><div class="kpi-label">Avg Deal Size</div><div class="kpi-value" id="detail-avg-deal">$0K</div></div>
+        <div class="kpi-card"><div class="kpi-label">Open Pipeline</div><div class="kpi-value" id="detail-pipeline">$0M</div><div style="font-size: var(--font-size-sm); color: var(--color-neutral); margin-top: var(--spacing-xs);" id="detail-weighted-label">Weighted: $0M</div></div>
+      </div>
+
+      <div class="charts-section">
+        <div class="chart-card"><div class="chart-title">Target Revision History & Cumulative Sales</div><div class="waterfall-chart" id="waterfall-chart"></div></div>
+        <div class="chart-card"><div class="chart-title">Sales by Property</div><div class="chart-container"><div class="bar-chart" id="sales-by-property"></div></div></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="section-title">Deals</div>
+        <div class="filter-pills" id="stage-filters"></div>
+        <table id="deals-table">
+          <thead><tr><th>Deal ID</th><th>Property</th><th>Account</th><th class="numeric">Value</th><th>Stage</th><th>Close Date</th><th>Contract Ref</th><th>Quarter</th><th>Year</th></tr></thead>
+          <tbody id="deals-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="chart-card">
+        <div class="section-title">Open Opportunities</div>
+        <table id="opps-table">
+          <thead><tr><th>Opp ID</th><th>Property</th><th>Account</th><th class="numeric">Value</th><th>Stage</th><th class="numeric">Probability</th><th class="numeric">Weighted Value</th><th>Expected Close</th><th>Quarter</th><th>Year</th></tr></thead>
+          <tbody id="opps-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="chart-card">
+        <div class="section-title">Pipeline Summary by Stage</div>
+        <table id="pipeline-table">
+          <thead><tr><th>Stage</th><th class="numeric">Count</th><th class="numeric">Total Value</th><th class="numeric">Weighted Value</th><th class="numeric">Avg Value</th><th>Distribution</th></tr></thead>
+          <tbody id="pipeline-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DATA = {
+      divisions: [
+    {
+      id: 'DIV001', name: 'PWR Events', head: 'James Crawford', status: 'Active',
+      properties: [
+        { id: 'P001', name: 'Winter Wonderland', category: 'Seasonal Events',
+          targets: { 2025: { original: 12000000, q1_revised: null, q2_revised: 12500000, q3_revised: null, q4_revised: null }, 2026: { original: 13500000, q1_revised: 13200000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D1001', account: 'Merlin Entertainments', owner: 'Rachel Adams', value: 1450000, stage: 'Won', close_date: '2025-01-20', contract: 'CTR-2025-001', quarter: 'Q1', year: 2025 },
+            { id: 'D1002', account: 'Coca-Cola Europacific', owner: 'Tom Ngata', value: 1200000, stage: 'Won', close_date: '2025-03-12', contract: 'CTR-2025-002', quarter: 'Q1', year: 2025 },
+            { id: 'D1003', account: 'Swarovski AG', owner: 'Rachel Adams', value: 1680000, stage: 'Won', close_date: '2025-05-08', contract: 'CTR-2025-003', quarter: 'Q2', year: 2025 },
+            { id: 'D1004', account: 'Lindt & Sprungli', owner: 'Tom Ngata', value: 980000, stage: 'Won', close_date: '2025-06-18', contract: 'CTR-2025-004', quarter: 'Q2', year: 2025 },
+            { id: 'D1005', account: 'Sky UK', owner: 'Rachel Adams', value: 1850000, stage: 'Won', close_date: '2025-07-25', contract: 'CTR-2025-005', quarter: 'Q3', year: 2025 },
+            { id: 'D1006', account: 'Haagen-Dazs', owner: 'Tom Ngata', value: 920000, stage: 'Won', close_date: '2025-09-10', contract: 'CTR-2025-006', quarter: 'Q3', year: 2025 },
+            { id: 'D1007', account: 'Baileys (Diageo)', owner: 'Rachel Adams', value: 1550000, stage: 'Won', close_date: '2025-10-28', contract: 'CTR-2025-007', quarter: 'Q4', year: 2025 },
+            { id: 'D1008', account: 'EDF Energy', owner: 'Tom Ngata', value: 1100000, stage: 'Won', close_date: '2025-12-10', contract: 'CTR-2025-008', quarter: 'Q4', year: 2025 },
+            { id: 'D1009', account: 'Samsung UK', owner: 'Rachel Adams', value: 1620000, stage: 'Won', close_date: '2026-02-05', contract: 'CTR-2026-001', quarter: 'Q1', year: 2026 },
+            { id: 'D1010', account: 'Fever-Tree', owner: 'Tom Ngata', value: 880000, stage: 'Won', close_date: '2026-03-18', contract: 'CTR-2026-002', quarter: 'Q1', year: 2026 },
+            { id: 'D1011', account: 'Mastercard', owner: 'Rachel Adams', value: 1350000, stage: 'Negotiation', close_date: '2026-04-22', contract: '', quarter: 'Q2', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O1001', account: 'ASOS', owner: 'Rachel Adams', value: 1200000, stage: 'Negotiation', expected_close: '2026-04-15', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O1002', account: 'Volkswagen Group', owner: 'Tom Ngata', value: 900000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O1003', account: 'Unilever', owner: 'Rachel Adams', value: 1400000, stage: 'Qualification', expected_close: '2025-11-30', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O1004', account: 'Twitter/X UK', owner: 'Tom Ngata', value: 1100000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O1005', account: 'Rolls-Royce Motor Cars', owner: 'Rachel Adams', value: 1600000, stage: 'Proposal', expected_close: '2026-05-10', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O1006', account: 'Bentley Motors', owner: 'Tom Ngata', value: 1050000, stage: 'Qualification', expected_close: '2026-02-15', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P002', name: 'Hampton Court Palace Festival', category: 'Music Festival',
+          targets: { 2025: { original: 5800000, q1_revised: null, q2_revised: 6100000, q3_revised: null, q4_revised: null }, 2026: { original: 6500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D1020', account: 'IMG Artists', owner: 'David Okonkwo', value: 720000, stage: 'Won', close_date: '2025-01-28', contract: 'CTR-2025-010', quarter: 'Q1', year: 2025 },
+            { id: 'D1021', account: 'Historic Royal Palaces', owner: 'Priya Sharma', value: 580000, stage: 'Won', close_date: '2025-03-15', contract: 'CTR-2025-011', quarter: 'Q1', year: 2025 },
+            { id: 'D1022', account: 'Moet Hennessy', owner: 'David Okonkwo', value: 850000, stage: 'Won', close_date: '2025-05-20', contract: 'CTR-2025-012', quarter: 'Q2', year: 2025 },
+            { id: 'D1023', account: 'Veuve Clicquot', owner: 'Priya Sharma', value: 680000, stage: 'Won', close_date: '2025-06-28', contract: 'CTR-2025-013', quarter: 'Q2', year: 2025 },
+            { id: 'D1024', account: 'Laurent-Perrier', owner: 'David Okonkwo', value: 920000, stage: 'Won', close_date: '2025-08-12', contract: 'CTR-2025-014', quarter: 'Q3', year: 2025 },
+            { id: 'D1025', account: 'Tanqueray (Diageo)', owner: 'Priya Sharma', value: 550000, stage: 'Won', close_date: '2025-09-22', contract: 'CTR-2025-015', quarter: 'Q3', year: 2025 },
+            { id: 'D1026', account: 'Coutts & Co', owner: 'David Okonkwo', value: 780000, stage: 'Won', close_date: '2025-11-05', contract: 'CTR-2025-016', quarter: 'Q4', year: 2025 },
+            { id: 'D1027', account: 'Nyetimber', owner: 'Priya Sharma', value: 480000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-017', quarter: 'Q4', year: 2025 },
+            { id: 'D1028', account: 'Fortnum & Mason', owner: 'David Okonkwo', value: 650000, stage: 'Won', close_date: '2026-02-10', contract: 'CTR-2026-010', quarter: 'Q1', year: 2026 },
+            { id: 'D1029', account: 'Jaguar Land Rover', owner: 'Priya Sharma', value: 520000, stage: 'Won', close_date: '2026-03-25', contract: 'CTR-2026-011', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O1020', account: 'Diageo', owner: 'David Okonkwo', value: 580000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O1021', account: 'BMW UK', owner: 'Priya Sharma', value: 420000, stage: 'Proposal', expected_close: '2026-03-20', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O1022', account: 'Perrier', owner: 'David Okonkwo', value: 380000, stage: 'Qualification', expected_close: '2025-12-10', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O1023', account: 'Aston Martin', owner: 'Priya Sharma', value: 510000, stage: 'Prospecting', expected_close: '2026-05-15', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O1024', account: 'Rolex', owner: 'David Okonkwo', value: 550000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+          ]
+        },
+        { id: 'P003', name: 'Windsor Great Park', category: 'Outdoor Events',
+          targets: { 2025: { original: 4200000, q1_revised: null, q2_revised: null, q3_revised: 4500000, q4_revised: null }, 2026: { original: 4800000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D1040', account: 'Crown Estate', owner: 'Sophie Ellis', value: 580000, stage: 'Won', close_date: '2025-02-05', contract: 'CTR-2025-020', quarter: 'Q1', year: 2025 },
+            { id: 'D1041', account: 'National Trust', owner: 'Marcus James', value: 450000, stage: 'Won', close_date: '2025-03-22', contract: 'CTR-2025-021', quarter: 'Q1', year: 2025 },
+            { id: 'D1042', account: 'Royal Borough of Windsor', owner: 'Sophie Ellis', value: 620000, stage: 'Won', close_date: '2025-05-15', contract: 'CTR-2025-022', quarter: 'Q2', year: 2025 },
+            { id: 'D1043', account: 'Blenheim Palace Events', owner: 'Marcus James', value: 380000, stage: 'Won', close_date: '2025-06-25', contract: 'CTR-2025-023', quarter: 'Q2', year: 2025 },
+            { id: 'D1044', account: 'English Heritage', owner: 'Sophie Ellis', value: 720000, stage: 'Won', close_date: '2025-08-18', contract: 'CTR-2025-024', quarter: 'Q3', year: 2025 },
+            { id: 'D1045', account: 'Savills', owner: 'Marcus James', value: 350000, stage: 'Won', close_date: '2025-09-28', contract: 'CTR-2025-025', quarter: 'Q3', year: 2025 },
+            { id: 'D1046', account: 'Chatsworth House Trust', owner: 'Sophie Ellis', value: 520000, stage: 'Won', close_date: '2025-11-10', contract: 'CTR-2025-026', quarter: 'Q4', year: 2025 },
+            { id: 'D1047', account: 'Woburn Enterprises', owner: 'Marcus James', value: 280000, stage: 'Won', close_date: '2025-12-15', contract: 'CTR-2025-027', quarter: 'Q4', year: 2025 },
+            { id: 'D1048', account: 'Goodwood Estate', owner: 'Sophie Ellis', value: 480000, stage: 'Won', close_date: '2026-01-28', contract: 'CTR-2026-020', quarter: 'Q1', year: 2026 },
+            { id: 'D1049', account: 'Highclere Castle', owner: 'Marcus James', value: 320000, stage: 'Won', close_date: '2026-03-12', contract: 'CTR-2026-021', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O1040', account: 'National Trust Events', owner: 'Sophie Ellis', value: 420000, stage: 'Negotiation', expected_close: '2026-04-05', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O1041', account: 'Outdoor Brands UK', owner: 'Marcus James', value: 360000, stage: 'Proposal', expected_close: '2026-03-15', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O1042', account: 'Heritage Experiences', owner: 'Sophie Ellis', value: 300000, stage: 'Qualification', expected_close: '2025-11-25', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O1043', account: 'Luxury Hotels Association', owner: 'Marcus James', value: 380000, stage: 'Prospecting', expected_close: '2026-05-10', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O1044', account: 'Event Professionals UK', owner: 'Sophie Ellis', value: 450000, stage: 'Proposal', expected_close: '2026-04-20', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O1045', account: 'Golf Resorts Ltd', owner: 'Marcus James', value: 340000, stage: 'Qualification', expected_close: '2026-02-10', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P004', name: 'The Chimney Lift at Battersea Power Station', category: 'Attractions',
+          targets: { 2025: { original: 3500000, q1_revised: null, q2_revised: 3700000, q3_revised: null, q4_revised: null }, 2026: { original: 4000000, q1_revised: 3800000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D1060', account: 'Battersea Power Station Dev Co', owner: 'Rachel Adams', value: 520000, stage: 'Won', close_date: '2025-01-15', contract: 'CTR-2025-030', quarter: 'Q1', year: 2025 },
+            { id: 'D1061', account: 'Apple UK (Battersea)', owner: 'Tom Ngata', value: 420000, stage: 'Won', close_date: '2025-03-28', contract: 'CTR-2025-031', quarter: 'Q1', year: 2025 },
+            { id: 'D1062', account: 'Wandsworth Council', owner: 'Rachel Adams', value: 550000, stage: 'Won', close_date: '2025-05-10', contract: 'CTR-2025-032', quarter: 'Q2', year: 2025 },
+            { id: 'D1063', account: 'Transport for London', owner: 'Tom Ngata', value: 380000, stage: 'Won', close_date: '2025-06-22', contract: 'CTR-2025-033', quarter: 'Q2', year: 2025 },
+            { id: 'D1064', account: 'Circus West Village', owner: 'Rachel Adams', value: 480000, stage: 'Won', close_date: '2025-08-05', contract: 'CTR-2025-034', quarter: 'Q3', year: 2025 },
+            { id: 'D1065', account: 'Gordon Ramsay Restaurants', owner: 'Tom Ngata', value: 320000, stage: 'Won', close_date: '2025-09-15', contract: 'CTR-2025-035', quarter: 'Q3', year: 2025 },
+            { id: 'D1066', account: 'No.1 Battersea Power Station', owner: 'Rachel Adams', value: 450000, stage: 'Won', close_date: '2025-11-08', contract: 'CTR-2025-036', quarter: 'Q4', year: 2025 },
+            { id: 'D1067', account: 'Malaysian SP Setia', owner: 'Tom Ngata', value: 280000, stage: 'Won', close_date: '2025-12-20', contract: 'CTR-2025-037', quarter: 'Q4', year: 2025 },
+            { id: 'D1068', account: 'Lift 109 Sponsors Ltd', owner: 'Rachel Adams', value: 420000, stage: 'Won', close_date: '2026-02-12', contract: 'CTR-2026-030', quarter: 'Q1', year: 2026 },
+            { id: 'D1069', account: 'Battersea Arts Centre', owner: 'Tom Ngata', value: 250000, stage: 'Won', close_date: '2026-03-22', contract: 'CTR-2026-031', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O1060', account: 'London Architecture Trust', owner: 'Rachel Adams', value: 380000, stage: 'Negotiation', expected_close: '2026-04-08', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O1061', account: 'Museum UK Association', owner: 'Tom Ngata', value: 320000, stage: 'Proposal', expected_close: '2026-03-18', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O1062', account: 'Educational Tours', owner: 'Rachel Adams', value: 280000, stage: 'Qualification', expected_close: '2025-11-30', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O1063', account: 'Real Estate Developers UK', owner: 'Tom Ngata', value: 350000, stage: 'Prospecting', expected_close: '2026-05-12', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O1064', account: 'Team Building Specialists', owner: 'Rachel Adams', value: 410000, stage: 'Proposal', expected_close: '2026-04-15', probability: 0.50, quarter: 'Q2', year: 2026 },
+          ]
+        },
+        { id: 'P005', name: 'Glide at Battersea Power Station', category: 'Seasonal Events',
+          targets: { 2025: { original: 2800000, q1_revised: null, q2_revised: null, q3_revised: 3000000, q4_revised: null }, 2026: { original: 3200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D1080', account: 'Vans (VF Corp)', owner: 'David Okonkwo', value: 380000, stage: 'Won', close_date: '2025-02-08', contract: 'CTR-2025-040', quarter: 'Q1', year: 2025 },
+            { id: 'D1081', account: 'Red Bull UK', owner: 'Priya Sharma', value: 320000, stage: 'Won', close_date: '2025-03-20', contract: 'CTR-2025-041', quarter: 'Q1', year: 2025 },
+            { id: 'D1082', account: 'Rekorderlig', owner: 'David Okonkwo', value: 450000, stage: 'Won', close_date: '2025-05-18', contract: 'CTR-2025-042', quarter: 'Q2', year: 2025 },
+            { id: 'D1083', account: 'Beavertown Brewery', owner: 'Priya Sharma', value: 280000, stage: 'Won', close_date: '2025-06-30', contract: 'CTR-2025-043', quarter: 'Q2', year: 2025 },
+            { id: 'D1084', account: 'Three Mobile', owner: 'David Okonkwo', value: 520000, stage: 'Won', close_date: '2025-08-15', contract: 'CTR-2025-044', quarter: 'Q3', year: 2025 },
+            { id: 'D1085', account: 'Hunter Boots', owner: 'Priya Sharma', value: 250000, stage: 'Won', close_date: '2025-09-25', contract: 'CTR-2025-045', quarter: 'Q3', year: 2025 },
+            { id: 'D1086', account: 'The North Face', owner: 'David Okonkwo', value: 380000, stage: 'Won', close_date: '2025-11-12', contract: 'CTR-2025-046', quarter: 'Q4', year: 2025 },
+            { id: 'D1087', account: 'Sipsmith Gin', owner: 'Priya Sharma', value: 220000, stage: 'Won', close_date: '2025-12-22', contract: 'CTR-2025-047', quarter: 'Q4', year: 2025 },
+            { id: 'D1088', account: 'Jagermeister UK', owner: 'David Okonkwo', value: 350000, stage: 'Won', close_date: '2026-01-25', contract: 'CTR-2026-040', quarter: 'Q1', year: 2026 },
+            { id: 'D1089', account: 'Patagonia UK', owner: 'Priya Sharma', value: 180000, stage: 'Won', close_date: '2026-03-10', contract: 'CTR-2026-041', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O1080', account: 'Lifestyle Brands UK', owner: 'David Okonkwo', value: 300000, stage: 'Negotiation', expected_close: '2026-04-12', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O1081', account: 'Sports Equipment Distributors', owner: 'Priya Sharma', value: 240000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O1082', account: 'Youth Culture Media', owner: 'David Okonkwo', value: 220000, stage: 'Qualification', expected_close: '2025-12-05', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O1083', account: 'Winter Sport Brands', owner: 'Priya Sharma', value: 280000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O1084', account: 'Entertainment Venues Ltd', owner: 'David Okonkwo', value: 320000, stage: 'Proposal', expected_close: '2026-04-18', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O1085', account: 'Urban Recreation Spaces', owner: 'Priya Sharma', value: 260000, stage: 'Qualification', expected_close: '2026-02-20', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV002', name: 'Culinary', head: 'Elena Marchetti', status: 'Active',
+      properties: [
+        { id: 'P006', name: 'The Big Feastival', category: 'Food & Music Festival',
+          targets: { 2025: { original: 4500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: 4700000 }, 2026: { original: 5200000, q1_revised: 5000000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D1120', account: 'Alex James Presents', owner: 'Rachel Adams', value: 580000, stage: 'Won', close_date: '2025-01-22', contract: 'CTR-2025-060', quarter: 'Q1', year: 2025 },
+            { id: 'D1121', account: 'Jamie Oliver Group', owner: 'Tom Ngata', value: 480000, stage: 'Won', close_date: '2025-03-18', contract: 'CTR-2025-061', quarter: 'Q1', year: 2025 },
+            { id: 'D1122', account: 'Sainsburys', owner: 'Rachel Adams', value: 720000, stage: 'Won', close_date: '2025-05-12', contract: 'CTR-2025-062', quarter: 'Q2', year: 2025 },
+            { id: 'D1123', account: 'Innocent Drinks', owner: 'Tom Ngata', value: 380000, stage: 'Won', close_date: '2025-06-25', contract: 'CTR-2025-063', quarter: 'Q2', year: 2025 },
+            { id: 'D1124', account: 'Kenwood (De\'Longhi)', owner: 'Rachel Adams', value: 650000, stage: 'Won', close_date: '2025-08-08', contract: 'CTR-2025-064', quarter: 'Q3', year: 2025 },
+            { id: 'D1125', account: 'Malibu (Pernod Ricard)', owner: 'Tom Ngata', value: 350000, stage: 'Won', close_date: '2025-09-22', contract: 'CTR-2025-065', quarter: 'Q3', year: 2025 },
+            { id: 'D1126', account: 'Cotswold Distillery', owner: 'Rachel Adams', value: 520000, stage: 'Won', close_date: '2025-11-10', contract: 'CTR-2025-066', quarter: 'Q4', year: 2025 },
+            { id: 'D1127', account: 'Pip & Nut', owner: 'Tom Ngata', value: 280000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-067', quarter: 'Q4', year: 2025 },
+            { id: 'D1128', account: 'Abel & Cole', owner: 'Rachel Adams', value: 450000, stage: 'Won', close_date: '2026-02-15', contract: 'CTR-2026-060', quarter: 'Q1', year: 2026 },
+            { id: 'D1129', account: 'Belazu Fine Foods', owner: 'Tom Ngata', value: 320000, stage: 'Won', close_date: '2026-03-28', contract: 'CTR-2026-061', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O1120', account: 'Waitrose & Partners', owner: 'Rachel Adams', value: 480000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O1121', account: 'Tesco UK', owner: 'Tom Ngata', value: 420000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O1122', account: 'Marks & Spencer Food', owner: 'Rachel Adams', value: 380000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O1123', account: 'Fortnum & Mason', owner: 'Tom Ngata', value: 450000, stage: 'Prospecting', expected_close: '2026-05-15', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O1124', account: 'Selfridges Food Hall', owner: 'Rachel Adams', value: 520000, stage: 'Proposal', expected_close: '2026-04-22', probability: 0.50, quarter: 'Q2', year: 2026 },
+          ]
+        },
+        { id: 'P007', name: 'Taste of London', category: 'Food Festival',
+          targets: { 2025: { original: 6500000, q1_revised: null, q2_revised: 6800000, q3_revised: null, q4_revised: null }, 2026: { original: 7200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D2001', account: 'Nobu Hospitality', owner: 'Luke Ferrara', value: 780000, stage: 'Won', close_date: '2025-01-25', contract: 'CTR-2025-070', quarter: 'Q1', year: 2025 },
+            { id: 'D2002', account: 'The Wolseley Group', owner: 'Amara Chen', value: 620000, stage: 'Won', close_date: '2025-03-15', contract: 'CTR-2025-071', quarter: 'Q1', year: 2025 },
+            { id: 'D2003', account: 'Gordon Ramsay Restaurants', owner: 'Luke Ferrara', value: 950000, stage: 'Won', close_date: '2025-05-08', contract: 'CTR-2025-072', quarter: 'Q2', year: 2025 },
+            { id: 'D2004', account: 'Soho House', owner: 'Amara Chen', value: 580000, stage: 'Won', close_date: '2025-06-22', contract: 'CTR-2025-073', quarter: 'Q2', year: 2025 },
+            { id: 'D2005', account: 'Hawksmoor', owner: 'Luke Ferrara', value: 1050000, stage: 'Won', close_date: '2025-08-12', contract: 'CTR-2025-074', quarter: 'Q3', year: 2025 },
+            { id: 'D2006', account: 'Dishoom', owner: 'Amara Chen', value: 520000, stage: 'Won', close_date: '2025-09-18', contract: 'CTR-2025-075', quarter: 'Q3', year: 2025 },
+            { id: 'D2007', account: 'The Ivy Collection', owner: 'Luke Ferrara', value: 880000, stage: 'Won', close_date: '2025-11-10', contract: 'CTR-2025-076', quarter: 'Q4', year: 2025 },
+            { id: 'D2008', account: 'D&D London', owner: 'Amara Chen', value: 450000, stage: 'Won', close_date: '2025-12-15', contract: 'CTR-2025-077', quarter: 'Q4', year: 2025 },
+            { id: 'D2009', account: 'Ottolenghi Group', owner: 'Luke Ferrara', value: 720000, stage: 'Won', close_date: '2026-02-10', contract: 'CTR-2026-070', quarter: 'Q1', year: 2026 },
+            { id: 'D2010', account: 'Sketch London', owner: 'Amara Chen', value: 480000, stage: 'Won', close_date: '2026-03-20', contract: 'CTR-2026-071', quarter: 'Q1', year: 2026 },
+            { id: 'D2011', account: 'Hakkasan Group', owner: 'Luke Ferrara', value: 850000, stage: 'Negotiation', close_date: '2026-04-15', contract: '', quarter: 'Q2', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O2001', account: 'Marriott Hotels', owner: 'Luke Ferrara', value: 680000, stage: 'Negotiation', expected_close: '2026-04-05', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O2002', account: 'Four Seasons', owner: 'Amara Chen', value: 620000, stage: 'Proposal', expected_close: '2026-03-20', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O2003', account: 'Rosewood Hotels', owner: 'Luke Ferrara', value: 580000, stage: 'Qualification', expected_close: '2025-12-10', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O2004', account: 'Mandarin Oriental', owner: 'Amara Chen', value: 650000, stage: 'Prospecting', expected_close: '2026-05-18', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O2005', account: 'Peninsula Hotels', owner: 'Luke Ferrara', value: 720000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O2006', account: 'Sheraton London', owner: 'Amara Chen', value: 560000, stage: 'Qualification', expected_close: '2026-02-12', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P009', name: 'Taste of Paris', category: 'Food Festival',
+          targets: { 2025: { original: 5200000, q1_revised: null, q2_revised: null, q3_revised: 5500000, q4_revised: null }, 2026: { original: 5800000, q1_revised: 5600000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D2020', account: 'Alain Ducasse Group', owner: 'Nina Kowalski', value: 680000, stage: 'Won', close_date: '2025-02-12', contract: 'CTR-2025-080', quarter: 'Q1', year: 2025 },
+            { id: 'D2021', account: 'Le Bristol Paris', owner: 'Jack Thornton', value: 520000, stage: 'Won', close_date: '2025-03-28', contract: 'CTR-2025-081', quarter: 'Q1', year: 2025 },
+            { id: 'D2022', account: 'Accor Hotels', owner: 'Nina Kowalski', value: 780000, stage: 'Won', close_date: '2025-05-15', contract: 'CTR-2025-082', quarter: 'Q2', year: 2025 },
+            { id: 'D2023', account: 'Moet & Chandon', owner: 'Jack Thornton', value: 650000, stage: 'Won', close_date: '2025-06-30', contract: 'CTR-2025-083', quarter: 'Q2', year: 2025 },
+            { id: 'D2024', account: 'Ladurée', owner: 'Nina Kowalski', value: 580000, stage: 'Won', close_date: '2025-08-05', contract: 'CTR-2025-084', quarter: 'Q3', year: 2025 },
+            { id: 'D2025', account: 'Le Cordon Bleu', owner: 'Jack Thornton', value: 420000, stage: 'Won', close_date: '2025-09-22', contract: 'CTR-2025-085', quarter: 'Q3', year: 2025 },
+            { id: 'D2026', account: 'Fauchon Paris', owner: 'Nina Kowalski', value: 650000, stage: 'Won', close_date: '2025-11-08', contract: 'CTR-2025-086', quarter: 'Q4', year: 2025 },
+            { id: 'D2027', account: 'Pierre Hermé Paris', owner: 'Jack Thornton', value: 380000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-087', quarter: 'Q4', year: 2025 },
+            { id: 'D2028', account: 'Relais & Chateaux', owner: 'Nina Kowalski', value: 550000, stage: 'Won', close_date: '2026-01-22', contract: 'CTR-2026-080', quarter: 'Q1', year: 2026 },
+            { id: 'D2029', account: 'Dom Perignon', owner: 'Jack Thornton', value: 420000, stage: 'Won', close_date: '2026-03-08', contract: 'CTR-2026-081', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O2020', account: 'Ritz Paris', owner: 'Nina Kowalski', value: 520000, stage: 'Negotiation', expected_close: '2026-04-08', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O2021', account: 'Louis Vuitton Paris', owner: 'Jack Thornton', value: 480000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O2022', account: 'Dior Fashion House', owner: 'Nina Kowalski', value: 420000, stage: 'Qualification', expected_close: '2025-12-05', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O2023', account: 'Louvre Museum Events', owner: 'Jack Thornton', value: 450000, stage: 'Prospecting', expected_close: '2026-05-22', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O2024', account: 'Chanel Paris', owner: 'Nina Kowalski', value: 560000, stage: 'Proposal', expected_close: '2026-04-20', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O2025', account: 'Chateau Versailles Events', owner: 'Jack Thornton', value: 380000, stage: 'Qualification', expected_close: '2026-02-15', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P010', name: 'Gourmet Escape', category: 'Culinary Experience',
+          targets: { 2025: { original: 3800000, q1_revised: null, q2_revised: 4000000, q3_revised: null, q4_revised: null }, 2026: { original: 4500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D2040', account: 'Tourism Western Australia', owner: 'Luke Ferrara', value: 520000, stage: 'Won', close_date: '2025-01-30', contract: 'CTR-2025-090', quarter: 'Q1', year: 2025 },
+            { id: 'D2041', account: 'Margaret River Wine Assoc', owner: 'Amara Chen', value: 380000, stage: 'Won', close_date: '2025-03-20', contract: 'CTR-2025-091', quarter: 'Q1', year: 2025 },
+            { id: 'D2042', account: 'Leeuwin Estate', owner: 'Luke Ferrara', value: 480000, stage: 'Won', close_date: '2025-05-12', contract: 'CTR-2025-092', quarter: 'Q2', year: 2025 },
+            { id: 'D2043', account: 'Qantas Airways', owner: 'Amara Chen', value: 620000, stage: 'Won', close_date: '2025-06-25', contract: 'CTR-2025-093', quarter: 'Q2', year: 2025 },
+            { id: 'D2044', account: 'Treasury Wine Estates', owner: 'Luke Ferrara', value: 450000, stage: 'Won', close_date: '2025-08-18', contract: 'CTR-2025-094', quarter: 'Q3', year: 2025 },
+            { id: 'D2045', account: 'Voyager Estate', owner: 'Amara Chen', value: 280000, stage: 'Won', close_date: '2025-09-30', contract: 'CTR-2025-095', quarter: 'Q3', year: 2025 },
+            { id: 'D2046', account: 'Vasse Felix', owner: 'Luke Ferrara', value: 380000, stage: 'Won', close_date: '2025-11-15', contract: 'CTR-2025-096', quarter: 'Q4', year: 2025 },
+            { id: 'D2047', account: 'Cape Mentelle', owner: 'Amara Chen', value: 250000, stage: 'Won', close_date: '2025-12-22', contract: 'CTR-2025-097', quarter: 'Q4', year: 2025 },
+            { id: 'D2048', account: 'Singapore Tourism Board', owner: 'Luke Ferrara', value: 420000, stage: 'Won', close_date: '2026-02-15', contract: 'CTR-2026-090', quarter: 'Q1', year: 2026 },
+            { id: 'D2049', account: 'Penfolds', owner: 'Amara Chen', value: 320000, stage: 'Won', close_date: '2026-03-25', contract: 'CTR-2026-091', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O2040', account: 'Australian Tourism Board', owner: 'Luke Ferrara', value: 380000, stage: 'Negotiation', expected_close: '2026-04-12', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O2041', account: 'Wine Australia Association', owner: 'Amara Chen', value: 340000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O2042', account: 'Australian Luxury Resorts', owner: 'Luke Ferrara', value: 300000, stage: 'Qualification', expected_close: '2025-12-02', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O2043', account: 'Asia Pacific Hotels', owner: 'Amara Chen', value: 360000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O2044', account: 'Premium Travel Experiences', owner: 'Luke Ferrara', value: 420000, stage: 'Proposal', expected_close: '2026-04-18', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O2045', account: 'Culinary Tourism International', owner: 'Amara Chen', value: 290000, stage: 'Qualification', expected_close: '2026-02-18', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P011', name: 'Taste Dining Experiences UK', category: 'Dining Events',
+          targets: { 2025: { original: 3000000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: 3200000 }, 2026: { original: 3600000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D2060', account: 'Quintessentially', owner: 'Nina Kowalski', value: 380000, stage: 'Won', close_date: '2025-02-05', contract: 'CTR-2025-100', quarter: 'Q1', year: 2025 },
+            { id: 'D2061', account: 'Claridges Hotel', owner: 'Jack Thornton', value: 320000, stage: 'Won', close_date: '2025-03-22', contract: 'CTR-2025-101', quarter: 'Q1', year: 2025 },
+            { id: 'D2062', account: 'The Savoy', owner: 'Nina Kowalski', value: 450000, stage: 'Won', close_date: '2025-05-18', contract: 'CTR-2025-102', quarter: 'Q2', year: 2025 },
+            { id: 'D2063', account: 'The Dorchester', owner: 'Jack Thornton', value: 280000, stage: 'Won', close_date: '2025-06-28', contract: 'CTR-2025-103', quarter: 'Q2', year: 2025 },
+            { id: 'D2064', account: 'Mandarin Oriental', owner: 'Nina Kowalski', value: 520000, stage: 'Won', close_date: '2025-08-10', contract: 'CTR-2025-104', quarter: 'Q3', year: 2025 },
+            { id: 'D2065', account: 'The Connaught', owner: 'Jack Thornton', value: 250000, stage: 'Won', close_date: '2025-09-25', contract: 'CTR-2025-105', quarter: 'Q3', year: 2025 },
+            { id: 'D2066', account: 'Four Seasons Park Lane', owner: 'Nina Kowalski', value: 380000, stage: 'Won', close_date: '2025-11-12', contract: 'CTR-2025-106', quarter: 'Q4', year: 2025 },
+            { id: 'D2067', account: 'The Ritz London', owner: 'Jack Thornton', value: 220000, stage: 'Won', close_date: '2025-12-20', contract: 'CTR-2025-107', quarter: 'Q4', year: 2025 },
+            { id: 'D2068', account: 'Rosewood London', owner: 'Nina Kowalski', value: 350000, stage: 'Won', close_date: '2026-01-28', contract: 'CTR-2026-100', quarter: 'Q1', year: 2026 },
+            { id: 'D2069', account: 'Chiltern Firehouse', owner: 'Jack Thornton', value: 280000, stage: 'Won', close_date: '2026-03-15', contract: 'CTR-2026-101', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O2060', account: 'Belmond Hotels', owner: 'Nina Kowalski', value: 320000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O2061', account: 'Taj Hotels', owner: 'Jack Thornton', value: 280000, stage: 'Proposal', expected_close: '2026-03-22', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O2062', account: 'SLH Hotels', owner: 'Nina Kowalski', value: 240000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O2063', account: 'Luxury Event Planners', owner: 'Jack Thornton', value: 300000, stage: 'Prospecting', expected_close: '2026-05-18', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O2064', account: 'Corporate Hospitality Ltd', owner: 'Nina Kowalski', value: 380000, stage: 'Proposal', expected_close: '2026-04-20', probability: 0.50, quarter: 'Q2', year: 2026 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV003', name: 'Arts and Entertainment', head: 'Olivia Beaumont', status: 'Active',
+      properties: [
+        { id: 'P012', name: 'World of Barbie', category: 'Immersive Experience',
+          targets: { 2025: { original: 5500000, q1_revised: null, q2_revised: 5800000, q3_revised: null, q4_revised: null }, 2026: { original: 6200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D3001', account: 'Mattel Inc', owner: 'Charlotte Mills', value: 1250000, stage: 'Won', close_date: '2025-01-22', contract: 'CTR-2025-110', quarter: 'Q1', year: 2025 },
+            { id: 'D3002', account: 'Hasbro International', owner: 'Ethan Blake', value: 680000, stage: 'Won', close_date: '2025-03-14', contract: 'CTR-2025-111', quarter: 'Q1', year: 2025 },
+            { id: 'D3003', account: 'Smyths Toys', owner: 'Charlotte Mills', value: 520000, stage: 'Won', close_date: '2025-05-08', contract: 'CTR-2025-112', quarter: 'Q2', year: 2025 },
+            { id: 'D3004', account: 'Warner Bros Discovery', owner: 'Ethan Blake', value: 780000, stage: 'Won', close_date: '2025-06-20', contract: 'CTR-2025-113', quarter: 'Q2', year: 2025 },
+            { id: 'D3005', account: 'Claire\'s Accessories', owner: 'Charlotte Mills', value: 420000, stage: 'Won', close_date: '2025-08-15', contract: 'CTR-2025-114', quarter: 'Q3', year: 2025 },
+            { id: 'D3006', account: 'Target Corporation', owner: 'Ethan Blake', value: 650000, stage: 'Won', close_date: '2025-09-28', contract: 'CTR-2025-115', quarter: 'Q3', year: 2025 },
+            { id: 'D3007', account: 'Gap Kids', owner: 'Charlotte Mills', value: 380000, stage: 'Won', close_date: '2025-11-12', contract: 'CTR-2025-116', quarter: 'Q4', year: 2025 },
+            { id: 'D3008', account: 'H&M Kids', owner: 'Ethan Blake', value: 450000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-117', quarter: 'Q4', year: 2025 },
+            { id: 'D3009', account: 'Disney Consumer Products', owner: 'Charlotte Mills', value: 580000, stage: 'Won', close_date: '2026-02-08', contract: 'CTR-2026-110', quarter: 'Q1', year: 2026 },
+            { id: 'D3010', account: 'Primark', owner: 'Ethan Blake', value: 420000, stage: 'Won', close_date: '2026-03-22', contract: 'CTR-2026-111', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O3001', account: 'Disney Corporation', owner: 'Charlotte Mills', value: 950000, stage: 'Negotiation', expected_close: '2026-04-08', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O3002', account: 'Universal Studios', owner: 'Ethan Blake', value: 780000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O3003', account: 'Paramount Pictures', owner: 'Charlotte Mills', value: 650000, stage: 'Qualification', expected_close: '2025-12-05', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O3004', account: 'Sony Pictures Entertainment', owner: 'Ethan Blake', value: 820000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O3005', account: 'Netflix Studios', owner: 'Charlotte Mills', value: 1100000, stage: 'Proposal', expected_close: '2026-04-28', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O3006', account: 'Amazon Prime Video', owner: 'Ethan Blake', value: 950000, stage: 'Qualification', expected_close: '2026-02-18', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P013', name: 'Rollabeats', category: 'Music & Skating',
+          targets: { 2025: { original: 2800000, q1_revised: null, q2_revised: null, q3_revised: 3000000, q4_revised: null }, 2026: { original: 3400000, q1_revised: 3200000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D3020', account: 'Spotify UK', owner: 'Ryan Gallagher', value: 420000, stage: 'Won', close_date: '2025-02-05', contract: 'CTR-2025-120', quarter: 'Q1', year: 2025 },
+            { id: 'D3021', account: 'Nike UK', owner: 'Maya Petrov', value: 350000, stage: 'Won', close_date: '2025-03-25', contract: 'CTR-2025-121', quarter: 'Q1', year: 2025 },
+            { id: 'D3022', account: 'Adidas Originals', owner: 'Ryan Gallagher', value: 380000, stage: 'Won', close_date: '2025-05-18', contract: 'CTR-2025-122', quarter: 'Q2', year: 2025 },
+            { id: 'D3023', account: 'Monster Energy', owner: 'Maya Petrov', value: 280000, stage: 'Won', close_date: '2025-06-28', contract: 'CTR-2025-123', quarter: 'Q2', year: 2025 },
+            { id: 'D3024', account: 'Beats by Dre', owner: 'Ryan Gallagher', value: 450000, stage: 'Won', close_date: '2025-08-08', contract: 'CTR-2025-124', quarter: 'Q3', year: 2025 },
+            { id: 'D3025', account: 'Converse', owner: 'Maya Petrov', value: 220000, stage: 'Won', close_date: '2025-09-20', contract: 'CTR-2025-125', quarter: 'Q3', year: 2025 },
+            { id: 'D3026', account: 'Apple Music', owner: 'Ryan Gallagher', value: 380000, stage: 'Won', close_date: '2025-11-05', contract: 'CTR-2025-126', quarter: 'Q4', year: 2025 },
+            { id: 'D3027', account: 'Vans (VF Corp)', owner: 'Maya Petrov', value: 250000, stage: 'Won', close_date: '2025-12-15', contract: 'CTR-2025-127', quarter: 'Q4', year: 2025 },
+            { id: 'D3028', account: 'JBL Audio', owner: 'Ryan Gallagher', value: 320000, stage: 'Won', close_date: '2026-01-25', contract: 'CTR-2026-120', quarter: 'Q1', year: 2026 },
+            { id: 'D3029', account: 'Puma UK', owner: 'Maya Petrov', value: 250000, stage: 'Won', close_date: '2026-03-10', contract: 'CTR-2026-121', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O3020', account: 'Ticketmaster UK', owner: 'Ryan Gallagher', value: 350000, stage: 'Negotiation', expected_close: '2026-04-08', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O3021', account: 'Live Nation Events', owner: 'Maya Petrov', value: 320000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O3022', account: 'AEG Presents', owner: 'Ryan Gallagher', value: 280000, stage: 'Qualification', expected_close: '2025-12-10', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O3023', account: 'Songkick Ltd', owner: 'Maya Petrov', value: 300000, stage: 'Prospecting', expected_close: '2026-05-15', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O3024', account: 'Festival Republic', owner: 'Ryan Gallagher', value: 380000, stage: 'Proposal', expected_close: '2026-04-20', probability: 0.50, quarter: 'Q2', year: 2026 },
+          ]
+        },
+        { id: 'P014', name: 'Trame di Luce Rome', category: 'Light Installation',
+          targets: { 2025: { original: 3800000, q1_revised: null, q2_revised: 4000000, q3_revised: null, q4_revised: null }, 2026: { original: 4500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D3040', account: 'Comune di Roma', owner: 'Charlotte Mills', value: 580000, stage: 'Won', close_date: '2025-01-28', contract: 'CTR-2025-130', quarter: 'Q1', year: 2025 },
+            { id: 'D3041', account: 'Enel Energia', owner: 'Ethan Blake', value: 450000, stage: 'Won', close_date: '2025-03-15', contract: 'CTR-2025-131', quarter: 'Q1', year: 2025 },
+            { id: 'D3042', account: 'Bulgari (LVMH)', owner: 'Charlotte Mills', value: 620000, stage: 'Won', close_date: '2025-05-12', contract: 'CTR-2025-132', quarter: 'Q2', year: 2025 },
+            { id: 'D3043', account: 'Fendi', owner: 'Ethan Blake', value: 380000, stage: 'Won', close_date: '2025-06-28', contract: 'CTR-2025-133', quarter: 'Q2', year: 2025 },
+            { id: 'D3044', account: 'Terna SpA', owner: 'Charlotte Mills', value: 520000, stage: 'Won', close_date: '2025-08-10', contract: 'CTR-2025-134', quarter: 'Q3', year: 2025 },
+            { id: 'D3045', account: 'Valentino', owner: 'Ethan Blake', value: 350000, stage: 'Won', close_date: '2025-09-22', contract: 'CTR-2025-135', quarter: 'Q3', year: 2025 },
+            { id: 'D3046', account: 'Telecom Italia', owner: 'Charlotte Mills', value: 480000, stage: 'Won', close_date: '2025-11-08', contract: 'CTR-2025-136', quarter: 'Q4', year: 2025 },
+            { id: 'D3047', account: 'Gucci (Kering)', owner: 'Ethan Blake', value: 320000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-137', quarter: 'Q4', year: 2025 },
+            { id: 'D3048', account: 'ACEA SpA', owner: 'Charlotte Mills', value: 420000, stage: 'Won', close_date: '2026-02-10', contract: 'CTR-2026-130', quarter: 'Q1', year: 2026 },
+            { id: 'D3049', account: 'Prada Group', owner: 'Ethan Blake', value: 350000, stage: 'Won', close_date: '2026-03-20', contract: 'CTR-2026-131', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O3040', account: 'City of Rome Tourism', owner: 'Charlotte Mills', value: 480000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O3041', account: 'Italian Ministry of Culture', owner: 'Ethan Blake', value: 420000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O3042', account: 'Colosseum Visitor Services', owner: 'Charlotte Mills', value: 380000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O3043', account: 'Vatican Museums Events', owner: 'Ethan Blake', value: 450000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O3044', account: 'Galleria Borghese', owner: 'Charlotte Mills', value: 420000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O3045', account: 'Palazzo Altemps', owner: 'Ethan Blake', value: 350000, stage: 'Qualification', expected_close: '2026-02-15', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV004', name: 'Tennis', head: 'Sebastian Varga', status: 'Active',
+      properties: [
+        { id: 'P016', name: 'Madrid Open', category: 'Tournament',
+          targets: { 2025: { original: 8500000, q1_revised: null, q2_revised: 8800000, q3_revised: null, q4_revised: null }, 2026: { original: 9500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D4001', account: 'Mutua Madrilena', owner: 'George Hamilton', value: 1250000, stage: 'Won', close_date: '2025-01-18', contract: 'CTR-2025-150', quarter: 'Q1', year: 2025 },
+            { id: 'D4002', account: 'Telefonica', owner: 'Isabel Torres', value: 980000, stage: 'Won', close_date: '2025-03-08', contract: 'CTR-2025-151', quarter: 'Q1', year: 2025 },
+            { id: 'D4003', account: 'Santander Bank', owner: 'George Hamilton', value: 1350000, stage: 'Won', close_date: '2025-05-22', contract: 'CTR-2025-152', quarter: 'Q2', year: 2025 },
+            { id: 'D4004', account: 'Iberia Airlines', owner: 'Isabel Torres', value: 820000, stage: 'Won', close_date: '2025-06-15', contract: 'CTR-2025-153', quarter: 'Q2', year: 2025 },
+            { id: 'D4005', account: 'Rolex SA', owner: 'George Hamilton', value: 1450000, stage: 'Won', close_date: '2025-08-10', contract: 'CTR-2025-154', quarter: 'Q3', year: 2025 },
+            { id: 'D4006', account: 'Emirates Airlines', owner: 'Isabel Torres', value: 750000, stage: 'Won', close_date: '2025-09-28', contract: 'CTR-2025-155', quarter: 'Q3', year: 2025 },
+            { id: 'D4007', account: 'Estrella Damm', owner: 'George Hamilton', value: 920000, stage: 'Won', close_date: '2025-11-08', contract: 'CTR-2025-156', quarter: 'Q4', year: 2025 },
+            { id: 'D4008', account: 'BBVA', owner: 'Isabel Torres', value: 680000, stage: 'Won', close_date: '2025-12-20', contract: 'CTR-2025-157', quarter: 'Q4', year: 2025 },
+            { id: 'D4009', account: 'Repsol', owner: 'George Hamilton', value: 1080000, stage: 'Won', close_date: '2026-02-12', contract: 'CTR-2026-150', quarter: 'Q1', year: 2026 },
+            { id: 'D4010', account: 'Mahou San Miguel', owner: 'Isabel Torres', value: 720000, stage: 'Won', close_date: '2026-03-18', contract: 'CTR-2026-151', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O4001', account: 'Toyota Spain', owner: 'George Hamilton', value: 1100000, stage: 'Negotiation', expected_close: '2026-04-08', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O4002', account: 'Adidas Spain', owner: 'Isabel Torres', value: 950000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O4003', account: 'La Liga Foundation', owner: 'George Hamilton', value: 850000, stage: 'Qualification', expected_close: '2025-12-10', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O4004', account: 'Bankinter', owner: 'Isabel Torres', value: 920000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O4005', account: 'Campari Group', owner: 'George Hamilton', value: 1050000, stage: 'Proposal', expected_close: '2026-04-22', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O4006', account: 'Renault Group', owner: 'Isabel Torres', value: 880000, stage: 'Qualification', expected_close: '2026-02-15', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P017', name: 'Padel General', category: 'Padel',
+          targets: { 2025: { original: 3200000, q1_revised: null, q2_revised: null, q3_revised: 3500000, q4_revised: null }, 2026: { original: 4000000, q1_revised: 3800000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D4020', account: 'Head Sport AG', owner: 'Natalie Frost', value: 450000, stage: 'Won', close_date: '2025-02-10', contract: 'CTR-2025-160', quarter: 'Q1', year: 2025 },
+            { id: 'D4021', account: 'Bullpadel', owner: 'Connor Walsh', value: 320000, stage: 'Won', close_date: '2025-03-22', contract: 'CTR-2025-161', quarter: 'Q1', year: 2025 },
+            { id: 'D4022', account: 'Wilson Sporting Goods', owner: 'Natalie Frost', value: 480000, stage: 'Won', close_date: '2025-05-14', contract: 'CTR-2025-162', quarter: 'Q2', year: 2025 },
+            { id: 'D4023', account: 'Adidas Padel', owner: 'Connor Walsh', value: 280000, stage: 'Won', close_date: '2025-06-28', contract: 'CTR-2025-163', quarter: 'Q2', year: 2025 },
+            { id: 'D4024', account: 'Nox Padel', owner: 'Natalie Frost', value: 380000, stage: 'Won', close_date: '2025-08-18', contract: 'CTR-2025-164', quarter: 'Q3', year: 2025 },
+            { id: 'D4025', account: 'Babolat', owner: 'Connor Walsh', value: 250000, stage: 'Won', close_date: '2025-09-25', contract: 'CTR-2025-165', quarter: 'Q3', year: 2025 },
+            { id: 'D4026', account: 'Decathlon', owner: 'Natalie Frost', value: 420000, stage: 'Won', close_date: '2025-11-12', contract: 'CTR-2025-166', quarter: 'Q4', year: 2025 },
+            { id: 'D4027', account: 'Asics', owner: 'Connor Walsh', value: 220000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-167', quarter: 'Q4', year: 2025 },
+            { id: 'D4028', account: 'Premier Padel', owner: 'Natalie Frost', value: 350000, stage: 'Won', close_date: '2026-01-28', contract: 'CTR-2026-160', quarter: 'Q1', year: 2026 },
+            { id: 'D4029', account: 'LeDap Padel', owner: 'Connor Walsh', value: 280000, stage: 'Won', close_date: '2026-03-15', contract: 'CTR-2026-161', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O4020', account: 'Padel Spain Association', owner: 'Natalie Frost', value: 350000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O4021', account: 'Dunlop Sports', owner: 'Connor Walsh', value: 320000, stage: 'Proposal', expected_close: '2026-03-20', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O4022', account: 'Viboras Padel', owner: 'Natalie Frost', value: 280000, stage: 'Qualification', expected_close: '2025-12-05', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O4023', account: 'Sports Retail Spain', owner: 'Connor Walsh', value: 300000, stage: 'Prospecting', expected_close: '2026-05-15', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O4024', account: 'European Padel Federation', owner: 'Natalie Frost', value: 380000, stage: 'Proposal', expected_close: '2026-04-18', probability: 0.50, quarter: 'Q2', year: 2026 },
+          ]
+        },
+        { id: 'P018', name: 'Miami Open', category: 'Tournament',
+          targets: { 2025: { original: 7500000, q1_revised: null, q2_revised: 7800000, q3_revised: null, q4_revised: 7600000 }, 2026: { original: 8500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D4040', account: 'Itau Bank', owner: 'George Hamilton', value: 1150000, stage: 'Won', close_date: '2025-01-25', contract: 'CTR-2025-170', quarter: 'Q1', year: 2025 },
+            { id: 'D4041', account: 'Hard Rock International', owner: 'Isabel Torres', value: 880000, stage: 'Won', close_date: '2025-03-15', contract: 'CTR-2025-171', quarter: 'Q1', year: 2025 },
+            { id: 'D4042', account: 'Cadillac (GM)', owner: 'George Hamilton', value: 1250000, stage: 'Won', close_date: '2025-05-20', contract: 'CTR-2025-172', quarter: 'Q2', year: 2025 },
+            { id: 'D4043', account: 'FPL Group', owner: 'Isabel Torres', value: 720000, stage: 'Won', close_date: '2025-06-30', contract: 'CTR-2025-173', quarter: 'Q2', year: 2025 },
+            { id: 'D4044', account: 'Lacoste', owner: 'George Hamilton', value: 1080000, stage: 'Won', close_date: '2025-08-12', contract: 'CTR-2025-174', quarter: 'Q3', year: 2025 },
+            { id: 'D4045', account: 'Grey Goose (Bacardi)', owner: 'Isabel Torres', value: 620000, stage: 'Won', close_date: '2025-09-22', contract: 'CTR-2025-175', quarter: 'Q3', year: 2025 },
+            { id: 'D4046', account: 'Baptist Health', owner: 'George Hamilton', value: 950000, stage: 'Won', close_date: '2025-11-05', contract: 'CTR-2025-176', quarter: 'Q4', year: 2025 },
+            { id: 'D4047', account: 'Lexus', owner: 'Isabel Torres', value: 580000, stage: 'Won', close_date: '2025-12-15', contract: 'CTR-2025-177', quarter: 'Q4', year: 2025 },
+            { id: 'D4048', account: 'Tiffany & Co', owner: 'George Hamilton', value: 920000, stage: 'Won', close_date: '2026-02-08', contract: 'CTR-2026-170', quarter: 'Q1', year: 2026 },
+            { id: 'D4049', account: 'NetJets', owner: 'Isabel Torres', value: 650000, stage: 'Won', close_date: '2026-03-20', contract: 'CTR-2026-171', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O4040', account: 'Miami Tourism Board', owner: 'George Hamilton', value: 980000, stage: 'Negotiation', expected_close: '2026-04-12', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O4041', account: 'Fontainebleau Miami', owner: 'Isabel Torres', value: 850000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O4042', account: 'American Airlines', owner: 'George Hamilton', value: 720000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O4043', account: 'Deloitte Advisory', owner: 'Isabel Torres', value: 880000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O4044', account: 'Ritz-Carlton Miami', owner: 'George Hamilton', value: 950000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O4045', account: 'Brickell City Center', owner: 'Isabel Torres', value: 750000, stage: 'Qualification', expected_close: '2026-02-18', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P019', name: 'Tennis Consulting', category: 'Consulting',
+          targets: { 2025: { original: 2500000, q1_revised: null, q2_revised: 2700000, q3_revised: null, q4_revised: null }, 2026: { original: 3000000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D4060', account: 'ATP Tour', owner: 'Natalie Frost', value: 380000, stage: 'Won', close_date: '2025-02-15', contract: 'CTR-2025-180', quarter: 'Q1', year: 2025 },
+            { id: 'D4061', account: 'WTA Tour', owner: 'Connor Walsh', value: 320000, stage: 'Won', close_date: '2025-03-28', contract: 'CTR-2025-181', quarter: 'Q1', year: 2025 },
+            { id: 'D4062', account: 'ITF', owner: 'Natalie Frost', value: 420000, stage: 'Won', close_date: '2025-05-10', contract: 'CTR-2025-182', quarter: 'Q2', year: 2025 },
+            { id: 'D4063', account: 'LTA', owner: 'Connor Walsh', value: 280000, stage: 'Won', close_date: '2025-06-22', contract: 'CTR-2025-183', quarter: 'Q2', year: 2025 },
+            { id: 'D4064', account: 'Tennis Australia', owner: 'Natalie Frost', value: 350000, stage: 'Won', close_date: '2025-08-05', contract: 'CTR-2025-184', quarter: 'Q3', year: 2025 },
+            { id: 'D4065', account: 'USTA', owner: 'Connor Walsh', value: 250000, stage: 'Won', close_date: '2025-09-18', contract: 'CTR-2025-185', quarter: 'Q3', year: 2025 },
+            { id: 'D4066', account: 'FFT', owner: 'Natalie Frost', value: 320000, stage: 'Won', close_date: '2025-11-10', contract: 'CTR-2025-186', quarter: 'Q4', year: 2025 },
+            { id: 'D4067', account: 'Indian Wells Tournament', owner: 'Connor Walsh', value: 180000, stage: 'Won', close_date: '2025-12-22', contract: 'CTR-2025-187', quarter: 'Q4', year: 2025 },
+            { id: 'D4068', account: 'Monte-Carlo Country Club', owner: 'Natalie Frost', value: 280000, stage: 'Won', close_date: '2026-02-18', contract: 'CTR-2026-180', quarter: 'Q1', year: 2026 },
+            { id: 'D4069', account: 'Queens Club', owner: 'Connor Walsh', value: 220000, stage: 'Won', close_date: '2026-03-25', contract: 'CTR-2026-181', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O4060', account: 'ATP Player Advisory Council', owner: 'Natalie Frost', value: 280000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O4061', account: 'WTA Player Ventures', owner: 'Connor Walsh', value: 250000, stage: 'Proposal', expected_close: '2026-03-22', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O4062', account: 'Tennis Magazine', owner: 'Natalie Frost', value: 220000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O4063', account: 'International Tennis Federation', owner: 'Connor Walsh', value: 240000, stage: 'Prospecting', expected_close: '2026-05-15', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O4064', account: 'Tennis Coaching Federation', owner: 'Natalie Frost', value: 300000, stage: 'Proposal', expected_close: '2026-04-18', probability: 0.50, quarter: 'Q2', year: 2026 },
+          ]
+        },
+        { id: 'P020', name: 'Japan Womens Tennis Open', category: 'Tournament',
+          targets: { 2025: { original: 3800000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: 3600000 }, 2026: { original: 4200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D4080', account: 'Toyota Motor Corp', owner: 'George Hamilton', value: 580000, stage: 'Won', close_date: '2025-01-30', contract: 'CTR-2025-190', quarter: 'Q1', year: 2025 },
+            { id: 'D4081', account: 'Uniqlo (Fast Retailing)', owner: 'Isabel Torres', value: 450000, stage: 'Won', close_date: '2025-03-18', contract: 'CTR-2025-191', quarter: 'Q1', year: 2025 },
+            { id: 'D4082', account: 'Yonex Co', owner: 'George Hamilton', value: 520000, stage: 'Won', close_date: '2025-05-15', contract: 'CTR-2025-192', quarter: 'Q2', year: 2025 },
+            { id: 'D4083', account: 'ANA Holdings', owner: 'Isabel Torres', value: 380000, stage: 'Won', close_date: '2025-06-28', contract: 'CTR-2025-193', quarter: 'Q2', year: 2025 },
+            { id: 'D4084', account: 'NTT Communications', owner: 'George Hamilton', value: 480000, stage: 'Won', close_date: '2025-08-10', contract: 'CTR-2025-194', quarter: 'Q3', year: 2025 },
+            { id: 'D4085', account: 'Shiseido', owner: 'Isabel Torres', value: 320000, stage: 'Won', close_date: '2025-09-25', contract: 'CTR-2025-195', quarter: 'Q3', year: 2025 },
+            { id: 'D4086', account: 'Suntory Holdings', owner: 'George Hamilton', value: 420000, stage: 'Won', close_date: '2025-11-12', contract: 'CTR-2025-196', quarter: 'Q4', year: 2025 },
+            { id: 'D4087', account: 'Asics Japan', owner: 'Isabel Torres', value: 280000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-197', quarter: 'Q4', year: 2025 },
+            { id: 'D4088', account: 'Mitsubishi Electric', owner: 'George Hamilton', value: 380000, stage: 'Won', close_date: '2026-01-22', contract: 'CTR-2026-190', quarter: 'Q1', year: 2026 },
+            { id: 'D4089', account: 'Japan Airlines', owner: 'Isabel Torres', value: 280000, stage: 'Won', close_date: '2026-03-10', contract: 'CTR-2026-191', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O4080', account: 'Japan Sports Association', owner: 'George Hamilton', value: 480000, stage: 'Negotiation', expected_close: '2026-04-12', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O4081', account: 'Sony Corporation', owner: 'Isabel Torres', value: 420000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O4082', account: 'Canon Inc', owner: 'George Hamilton', value: 380000, stage: 'Qualification', expected_close: '2025-12-10', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O4083', account: 'Panasonic Corporation', owner: 'Isabel Torres', value: 450000, stage: 'Prospecting', expected_close: '2026-05-18', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O4084', account: 'Osaka Convention Center', owner: 'George Hamilton', value: 520000, stage: 'Proposal', expected_close: '2026-04-22', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O4085', account: 'Tokyo Metro Authority', owner: 'Isabel Torres', value: 400000, stage: 'Qualification', expected_close: '2026-02-18', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P021', name: 'Mubadala Citi DC Open', category: 'Tournament',
+          targets: { 2025: { original: 5500000, q1_revised: null, q2_revised: 5800000, q3_revised: null, q4_revised: null }, 2026: { original: 6200000, q1_revised: 6000000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D4100', account: 'Mubadala Investment Co', owner: 'Natalie Frost', value: 950000, stage: 'Won', close_date: '2025-02-08', contract: 'CTR-2025-200', quarter: 'Q1', year: 2025 },
+            { id: 'D4101', account: 'Citi Group', owner: 'Connor Walsh', value: 780000, stage: 'Won', close_date: '2025-03-25', contract: 'CTR-2025-201', quarter: 'Q1', year: 2025 },
+            { id: 'D4102', account: 'Lockheed Martin', owner: 'Natalie Frost', value: 680000, stage: 'Won', close_date: '2025-05-18', contract: 'CTR-2025-202', quarter: 'Q2', year: 2025 },
+            { id: 'D4103', account: 'Booz Allen Hamilton', owner: 'Connor Walsh', value: 520000, stage: 'Won', close_date: '2025-06-30', contract: 'CTR-2025-203', quarter: 'Q2', year: 2025 },
+            { id: 'D4104', account: 'Capital One', owner: 'Natalie Frost', value: 750000, stage: 'Won', close_date: '2025-08-15', contract: 'CTR-2025-204', quarter: 'Q3', year: 2025 },
+            { id: 'D4105', account: 'Deloitte US', owner: 'Connor Walsh', value: 480000, stage: 'Won', close_date: '2025-09-28', contract: 'CTR-2025-205', quarter: 'Q3', year: 2025 },
+            { id: 'D4106', account: 'Raytheon Technologies', owner: 'Natalie Frost', value: 620000, stage: 'Won', close_date: '2025-11-08', contract: 'CTR-2025-206', quarter: 'Q4', year: 2025 },
+            { id: 'D4107', account: 'Marriott International', owner: 'Connor Walsh', value: 380000, stage: 'Won', close_date: '2025-12-20', contract: 'CTR-2025-207', quarter: 'Q4', year: 2025 },
+            { id: 'D4108', account: 'PwC US', owner: 'Natalie Frost', value: 550000, stage: 'Won', close_date: '2026-02-10', contract: 'CTR-2026-200', quarter: 'Q1', year: 2026 },
+            { id: 'D4109', account: 'Etihad Airways', owner: 'Connor Walsh', value: 420000, stage: 'Won', close_date: '2026-03-22', contract: 'CTR-2026-201', quarter: 'Q1', year: 2026 },
+            { id: 'D4110', account: 'General Dynamics', owner: 'Natalie Frost', value: 680000, stage: 'Negotiation', close_date: '2026-04-15', contract: '', quarter: 'Q2', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O4100', account: 'DC Convention & Tourism Corporation', owner: 'Natalie Frost', value: 720000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O4101', account: 'Washington DC Sports Commission', owner: 'Connor Walsh', value: 650000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O4102', account: 'Blackstone Group', owner: 'Natalie Frost', value: 580000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O4103', account: 'Capital Hilton Hotels', owner: 'Connor Walsh', value: 680000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O4104', account: 'Georgetown University Events', owner: 'Natalie Frost', value: 750000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O4105', account: 'Smithsonian Institution', owner: 'Connor Walsh', value: 620000, stage: 'Qualification', expected_close: '2026-02-20', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV005', name: 'Frieze', head: 'Victoria Ashworth', status: 'Active',
+      properties: [
+        { id: 'P022', name: 'Frieze Cork Street', category: 'Art Fair',
+          targets: { 2025: { original: 4500000, q1_revised: null, q2_revised: 4700000, q3_revised: null, q4_revised: null }, 2026: { original: 5200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D5001', account: 'Gagosian Gallery', owner: 'Arabella Knight', value: 580000, stage: 'Won', close_date: '2025-01-28', contract: 'CTR-2025-210', quarter: 'Q1', year: 2025 },
+            { id: 'D5002', account: 'Hauser & Wirth', owner: 'Dominic Park', value: 480000, stage: 'Won', close_date: '2025-03-15', contract: 'CTR-2025-211', quarter: 'Q1', year: 2025 },
+            { id: 'D5003', account: 'White Cube', owner: 'Arabella Knight', value: 650000, stage: 'Won', close_date: '2025-05-10', contract: 'CTR-2025-212', quarter: 'Q2', year: 2025 },
+            { id: 'D5004', account: 'Lisson Gallery', owner: 'Dominic Park', value: 420000, stage: 'Won', close_date: '2025-06-22', contract: 'CTR-2025-213', quarter: 'Q2', year: 2025 },
+            { id: 'D5005', account: 'Pace Gallery', owner: 'Arabella Knight', value: 720000, stage: 'Won', close_date: '2025-08-05', contract: 'CTR-2025-214', quarter: 'Q3', year: 2025 },
+            { id: 'D5006', account: 'Sadie Coles HQ', owner: 'Dominic Park', value: 350000, stage: 'Won', close_date: '2025-09-18', contract: 'CTR-2025-215', quarter: 'Q3', year: 2025 },
+            { id: 'D5007', account: 'David Zwirner', owner: 'Arabella Knight', value: 580000, stage: 'Won', close_date: '2025-11-02', contract: 'CTR-2025-216', quarter: 'Q4', year: 2025 },
+            { id: 'D5008', account: 'Spruth Magers', owner: 'Dominic Park', value: 320000, stage: 'Won', close_date: '2025-12-15', contract: 'CTR-2025-217', quarter: 'Q4', year: 2025 },
+            { id: 'D5009', account: 'Thaddaeus Ropac', owner: 'Arabella Knight', value: 520000, stage: 'Won', close_date: '2026-02-08', contract: 'CTR-2026-210', quarter: 'Q1', year: 2026 },
+            { id: 'D5010', account: 'Victoria Miro', owner: 'Dominic Park', value: 380000, stage: 'Won', close_date: '2026-03-20', contract: 'CTR-2026-211', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O5001', account: 'Serpentine Galleries', owner: 'Arabella Knight', value: 520000, stage: 'Negotiation', expected_close: '2026-04-08', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O5002', account: 'Tate Modern Events', owner: 'Dominic Park', value: 480000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O5003', account: 'National Gallery London', owner: 'Arabella Knight', value: 420000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O5004', account: 'Royal Academy of Arts', owner: 'Dominic Park', value: 480000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O5005', account: 'Christie\'s London', owner: 'Arabella Knight', value: 580000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O5006', account: 'Sotheby\'s London', owner: 'Dominic Park', value: 520000, stage: 'Qualification', expected_close: '2026-02-18', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P023', name: 'Frieze Seoul', category: 'Art Fair',
+          targets: { 2025: { original: 6800000, q1_revised: null, q2_revised: null, q3_revised: 7200000, q4_revised: null }, 2026: { original: 7800000, q1_revised: 7500000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D5020', account: 'Samsung C&T', owner: 'Helena Voss', value: 950000, stage: 'Won', close_date: '2025-02-12', contract: 'CTR-2025-220', quarter: 'Q1', year: 2025 },
+            { id: 'D5021', account: 'Hyundai Motor Group', owner: 'Oliver Grant', value: 780000, stage: 'Won', close_date: '2025-03-25', contract: 'CTR-2025-221', quarter: 'Q1', year: 2025 },
+            { id: 'D5022', account: 'LG Arts Center', owner: 'Helena Voss', value: 880000, stage: 'Won', close_date: '2025-05-18', contract: 'CTR-2025-222', quarter: 'Q2', year: 2025 },
+            { id: 'D5023', account: 'Korean Air', owner: 'Oliver Grant', value: 620000, stage: 'Won', close_date: '2025-06-30', contract: 'CTR-2025-223', quarter: 'Q2', year: 2025 },
+            { id: 'D5024', account: 'Amorepacific', owner: 'Helena Voss', value: 1050000, stage: 'Won', close_date: '2025-08-12', contract: 'CTR-2025-224', quarter: 'Q3', year: 2025 },
+            { id: 'D5025', account: 'SK Group', owner: 'Oliver Grant', value: 580000, stage: 'Won', close_date: '2025-09-22', contract: 'CTR-2025-225', quarter: 'Q3', year: 2025 },
+            { id: 'D5026', account: 'Lotte Corporation', owner: 'Helena Voss', value: 820000, stage: 'Won', close_date: '2025-11-10', contract: 'CTR-2025-226', quarter: 'Q4', year: 2025 },
+            { id: 'D5027', account: 'Hana Financial Group', owner: 'Oliver Grant', value: 520000, stage: 'Won', close_date: '2025-12-20', contract: 'CTR-2025-227', quarter: 'Q4', year: 2025 },
+            { id: 'D5028', account: 'CJ Group', owner: 'Helena Voss', value: 750000, stage: 'Won', close_date: '2026-01-22', contract: 'CTR-2026-220', quarter: 'Q1', year: 2026 },
+            { id: 'D5029', account: 'Shinsegae Group', owner: 'Oliver Grant', value: 480000, stage: 'Won', close_date: '2026-03-08', contract: 'CTR-2026-221', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O5020', account: 'COEX Convention Center', owner: 'Helena Voss', value: 850000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O5021', account: 'Busan Port Authority', owner: 'Oliver Grant', value: 780000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O5022', account: 'Korea Craft Museum', owner: 'Helena Voss', value: 680000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O5023', account: 'Jeju Island Tourism', owner: 'Oliver Grant', value: 750000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O5024', account: 'Incheon Metropolitan City', owner: 'Helena Voss', value: 920000, stage: 'Proposal', expected_close: '2026-04-22', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O5025', account: 'Seoul Tourism Organization', owner: 'Oliver Grant', value: 820000, stage: 'Qualification', expected_close: '2026-02-20', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P024', name: 'EXPO Chicago', category: 'Art Fair',
+          targets: { 2025: { original: 5500000, q1_revised: null, q2_revised: 5800000, q3_revised: null, q4_revised: null }, 2026: { original: 6200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D5040', account: 'Northern Trust', owner: 'Arabella Knight', value: 780000, stage: 'Won', close_date: '2025-01-20', contract: 'CTR-2025-230', quarter: 'Q1', year: 2025 },
+            { id: 'D5041', account: 'BMO Financial Group', owner: 'Dominic Park', value: 580000, stage: 'Won', close_date: '2025-03-12', contract: 'CTR-2025-231', quarter: 'Q1', year: 2025 },
+            { id: 'D5042', account: 'United Airlines', owner: 'Arabella Knight', value: 720000, stage: 'Won', close_date: '2025-05-22', contract: 'CTR-2025-232', quarter: 'Q2', year: 2025 },
+            { id: 'D5043', account: 'Allstate Insurance', owner: 'Dominic Park', value: 480000, stage: 'Won', close_date: '2025-06-28', contract: 'CTR-2025-233', quarter: 'Q2', year: 2025 },
+            { id: 'D5044', account: 'Art Institute of Chicago', owner: 'Arabella Knight', value: 850000, stage: 'Won', close_date: '2025-08-15', contract: 'CTR-2025-234', quarter: 'Q3', year: 2025 },
+            { id: 'D5045', account: 'Wintrust Financial', owner: 'Dominic Park', value: 380000, stage: 'Won', close_date: '2025-09-25', contract: 'CTR-2025-235', quarter: 'Q3', year: 2025 },
+            { id: 'D5046', account: 'Motorola Solutions', owner: 'Arabella Knight', value: 620000, stage: 'Won', close_date: '2025-11-08', contract: 'CTR-2025-236', quarter: 'Q4', year: 2025 },
+            { id: 'D5047', account: 'Hyatt Hotels', owner: 'Dominic Park', value: 350000, stage: 'Won', close_date: '2025-12-18', contract: 'CTR-2025-237', quarter: 'Q4', year: 2025 },
+            { id: 'D5048', account: 'Kraft Heinz', owner: 'Arabella Knight', value: 550000, stage: 'Won', close_date: '2026-02-10', contract: 'CTR-2026-230', quarter: 'Q1', year: 2026 },
+            { id: 'D5049', account: 'Abbvie', owner: 'Dominic Park', value: 420000, stage: 'Won', close_date: '2026-03-22', contract: 'CTR-2026-231', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O5040', account: 'Chicago Convention Bureau', owner: 'Arabella Knight', value: 680000, stage: 'Negotiation', expected_close: '2026-04-10', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O5041', account: 'McCormick Place', owner: 'Dominic Park', value: 620000, stage: 'Proposal', expected_close: '2026-03-25', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O5042', account: 'Chicago Public Library', owner: 'Arabella Knight', value: 550000, stage: 'Qualification', expected_close: '2025-12-08', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O5043', account: 'Willis Tower Events', owner: 'Dominic Park', value: 620000, stage: 'Prospecting', expected_close: '2026-05-18', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O5044', account: 'Museum of Contemporary Art Chicago', owner: 'Arabella Knight', value: 720000, stage: 'Proposal', expected_close: '2026-04-20', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O5045', account: 'Field Museum', owner: 'Dominic Park', value: 580000, stage: 'Qualification', expected_close: '2026-02-15', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P025', name: 'Frieze LA', category: 'Art Fair',
+          targets: { 2025: { original: 7200000, q1_revised: null, q2_revised: null, q3_revised: 7500000, q4_revised: null }, 2026: { original: 8000000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D5060', account: 'Deutsche Bank Americas', owner: 'Helena Voss', value: 980000, stage: 'Won', close_date: '2025-02-05', contract: 'CTR-2025-240', quarter: 'Q1', year: 2025 },
+            { id: 'D5061', account: 'Paramount Pictures', owner: 'Oliver Grant', value: 750000, stage: 'Won', close_date: '2025-03-18', contract: 'CTR-2025-241', quarter: 'Q1', year: 2025 },
+            { id: 'D5062', account: 'CAA (Creative Artists)', owner: 'Helena Voss', value: 1050000, stage: 'Won', close_date: '2025-05-14', contract: 'CTR-2025-242', quarter: 'Q2', year: 2025 },
+            { id: 'D5063', account: 'Gucci (Kering)', owner: 'Oliver Grant', value: 680000, stage: 'Won', close_date: '2025-06-25', contract: 'CTR-2025-243', quarter: 'Q2', year: 2025 },
+            { id: 'D5064', account: 'LACMA', owner: 'Helena Voss', value: 1180000, stage: 'Won', close_date: '2025-08-08', contract: 'CTR-2025-244', quarter: 'Q3', year: 2025 },
+            { id: 'D5065', account: 'Snap Inc', owner: 'Oliver Grant', value: 580000, stage: 'Won', close_date: '2025-09-20', contract: 'CTR-2025-245', quarter: 'Q3', year: 2025 },
+            { id: 'D5066', account: 'Louis Vuitton (LVMH)', owner: 'Helena Voss', value: 920000, stage: 'Won', close_date: '2025-11-05', contract: 'CTR-2025-246', quarter: 'Q4', year: 2025 },
+            { id: 'D5067', account: 'Tesla Inc', owner: 'Oliver Grant', value: 520000, stage: 'Won', close_date: '2025-12-15', contract: 'CTR-2025-247', quarter: 'Q4', year: 2025 },
+            { id: 'D5068', account: 'Netflix', owner: 'Helena Voss', value: 850000, stage: 'Won', close_date: '2026-01-28', contract: 'CTR-2026-240', quarter: 'Q1', year: 2026 },
+            { id: 'D5069', account: 'SpaceX', owner: 'Oliver Grant', value: 620000, stage: 'Won', close_date: '2026-03-12', contract: 'CTR-2026-241', quarter: 'Q1', year: 2026 },
+            { id: 'D5070', account: 'Apple Inc', owner: 'Helena Voss', value: 1250000, stage: 'Negotiation', close_date: '2026-04-25', contract: '', quarter: 'Q2', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O5060', account: 'LA Arts Collective', owner: 'Helena Voss', value: 980000, stage: 'Negotiation', expected_close: '2026-04-12', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O5061', account: 'Getty Center Events', owner: 'Oliver Grant', value: 920000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O5062', account: 'Hollywood Entertainment', owner: 'Helena Voss', value: 850000, stage: 'Qualification', expected_close: '2025-12-10', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O5063', account: 'Beverly Hills Arts Council', owner: 'Oliver Grant', value: 920000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O5064', account: 'Santa Monica Tourism', owner: 'Helena Voss', value: 1050000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O5065', account: 'Pasadena Convention Bureau', owner: 'Oliver Grant', value: 880000, stage: 'Qualification', expected_close: '2026-02-20', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        },
+        { id: 'P026', name: 'Frieze Masters', category: 'Art Fair',
+          targets: { 2025: { original: 8500000, q1_revised: null, q2_revised: 8800000, q3_revised: null, q4_revised: 8600000 }, 2026: { original: 9500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D5080', account: 'Sothebys', owner: 'Arabella Knight', value: 1150000, stage: 'Won', close_date: '2025-01-15', contract: 'CTR-2025-250', quarter: 'Q1', year: 2025 },
+            { id: 'D5081', account: 'Christies', owner: 'Dominic Park', value: 920000, stage: 'Won', close_date: '2025-03-28', contract: 'CTR-2025-251', quarter: 'Q1', year: 2025 },
+            { id: 'D5082', account: 'Phillips Auction', owner: 'Arabella Knight', value: 1280000, stage: 'Won', close_date: '2025-05-20', contract: 'CTR-2025-252', quarter: 'Q2', year: 2025 },
+            { id: 'D5083', account: 'Colnaghi Gallery', owner: 'Dominic Park', value: 780000, stage: 'Won', close_date: '2025-06-18', contract: 'CTR-2025-253', quarter: 'Q2', year: 2025 },
+            { id: 'D5084', account: 'Bonhams', owner: 'Arabella Knight', value: 1450000, stage: 'Won', close_date: '2025-08-22', contract: 'CTR-2025-254', quarter: 'Q3', year: 2025 },
+            { id: 'D5085', account: 'Tate Enterprises', owner: 'Dominic Park', value: 650000, stage: 'Won', close_date: '2025-09-15', contract: 'CTR-2025-255', quarter: 'Q3', year: 2025 },
+            { id: 'D5086', account: 'Hazlitt Holland-Hibbert', owner: 'Arabella Knight', value: 1050000, stage: 'Won', close_date: '2025-11-12', contract: 'CTR-2025-256', quarter: 'Q4', year: 2025 },
+            { id: 'D5087', account: 'Robilant+Voena', owner: 'Dominic Park', value: 580000, stage: 'Won', close_date: '2025-12-10', contract: 'CTR-2025-257', quarter: 'Q4', year: 2025 },
+            { id: 'D5088', account: 'Moretti Fine Art', owner: 'Arabella Knight', value: 880000, stage: 'Won', close_date: '2026-02-20', contract: 'CTR-2026-250', quarter: 'Q1', year: 2026 },
+            { id: 'D5089', account: 'Agnews Gallery', owner: 'Dominic Park', value: 620000, stage: 'Won', close_date: '2026-03-25', contract: 'CTR-2026-251', quarter: 'Q1', year: 2026 },
+          ],
+          opportunities: [
+            { id: 'O5080', account: 'London Art Collective', owner: 'Arabella Knight', value: 1050000, stage: 'Negotiation', expected_close: '2026-04-12', probability: 0.75, quarter: 'Q2', year: 2026 },
+            { id: 'O5081', account: 'British Museum Events', owner: 'Dominic Park', value: 950000, stage: 'Proposal', expected_close: '2026-03-28', probability: 0.50, quarter: 'Q1', year: 2026 },
+            { id: 'O5082', account: 'Victoria & Albert Museum', owner: 'Arabella Knight', value: 880000, stage: 'Qualification', expected_close: '2025-12-10', probability: 0.25, quarter: 'Q4', year: 2025 },
+            { id: 'O5083', account: 'National Portrait Gallery', owner: 'Dominic Park', value: 950000, stage: 'Prospecting', expected_close: '2026-05-20', probability: 0.10, quarter: 'Q2', year: 2026 },
+            { id: 'O5084', account: 'Royal Academy Summer Show', owner: 'Arabella Knight', value: 1150000, stage: 'Proposal', expected_close: '2026-04-25', probability: 0.50, quarter: 'Q2', year: 2026 },
+            { id: 'O5085', account: 'Whitechapel Gallery', owner: 'Dominic Park', value: 920000, stage: 'Qualification', expected_close: '2026-02-22', probability: 0.25, quarter: 'Q1', year: 2026 },
+          ]
+        }
+      ]
+    }
+  ],
+      salesExecs: [
+        { id: 'SE001', name: 'Rachel Adams', division: 'PWR Events', title: 'Senior Sales Manager', targets: { 2025: { original: 15000000, q1_revised: null, q2_revised: 14800000, q3_revised: null, q4_revised: null }, 2026: { original: 16200000, q1_revised: 15900000, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE002', name: 'Tom Ngata', division: 'PWR Events', title: 'Senior Sales Manager', targets: { 2025: { original: 9500000, q1_revised: null, q2_revised: 9700000, q3_revised: null, q4_revised: null }, 2026: { original: 10200000, q1_revised: 10100000, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE003', name: 'David Okonkwo', division: 'PWR Events', title: 'Sales Manager', targets: { 2025: { original: 6500000, q1_revised: null, q2_revised: 6800000, q3_revised: null, q4_revised: null }, 2026: { original: 7200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE004', name: 'Priya Sharma', division: 'PWR Events', title: 'Sales Manager', targets: { 2025: { original: 4500000, q1_revised: null, q2_revised: 4700000, q3_revised: null, q4_revised: null }, 2026: { original: 5000000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE005', name: 'Sophie Ellis', division: 'PWR Events', title: 'Sales Executive', targets: { 2025: { original: 3200000, q1_revised: null, q2_revised: 3400000, q3_revised: null, q4_revised: null }, 2026: { original: 3600000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE006', name: 'Marcus James', division: 'PWR Events', title: 'Sales Executive', targets: { 2025: { original: 2000000, q1_revised: null, q2_revised: 2100000, q3_revised: null, q4_revised: null }, 2026: { original: 2400000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE007', name: 'Luke Ferrara', division: 'Culinary', title: 'Senior Sales Manager', targets: { 2025: { original: 7200000, q1_revised: null, q2_revised: 7500000, q3_revised: null, q4_revised: null }, 2026: { original: 8000000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE008', name: 'Amara Chen', division: 'Culinary', title: 'Sales Manager', targets: { 2025: { original: 4800000, q1_revised: null, q2_revised: 5000000, q3_revised: null, q4_revised: null }, 2026: { original: 5400000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE009', name: 'Nina Kowalski', division: 'Culinary', title: 'Sales Manager', targets: { 2025: { original: 5700000, q1_revised: null, q2_revised: 6000000, q3_revised: null, q4_revised: null }, 2026: { original: 6200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE010', name: 'Jack Thornton', division: 'Culinary', title: 'Sales Executive', targets: { 2025: { original: 4000000, q1_revised: null, q2_revised: 4200000, q3_revised: null, q4_revised: null }, 2026: { original: 4500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE011', name: 'Charlotte Mills', division: 'Arts and Entertainment', title: 'Senior Sales Manager', targets: { 2025: { original: 6200000, q1_revised: null, q2_revised: 6500000, q3_revised: null, q4_revised: null }, 2026: { original: 7000000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE012', name: 'Ethan Blake', division: 'Arts and Entertainment', title: 'Sales Manager', targets: { 2025: { original: 5200000, q1_revised: null, q2_revised: 5400000, q3_revised: null, q4_revised: null }, 2026: { original: 5800000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE013', name: 'Ryan Gallagher', division: 'Arts and Entertainment', title: 'Sales Executive', targets: { 2025: { original: 2000000, q1_revised: null, q2_revised: 2200000, q3_revised: null, q4_revised: null }, 2026: { original: 2500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE014', name: 'Maya Petrov', division: 'Arts and Entertainment', title: 'Sales Executive', targets: { 2025: { original: 1500000, q1_revised: null, q2_revised: 1600000, q3_revised: null, q4_revised: null }, 2026: { original: 1800000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE015', name: 'George Hamilton', division: 'Tennis', title: 'Senior Sales Manager', targets: { 2025: { original: 15000000, q1_revised: null, q2_revised: 14500000, q3_revised: null, q4_revised: null }, 2026: { original: 16200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE016', name: 'Isabel Torres', division: 'Tennis', title: 'Sales Manager', targets: { 2025: { original: 9800000, q1_revised: null, q2_revised: 10100000, q3_revised: null, q4_revised: null }, 2026: { original: 10800000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE017', name: 'Natalie Frost', division: 'Tennis', title: 'Sales Manager', targets: { 2025: { original: 8000000, q1_revised: null, q2_revised: 8300000, q3_revised: null, q4_revised: null }, 2026: { original: 9000000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE018', name: 'Connor Walsh', division: 'Tennis', title: 'Sales Executive', targets: { 2025: { original: 5600000, q1_revised: null, q2_revised: 5800000, q3_revised: null, q4_revised: null }, 2026: { original: 6200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE019', name: 'Arabella Knight', division: 'Frieze', title: 'Senior Sales Manager', targets: { 2025: { original: 13500000, q1_revised: null, q2_revised: 13200000, q3_revised: null, q4_revised: null }, 2026: { original: 14500000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE020', name: 'Dominic Park', division: 'Frieze', title: 'Sales Manager', targets: { 2025: { original: 8300000, q1_revised: null, q2_revised: 8600000, q3_revised: null, q4_revised: null }, 2026: { original: 9200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE021', name: 'Helena Voss', division: 'Frieze', title: 'Sales Manager', targets: { 2025: { original: 10200000, q1_revised: null, q2_revised: 10500000, q3_revised: null, q4_revised: null }, 2026: { original: 11200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } },
+        { id: 'SE022', name: 'Oliver Grant', division: 'Frieze', title: 'Sales Executive', targets: { 2025: { original: 6600000, q1_revised: null, q2_revised: 6800000, q3_revised: null, q4_revised: null }, 2026: { original: 7200000, q1_revised: null, q2_revised: null, q3_revised: null, q4_revised: null } } }
+      ]
+    };
+
+    function fmt(num) { if (num >= 1000000) return '$' + (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return '$' + (num / 1000).toFixed(0) + 'K'; return '$' + num; }
+    function fmtFull(num) { return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 0 }); }
+    function pct(val, total) { return total > 0 ? ((val / total) * 100).toFixed(0) : '0'; }
+    function resolveTarget(targets, year) { if (!targets[year]) return null; const t = targets[year]; if (t.q4_revised !== null) return t.q4_revised; if (t.q3_revised !== null) return t.q3_revised; if (t.q2_revised !== null) return t.q2_revised; if (t.q1_revised !== null) return t.q1_revised; return t.original; }
+    function attainmentColor(p) { if (p >= 100) return '#70AD47'; if (p >= 85) return '#FFC000'; if (p >= 70) return '#E69500'; return '#C5504E'; }
+    function sparklineHTML(vals) { const max = Math.max(...vals), min = Math.min(...vals), range = max - min || 1, heights = vals.map(v => ((v - min) / range) * 100); let h = '<svg width="60" height="20" viewBox="0 0 60 20" style="vertical-align:middle;"><g>'; const w = 60 / vals.length; heights.forEach((ht, i) => { h += '<rect x="' + (i * w) + '" y="' + (20 - ht * 0.2) + '" width="' + (w - 1) + '" height="' + (ht * 0.2) + '" fill="#5B9BD5" rx="1"/>'; }); h += '</g></svg>'; return h; }
+    function getExecDeals(execName, year) { const deals = []; DATA.divisions.forEach(div => { div.properties.forEach(prop => { prop.deals.forEach(deal => { if (deal.owner === execName && (year === 'all' || deal.year === parseInt(year))) { deals.push({...deal, property: prop.name}); } }); }); }); return deals; }
+    function getExecOpportunities(execName, year) { const opps = []; DATA.divisions.forEach(div => { div.properties.forEach(prop => { prop.opportunities.forEach(opp => { if (opp.owner === execName && (year === 'all' || opp.year === parseInt(year))) { opps.push({...opp, property: prop.name}); } }); }); }); return opps; }
+    function getExecSales(exec, year) { const deals = getExecDeals(exec.name, year); return deals.filter(d => d.stage === 'Won').reduce((sum, d) => sum + d.value, 0); }
+    function getExecTarget(exec, year) { if (year === 'all') { const t2025 = resolveTarget(exec.targets, 2025) || 0; const t2026 = resolveTarget(exec.targets, 2026) || 0; return t2025 + t2026; } return resolveTarget(exec.targets, parseInt(year)) || 0; }
+    function getExecPipeline(exec, year) { const opps = getExecOpportunities(exec.name, year); return opps.filter(o => o.stage !== 'Won').reduce((sum, o) => sum + o.value, 0); }
+    function getExecWeightedPipeline(exec, year) { const opps = getExecOpportunities(exec.name, year); return opps.filter(o => o.stage !== 'Won').reduce((sum, o) => sum + (o.value * o.probability), 0); }
+
+    let currentYear = 'all';
+
+    document.querySelectorAll('.year-btn').forEach(btn => { btn.addEventListener('click', function() { document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); currentYear = this.dataset.year; renderOverview(); }); });
+    document.getElementById('back-btn').addEventListener('click', function() { document.getElementById('detail-view').classList.add('hidden'); document.getElementById('overview-view').classList.remove('hidden'); document.getElementById('breadcrumb-content').textContent = 'Sales Executives'; renderOverview(); });
+
+    function renderOverview() {
+      const execs = DATA.salesExecs;
+      let totalSales = 0, totalTarget = 0, totalPipeline = 0, totalWeightedPipeline = 0;
+      const attainments = [];
+
+      execs.forEach(exec => {
+        const sales = getExecSales(exec, currentYear);
+        const target = getExecTarget(exec, currentYear);
+        const pipeline = getExecPipeline(exec, currentYear);
+        const weighted = getExecWeightedPipeline(exec, currentYear);
+        totalSales += sales; totalTarget += target; totalPipeline += pipeline; totalWeightedPipeline += weighted;
+        if (target > 0) attainments.push((sales / target) * 100);
+      });
+
+      const overallAttainment = totalTarget > 0 ? ((totalSales / totalTarget) * 100).toFixed(0) : '0';
+
+      document.getElementById('kpi-execs').textContent = execs.length;
+      document.getElementById('kpi-gross-sales').textContent = fmt(totalSales);
+      document.getElementById('kpi-target').textContent = fmt(totalTarget);
+      document.getElementById('kpi-attainment').textContent = overallAttainment + '%';
+      document.getElementById('kpi-pipeline').textContent = fmt(totalPipeline);
+      document.getElementById('kpi-weighted-pipeline').textContent = fmt(totalWeightedPipeline);
+
+      const sortedExecs = execs.map(exec => ({exec, sales: getExecSales(exec, currentYear), target: getExecTarget(exec, currentYear)})).sort((a, b) => b.sales - a.sales).slice(0, 10);
+      const maxSales = Math.max(...sortedExecs.map(e => e.sales), 1);
+      const maxTarget = Math.max(...sortedExecs.map(e => e.target), 1);
+      const chartMax = Math.max(maxSales, maxTarget);
+
+      let topExecsHTML = '';
+      sortedExecs.forEach(item => {
+        const p = (item.sales / chartMax) * 100;
+        const targetP = (item.target / chartMax) * 100;
+        topExecsHTML += '<div class="bar-row"><div class="bar-label" title="' + item.exec.name + '">' + item.exec.name + '</div><div class="bar-container" style="position: relative;"><div class="bar-fill" style="width: ' + p + '%"></div><div class="bar-target" style="left: ' + targetP.toFixed(1) + '%"></div></div><div class="bar-value">' + fmt(item.sales) + '</div></div>';
+      });
+      document.getElementById('top-execs-chart').innerHTML = topExecsHTML;
+
+      const dist = { above100: attainments.filter(a => a >= 100).length, a85_99: attainments.filter(a => a >= 85 && a < 100).length, a70_84: attainments.filter(a => a >= 70 && a < 85).length, below70: attainments.filter(a => a < 70).length };
+      const total = dist.above100 + dist.a85_99 + dist.a70_84 + dist.below70 || 1;
+      const attainDistHTML = '<div class="attainment-segment segment-100" style="width: ' + ((dist.above100 / total) * 100) + '%">' + (dist.above100 > 0 ? dist.above100 + ' ≥100%' : '') + '</div><div class="attainment-segment segment-85" style="width: ' + ((dist.a85_99 / total) * 100) + '%">' + (dist.a85_99 > 0 ? dist.a85_99 + ' 85-99%' : '') + '</div><div class="attainment-segment segment-70" style="width: ' + ((dist.a70_84 / total) * 100) + '%">' + (dist.a70_84 > 0 ? dist.a70_84 + ' 70-84%' : '') + '</div><div class="attainment-segment segment-below" style="width: ' + ((dist.below70 / total) * 100) + '%">' + (dist.below70 > 0 ? dist.below70 + ' <70%' : '') + '</div>';
+      document.getElementById('attainment-dist').innerHTML = attainDistHTML;
+
+      let tableHTML = '';
+      execs.forEach(exec => {
+        const sales = getExecSales(exec, currentYear);
+        const target = getExecTarget(exec, currentYear);
+        const pipeline = getExecPipeline(exec, currentYear);
+        const oppCount = getExecOpportunities(exec.name, currentYear).length;
+        const dealCount = getExecDeals(exec.name, currentYear).filter(d => d.stage === 'Won').length;
+        const attain = target > 0 ? ((sales / target) * 100).toFixed(0) : 0;
+        const originalTarget = exec.targets[currentYear === 'all' ? 2025 : parseInt(currentYear)]?.original || 0;
+        const variance = (target - originalTarget).toFixed(0);
+        const deals = getExecDeals(exec.name, currentYear).filter(d => d.stage === 'Won');
+        const avgDeal = deals.length > 0 ? deals.reduce((sum, d) => sum + d.value, 0) / deals.length : 0;
+
+        tableHTML += '<tr onclick="showDetail(\'' + exec.name + '\')"><td>' + exec.name + '</td><td>' + exec.division + '</td><td>' + exec.title + '</td><td class="numeric">' + fmt(sales) + '</td><td class="numeric">' + fmt(originalTarget) + '</td><td class="numeric">' + fmt(target) + '</td><td class="numeric">' + fmt(variance) + '</td><td><div style="background: ' + attainmentColor(attain) + '; color: white; padding: 2px 8px; border-radius: 4px; text-align: center; width: 60px;">' + attain + '%</div></td><td class="numeric">' + fmt(pipeline) + '</td><td class="numeric">' + oppCount + '</td><td class="numeric">' + dealCount + '</td><td><div class="sparkline">' + sparklineHTML([avgDeal, avgDeal * 1.1, avgDeal * 0.9, avgDeal * 1.2, avgDeal]) + '</div></td></tr>';
+      });
+      document.getElementById('execs-tbody').innerHTML = tableHTML;
+    }
+
+    function showDetail(execName) {
+      const exec = DATA.salesExecs.find(e => e.name === execName);
+      if (!exec) return;
+
+      document.getElementById('overview-view').classList.add('hidden');
+      document.getElementById('detail-view').classList.remove('hidden');
+      document.getElementById('breadcrumb-content').textContent = 'Sales Executives > ' + exec.name;
+      document.getElementById('detail-title').textContent = exec.name + ' - ' + exec.division;
+      document.getElementById('detail-exec-name').textContent = 'Gross Sales';
+
+      const sales = getExecSales(exec, currentYear);
+      const target = getExecTarget(exec, currentYear);
+      const pipeline = getExecPipeline(exec, currentYear);
+      const weighted = getExecWeightedPipeline(exec, currentYear);
+      const deals = getExecDeals(exec.name, currentYear).filter(d => d.stage === 'Won');
+      const avgDeal = deals.length > 0 ? deals.reduce((sum, d) => sum + d.value, 0) / deals.length : 0;
+      const attain = target > 0 ? ((sales / target) * 100).toFixed(0) : 0;
+
+      document.getElementById('detail-gross-sales').textContent = fmt(sales);
+      document.getElementById('detail-current-target').textContent = fmt(target);
+      const originalTarget = exec.targets[currentYear === 'all' ? 2025 : parseInt(currentYear)]?.original || 0;
+      const delta = target - originalTarget;
+      document.getElementById('detail-original-target').textContent = 'Original: ' + fmt(originalTarget);
+      document.getElementById('detail-delta').textContent = 'Delta: ' + fmt(delta);
+      document.getElementById('detail-attainment').textContent = attain + '%';
+      document.getElementById('detail-avg-deal').textContent = fmt(avgDeal);
+      document.getElementById('detail-pipeline').textContent = fmt(pipeline);
+      document.getElementById('detail-weighted-label').textContent = 'Weighted: ' + fmt(weighted);
+
+      const allDeals = getExecDeals(exec.name, 'all');
+      const dealsByYear = {};
+      allDeals.filter(d => d.stage === 'Won').forEach(deal => { if (!dealsByYear[deal.year]) dealsByYear[deal.year] = 0; dealsByYear[deal.year] += deal.value; });
+      const years = [2025, 2026].filter(y => dealsByYear[y]);
+      const max = Math.max(...Object.values(dealsByYear), exec.targets[2025]?.original || 0, exec.targets[2026]?.original || 0) || 1;
+      let waterfallHTML = '<div class="waterfall-bar">';
+      years.forEach(year => {
+        const s = dealsByYear[year] || 0;
+        const p = (s / max) * 100;
+        const tgt = exec.targets[year]?.original || 0;
+        const tgtP = (tgt / max) * 100;
+        waterfallHTML += '<div class="waterfall-item"><div class="waterfall-rect" style="height: ' + p + '%;" title="' + fmt(s) + '"></div><div class="waterfall-label">FY ' + year + '</div><div class="waterfall-value">' + fmt(s) + '</div><div class="waterfall-label" style="color: #C5504E; font-weight: 600;">Target: ' + fmt(tgt) + '</div></div>';
+      });
+      waterfallHTML += '</div>';
+      document.getElementById('waterfall-chart').innerHTML = waterfallHTML;
+
+      const salesByProp = {};
+      getExecDeals(exec.name, currentYear).filter(d => d.stage === 'Won').forEach(deal => { if (!salesByProp[deal.property]) salesByProp[deal.property] = 0; salesByProp[deal.property] += deal.value; });
+      const propEntries = Object.entries(salesByProp).sort((a, b) => b[1] - a[1]);
+      const maxProp = Math.max(...propEntries.map(e => e[1]), 1);
+      let propHTML = '';
+      propEntries.forEach(([prop, val]) => {
+        const p = (val / maxProp) * 100;
+        propHTML += '<div class="bar-row"><div class="bar-label" title="' + prop + '">' + prop + '</div><div class="bar-container"><div class="bar-fill" style="width: ' + p + '%"></div></div><div class="bar-value">' + fmt(val) + '</div></div>';
+      });
+      document.getElementById('sales-by-property').innerHTML = propHTML;
+
+      const allDealsList = getExecDeals(exec.name, currentYear);
+      let dealsHTML = '';
+      allDealsList.forEach(deal => {
+        dealsHTML += '<tr><td>' + deal.id + '</td><td>' + deal.property + '</td><td>' + deal.account + '</td><td class="numeric">' + fmt(deal.value) + '</td><td><span class="status-badge stage-' + deal.stage.toLowerCase().replace(/ /g, '-') + '">' + deal.stage + '</span></td><td>' + deal.close_date + '</td><td>' + (deal.contract || '-') + '</td><td>' + deal.quarter + '</td><td>' + deal.year + '</td></tr>';
+      });
+      document.getElementById('deals-tbody').innerHTML = dealsHTML;
+
+      const stages = ['All', 'Won', 'Negotiation', 'Proposal'];
+      const stageFiltersHTML = stages.map(s => '<button class="filter-pill ' + (s === 'All' ? 'active' : '') + '" data-stage="' + s + '">' + s + '</button>').join('');
+      document.getElementById('stage-filters').innerHTML = stageFiltersHTML;
+
+      document.querySelectorAll('.filter-pill').forEach(pill => {
+        pill.addEventListener('click', function() {
+          document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+          this.classList.add('active');
+          const stage = this.dataset.stage;
+          const filtered = stage === 'All' ? allDealsList : allDealsList.filter(d => d.stage === stage);
+          let dealsHTML = '';
+          filtered.forEach(deal => {
+            dealsHTML += '<tr><td>' + deal.id + '</td><td>' + deal.property + '</td><td>' + deal.account + '</td><td class="numeric">' + fmt(deal.value) + '</td><td><span class="status-badge stage-' + deal.stage.toLowerCase().replace(/ /g, '-') + '">' + deal.stage + '</span></td><td>' + deal.close_date + '</td><td>' + (deal.contract || '-') + '</td><td>' + deal.quarter + '</td><td>' + deal.year + '</td></tr>';
+          });
+          document.getElementById('deals-tbody').innerHTML = dealsHTML;
+        });
+      });
+
+      const allOppsList = getExecOpportunities(exec.name, currentYear);
+      let oppsHTML = '';
+      allOppsList.forEach(opp => {
+        const w = (opp.value * opp.probability).toFixed(0);
+        oppsHTML += '<tr><td>' + opp.id + '</td><td>' + opp.property + '</td><td>' + opp.account + '</td><td class="numeric">' + fmt(opp.value) + '</td><td><span class="status-badge stage-' + opp.stage.toLowerCase().replace(/ /g, '-') + '">' + opp.stage + '</span></td><td class="numeric">' + (opp.probability * 100).toFixed(0) + '%</td><td class="numeric">' + fmt(w) + '</td><td>' + opp.expected_close + '</td><td>' + opp.quarter + '</td><td>' + opp.year + '</td></tr>';
+      });
+      document.getElementById('opps-tbody').innerHTML = oppsHTML;
+
+      const stageGrouped = {};
+      ['Negotiation', 'Proposal', 'Qualification', 'Prospecting'].forEach(st => {
+        const opps = allOppsList.filter(o => o.stage === st);
+        const t = opps.reduce((sum, o) => sum + o.value, 0);
+        const w = opps.reduce((sum, o) => sum + (o.value * o.probability), 0);
+        const a = opps.length > 0 ? t / opps.length : 0;
+        stageGrouped[st] = {count: opps.length, total: t, weighted: w, avg: a};
+      });
+
+      let pipelineHTML = '';
+      const maxW = Math.max(...Object.values(stageGrouped).map(d => d.weighted), 1);
+      Object.entries(stageGrouped).forEach(([st, data]) => {
+        pipelineHTML += '<tr><td>' + st + '</td><td class="numeric">' + data.count + '</td><td class="numeric">' + fmt(data.total) + '</td><td class="numeric">' + fmt(data.weighted) + '</td><td class="numeric">' + fmt(data.avg) + '</td><td><div style="background: #5B9BD5; height: 10px; width: ' + Math.min((data.weighted / maxW) * 200, 100) + 'px; border-radius: 2px;"></div></td></tr>';
+      });
+      document.getElementById('pipeline-tbody').innerHTML = pipelineHTML;
+    }
+
+    renderOverview();
+  </script>
+</body>
+</html>
