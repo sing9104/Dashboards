@@ -1,286 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboards — Cerebro CRM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --color-primary: #6C63FF;
-      --color-primary-light: #ededff;
-      --color-primary-dark: #5549e0;
-      --color-success: #22c55e;
-      --color-success-light: #dcfce7;
-      --color-warning: #f59e0b;
-      --color-warning-light: #fef3c7;
-      --color-danger: #ef4444;
-      --color-text: #1e293b;
-      --color-text-secondary: #64748b;
-      --color-text-muted: #94a3b8;
-      --color-border: #e2e8f0;
-      --color-bg: #f8fafc;
-      --color-bg-white: #ffffff;
-      --topbar-height: 56px;
-      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --radius-sm: 6px;
-      --radius-md: 8px;
-      --radius-lg: 12px;
-      --radius-xl: 16px;
-      --radius-full: 9999px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
-      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
-      --transition-fast: 150ms ease;
-      --transition-base: 200ms ease;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cerebro CRM — Reporting</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --blue: #3b6b9a;
+    --blue-light: #e8f0f8;
+    --green: #3a8a6e;
+    --green-light: #e6f4ef;
+    --amber: #d4813e;
+    --amber-light: #fdf0e4;
+    --purple: #7c6b9e;
+    --purple-light: #f0ecf6;
+    --teal: #5a9ea6;
+    --teal-light: #e6f3f5;
+    --red: #c4524a;
+    --red-light: #fbe9e8;
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #2d3748;
+    --text-secondary: #5a6577;
+    --text-muted: #94a0b4;
+    --border: #e2e6ed;
+    --header-bg: #1e2a3a;
+    --radius: 10px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.06);
+    --shadow-hover: 0 6px 20px rgba(0,0,0,0.1);
+  }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 14px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    body {
-      font-family: var(--font-family);
-      color: var(--color-text);
-      background: var(--color-bg);
-      line-height: 1.5;
-      min-height: 100vh;
-    }
-    a { color: var(--color-primary); text-decoration: none; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* Layout */
-    .app-layout { display: flex; flex-direction: column; min-height: 100vh; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
 
-    /* Main */
-    .main { flex: 1; min-height: 100vh; }
+  /* === TOP BAR === */
+  .topbar {
+    background: var(--header-bg);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 24px; }
+  .topbar .nav-item {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 0;
+  }
+  .topbar .nav-item.active { color: #fff; border-bottom: 2px solid var(--amber); }
+  .topbar-search {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    padding: 6px 14px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    width: 200px;
+    outline: none;
+  }
+  .topbar-search::placeholder { color: rgba(255,255,255,0.35); }
 
-    /* Topbar */
-    .topbar {
-      height: var(--topbar-height);
-      background: var(--color-bg-white);
-      border-bottom: 1px solid var(--color-border);
-      display: flex; align-items: center;
-      padding: 0 32px;
-      position: sticky; top: 0; z-index: 50; gap: 16px;
-    }
-    .topbar__logo {
-      display: flex; align-items: center; gap: 10px;
-    }
-    .topbar__logo-icon {
-      width: 30px; height: 30px;
-      background: linear-gradient(135deg, var(--color-primary), #8b7fff);
-      border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0;
-    }
-    .topbar__logo-text { font-size: 15px; font-weight: 600; color: var(--color-text); letter-spacing: -0.3px; }
-    .topbar__separator { width: 1px; height: 24px; background: var(--color-border); margin: 0 4px; }
-    .topbar__breadcrumb { font-size: 13px; color: var(--color-text-secondary); }
-    .topbar__breadcrumb span { color: var(--color-text); font-weight: 500; }
+  /* === PAGE HEADER === */
+  .page-header {
+    padding: 28px 32px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .page-header .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
 
-    /* Content */
-    .content { padding: 32px; max-width: 1200px; margin: 0 auto; }
+  /* === STAT CARDS === */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 20px 32px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
 
-    /* Page header */
-    .page-header { margin-bottom: 40px; text-align: center; }
-    .page-header__title {
-      font-size: 28px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;
-    }
-    .page-header__subtitle {
-      font-size: 15px; color: var(--color-text-secondary); margin: 0; max-width: 480px; margin-inline: auto;
-    }
+  /* === REPORT GRID === */
+  .report-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 8px 32px 48px;
+  }
+  .report-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+    min-height: 180px;
+  }
+  .report-card:hover {
+    box-shadow: var(--shadow-hover);
+    border-color: #c8d0db;
+  }
+  .report-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .report-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .report-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .report-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    flex: 1;
+  }
+  .report-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+  }
+  .category-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .badge-executive { background: var(--blue-light); color: var(--blue); }
+  .badge-sales { background: var(--green-light); color: var(--green); }
+  .badge-finance { background: var(--amber-light); color: var(--amber); }
+  .badge-property { background: var(--teal-light); color: var(--teal); }
+  .badge-insights { background: var(--red-light); color: var(--red); }
+  .badge-archive { background: #f0f1f3; color: var(--text-muted); }
+  .view-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+  }
+  .view-link:hover { color: var(--blue); }
+  .view-link .arrow { font-size: 14px; transition: transform 0.15s; }
+  .view-link:hover .arrow { transform: translateX(3px); }
 
-    /* Dashboard tiles */
-    .tiles-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 16px;
-    }
-
-    .tile {
-      background: var(--color-bg-white);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      padding: 32px 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      transition: all var(--transition-base);
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      position: relative;
-      overflow: hidden;
-    }
-    .tile:hover {
-      border-color: #cbd5e1;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.09);
-      transform: translateY(-4px);
-      text-decoration: none;
-    }
-    .tile::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    }
-    .tile--executive::before { background: linear-gradient(90deg, #6C63FF, #8b7fff); }
-    .tile--division::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-    .tile--sales::before { background: linear-gradient(90deg, #22c55e, #4ade80); }
-
-    .tile__icon-wrapper {
-      width: 56px; height: 56px;
-      border-radius: var(--radius-lg);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .tile--executive .tile__icon-wrapper { background: var(--color-primary-light); }
-    .tile--division .tile__icon-wrapper { background: var(--color-warning-light); }
-    .tile--sales .tile__icon-wrapper { background: var(--color-success-light); }
-
-    .tile__icon { width: 28px; height: 28px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .tile--executive .tile__icon { stroke: var(--color-primary); }
-    .tile--division .tile__icon { stroke: var(--color-warning); }
-    .tile--sales .tile__icon { stroke: var(--color-success); }
-
-    .tile__body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-    .tile__title { font-size: 18px; font-weight: 700; color: #1e293b; }
-    .tile__description { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
-
-    .tile__footer {
-      display: flex; align-items: center; gap: 8px;
-      padding-top: 16px; border-top: 1px solid #f1f5f9;
-      font-size: 13px; font-weight: 600;
-    }
-    .tile--executive .tile__footer { color: var(--color-primary); }
-    .tile--division .tile__footer { color: var(--color-warning); }
-    .tile--sales .tile__footer { color: var(--color-success); }
-
-    .tile__footer-arrow { width: 16px; height: 16px; transition: transform var(--transition-fast); }
-    .tile:hover .tile__footer-arrow { transform: translateX(4px); }
-
-    /* Tags */
-    .tile__tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-    .tile__tag {
-      font-size: 11px; font-weight: 500; padding: 3px 10px;
-      border-radius: var(--radius-full); letter-spacing: 0.2px;
-    }
-    .tile--executive .tile__tag { background: var(--color-primary-light); color: var(--color-primary); }
-    .tile--division .tile__tag { background: var(--color-warning-light); color: #92400e; }
-    .tile--sales .tile__tag { background: var(--color-success-light); color: #166534; }
-
-    @media (max-width: 960px) {
-      .tiles-grid { grid-template-columns: 1fr; max-width: 480px; margin-inline: auto; }
-    }
-    @media (max-width: 768px) {
-      .topbar { padding: 0 16px; }
-      .content { padding: 24px 16px; }
-    }
-  </style>
+  @media (max-width: 900px) {
+    .report-grid, .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .report-grid, .stats-row { grid-template-columns: 1fr; }
+    .filter-bar { flex-wrap: wrap; }
+    .filter-pills { margin-left: 0; }
+  }
+</style>
 </head>
 <body>
-  <div class="app-layout">
 
-    <!-- Main content -->
-    <div class="main">
-      <header class="topbar">
-        <div class="topbar__logo">
-          <div class="topbar__logo-icon">C</div>
-          <div class="topbar__logo-text">CerebroCRM</div>
-        </div>
-        <div class="topbar__separator"></div>
-        <div class="topbar__breadcrumb"><span>Dashboards</span></div>
-      </header>
-
-      <div class="content">
-        <div class="page-header">
-          <h1 class="page-header__title">Dashboards</h1>
-          <p class="page-header__subtitle">Select a dashboard to view performance insights across your organization.</p>
-        </div>
-
-        <div class="tiles-grid">
-
-          <!-- Executive Dashboard -->
-          <a href="Executive-Dashboard.html" class="tile tile--executive">
-            <div class="tile__icon-wrapper">
-              <svg class="tile__icon" viewBox="0 0 24 24">
-                <path d="M3 13h4v8H3z"/><path d="M10 9h4v12h-4z"/><path d="M17 5h4v16h-4z"/>
-                <path d="M2 3v18h20" stroke-width="1.5"/>
-              </svg>
-            </div>
-            <div class="tile__body">
-              <div class="tile__title">Executive Dashboard</div>
-              <div class="tile__description">
-                High-level view of company-wide revenue, pipeline health, deal velocity, and key performance indicators for senior leadership.
-              </div>
-              <div class="tile__tags">
-                <span class="tile__tag">Revenue</span>
-                <span class="tile__tag">Pipeline</span>
-                <span class="tile__tag">KPIs</span>
-              </div>
-            </div>
-            <div class="tile__footer">
-              Open Dashboard
-              <svg class="tile__footer-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </div>
-          </a>
-
-          <!-- Division Head Dashboard -->
-          <a href="Division Head -Dashboard.html" class="tile tile--division">
-            <div class="tile__icon-wrapper">
-              <svg class="tile__icon" viewBox="0 0 24 24">
-                <circle cx="12" cy="7" r="4"/>
-                <path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
-                <path d="M17 14l2 2 4-4" stroke-width="2"/>
-              </svg>
-            </div>
-            <div class="tile__body">
-              <div class="tile__title">Division Head Dashboard</div>
-              <div class="tile__description">
-                Division-level performance tracking with team metrics, target vs. actuals, opportunity pipeline, and team member contribution analysis.
-              </div>
-              <div class="tile__tags">
-                <span class="tile__tag">Divisions</span>
-                <span class="tile__tag">Targets</span>
-                <span class="tile__tag">Teams</span>
-              </div>
-            </div>
-            <div class="tile__footer">
-              Open Dashboard
-              <svg class="tile__footer-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </div>
-          </a>
-
-          <!-- Sales Exec Dashboard -->
-          <a href="Sales-Exec-Dashboard.html" class="tile tile--sales">
-            <div class="tile__icon-wrapper">
-              <svg class="tile__icon" viewBox="0 0 24 24">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-              </svg>
-            </div>
-            <div class="tile__body">
-              <div class="tile__title">Sales Exec Dashboard</div>
-              <div class="tile__description">
-                Individual sales executive view with personal targets, deal progress, activity tracking, and commission breakdowns.
-              </div>
-              <div class="tile__tags">
-                <span class="tile__tag">Activity</span>
-                <span class="tile__tag">Deals</span>
-                <span class="tile__tag">Commission</span>
-              </div>
-            </div>
-            <div class="tile__footer">
-              Open Dashboard
-              <svg class="tile__footer-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </div>
-          </a>
-
-        </div>
-      </div>
-    </div>
-
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="#" class="nav-item active">Reporting</a>
   </div>
+  <input type="text" class="topbar-search" placeholder="Search...">
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <h1>Reporting</h1>
+  </div>
+  <div class="subtitle">Access dashboards and analytics across your CRM data</div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-value">3</div>
+    <div class="stat-label">Reports Available</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">Today</div>
+    <div class="stat-label">Last Generated</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">FY 2026</div>
+    <div class="stat-label">Current Period</div>
+  </div>
+</div>
+
+<!-- REPORT GRID -->
+<div class="report-grid" id="reportGrid"></div>
+
+<script>
+const REPORTS = [
+  {
+    title: 'Leadership Dashboard',
+    desc: 'Group-level overview across all business units — targets, closed revenue, pipeline, and achievement with drill-down to properties and deals',
+    category: 'executive',
+    iconSvg: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    iconBg: 'var(--blue-light)',
+    iconColor: 'var(--blue)',
+    href: 'Leadership-Dashboard.html'
+  },
+  {
+    title: 'Management Dashboard',
+    desc: 'Business unit and property performance — sales exec breakdown, target vs closed charts, pipeline tracking, and quarterly analysis',
+    category: 'sales',
+    iconSvg: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    iconBg: 'var(--green-light)',
+    iconColor: 'var(--green)',
+    href: 'Management-Dashboard.html'
+  },
+  {
+    title: 'Sales Exec Dashboard',
+    desc: 'Individual sales executive view — personal targets by property, deal and opportunity pipeline, stage progression, and property-level performance',
+    category: 'sales',
+    iconSvg: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    iconBg: 'var(--amber-light)',
+    iconColor: 'var(--amber)',
+    href: 'Sales-Exec-Dashboard.html'
+  }
+];
+
+function renderGrid() {
+  var grid = document.getElementById('reportGrid');
+  grid.innerHTML = '';
+  REPORTS.forEach(function(r) {
+    var badgeClass = 'badge-' + r.category;
+    var card = document.createElement('div');
+    card.className = 'report-card';
+    card.innerHTML =
+      '<div class="report-card-top">' +
+        '<div class="report-icon" style="background:' + r.iconBg + ';color:' + r.iconColor + '">' + r.iconSvg + '</div>' +
+      '</div>' +
+      '<div class="report-title">' + r.title + '</div>' +
+      '<div class="report-desc">' + r.desc + '</div>' +
+      '<div class="report-footer">' +
+        '<span class="category-badge ' + badgeClass + '">' + r.category + '</span>' +
+        '<a href="' + r.href + '" class="view-link">View Report <span class="arrow">&rarr;</span></a>' +
+      '</div>';
+    grid.appendChild(card);
+  });
+}
+
+renderGrid();
+</script>
 </body>
 </html>
