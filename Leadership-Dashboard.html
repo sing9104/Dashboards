@@ -189,6 +189,8 @@
     box-shadow: var(--shadow-sm);
     padding: 16px 20px;
     transition: var(--transition);
+    overflow: visible;
+    min-width: 0;
   }
   .chart-card:hover { box-shadow: var(--shadow-md); }
   .chart-card .chart-title {
@@ -204,7 +206,7 @@
   .bar-chart { display: flex; flex-direction: column; gap: 10px; }
   .bar-row {
     display: grid;
-    grid-template-columns: 120px 1fr 70px;
+    grid-template-columns: 120px 1fr auto;
     align-items: center;
     gap: 10px;
     cursor: pointer;
@@ -247,6 +249,7 @@
     font-weight: 600;
     color: var(--text-primary);
     text-align: right;
+    white-space: nowrap;
   }
 
   /* === STACKED BAR (COMPOSITION) === */
