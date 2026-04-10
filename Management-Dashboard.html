@@ -410,6 +410,29 @@
     justify-content: center;
   }
 
+  /* === YOY BUTTERFLY + QUARTERLY === */
+  .m-butterfly-row { display: flex; align-items: center; margin-bottom: 8px; }
+  .m-butterfly-row:last-child { margin-bottom: 0; }
+  .m-bfly-left { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+  .m-bfly-center { min-width: 110px; text-align: center; font-weight: 600; font-size: 10px; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-bfly-right { flex: 1; display: flex; align-items: center; gap: 6px; }
+  .m-bfly-bar { height: 18px; border-radius: 3px; display: flex; align-items: center; min-width: 2px; transition: width 0.4s ease; }
+  .m-bfly-bar-left { justify-content: flex-start; padding-left: 4px; }
+  .m-bfly-bar-right { justify-content: flex-end; padding-right: 4px; }
+  .m-bfly-bar span { font-size: 9px; font-weight: 600; color: white; white-space: nowrap; }
+  .m-bfly-val { font-size: 10px; font-weight: 500; min-width: 48px; }
+  .m-bfly-val-left { text-align: left; }
+  .m-bfly-val-right { text-align: right; }
+  .m-bfly-hdr { display: flex; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--color-border); }
+  .m-bfly-hdr .m-bfly-left { font-size: 10px; font-weight: 700; color: #8babc7; text-transform: uppercase; letter-spacing: .3px; }
+  .m-bfly-hdr .m-bfly-center { font-size: 10px; font-weight: 700; color: var(--color-neutral); text-transform: uppercase; }
+  .m-bfly-hdr .m-bfly-right { font-size: 10px; font-weight: 700; color: #2c5f8a; text-transform: uppercase; letter-spacing: .3px; }
+  .m-yoy-tile { background: linear-gradient(135deg, #1e2a3a 0%, #2c5f8a 100%); border-radius: 8px; padding: 14px 20px; color: white; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .m-yoy-tile:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(44,95,138,0.3); }
+  .m-yoy-tile .tile-title { font-size: 14px; font-weight: 700; }
+  .m-yoy-tile .tile-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+  .m-yoy-tile .tile-arrow { font-size: 20px; opacity: 0.6; }
+
   /* Section Toggle Tabs */
   .section-toggle {
     background: var(--color-white);
@@ -750,13 +773,107 @@
   /* Drill Icon */
   .prop-drill-icon {
     cursor: pointer;
-    color: var(--color-secondary);
+    color: #333;
     text-decoration: none;
     font-weight: 600;
   }
 
   .prop-drill-icon:hover {
-    color: var(--color-primary);
+    color: #000;
+  }
+
+  .cat-split-card {
+    background: var(--color-white);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .cat-split-card .cat-title {
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    margin-bottom: 14px;
+    color: var(--color-dark);
+  }
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .cat-label {
+    width: 90px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #444;
+  }
+  .cat-bar-wrap {
+    flex: 1;
+    height: 22px;
+    background: var(--color-light);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .cat-bar-target {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background: #333;
+    z-index: 2;
+  }
+  .cat-vals {
+    min-width: 160px;
+    text-align: right;
+    font-size: 11px;
+  }
+  .cat-vals .cat-actual {
+    font-weight: 600;
+  }
+  .cat-vals .cat-target {
+    color: var(--color-neutral);
+    margin-left: 4px;
+  }
+  .cat-attain {
+    min-width: 55px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .cat-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .cat-summary-box {
+    text-align: center;
+    padding: 12px 8px;
+    border-radius: 6px;
+    border-top: 3px solid;
+  }
+  .cat-summary-box .cat-sum-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .cat-summary-box .cat-sum-val {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .cat-summary-box .cat-sum-sub {
+    font-size: 10px;
+    color: #666;
   }
 </style>
 </head>
@@ -804,6 +921,9 @@
     <div class="view-title">Sales Performance</div>
     <div class="kpi-grid" id="kpi-overview"></div>
     <div class="charts-row" id="charts-overview"></div>
+
+    <div class="charts-row" id="yoy-charts-overview"></div>
+
     <div class="section">
       <div class="section-title">Sales Execs</div>
       <table id="execs-table">
@@ -825,6 +945,15 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Recent Deals (last 7 days) -->
+    <div class="section" id="recent-deals-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="section-title">Recent Deals</div>
+        <span id="recentDealsCount" style="font-size:11px;font-weight:600;background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:12px"></span>
+      </div>
+      <div id="recentDealsBody"></div>
+    </div>
   </div>
 
   <div id="detail-view" class="hidden">
@@ -832,6 +961,7 @@
     <div class="view-title" id="detail-title">Executive Details</div>
     <div class="kpi-grid" id="kpi-detail"></div>
     <div class="charts-row" id="charts-detail"></div>
+    <div class="charts-row" id="category-split-row" style="margin-top:0"></div>
     <div class="section">
       <div class="section-title">Deals</div>
       <div id="exec-deal-filters" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
@@ -850,6 +980,7 @@
             <th>Account</th>
             <th>Property</th>
             <th>Value</th>
+            <th>Category</th>
             <th>Stage</th>
             <th>Close Date</th>
             <th>Year</th>
@@ -902,7 +1033,7 @@
     <div class="view-title" id="prop-overview-title">Property Performance</div>
     <div class="prop-kpi-strip" id="prop-kpi-overview"></div>
     <div class="prop-chart-card">
-      <div class="prop-chart-title">Target vs Closed</div>
+      <div class="prop-chart-title">Closed vs Pipeline vs Target</div>
       <div class="prop-bar-chart" id="prop-bar-chart"></div>
     </div>
     <div class="prop-chart-card" style="display:none;">
@@ -933,16 +1064,26 @@
     <button class="prop-back-btn" onclick="backToPropertyOverview()">← Back to Properties</button>
     <div class="view-title" id="prop-detail-title">Property Details</div>
     <div class="prop-kpi-strip" id="prop-kpi-detail"></div>
-    <div class="prop-chart-card">
-      <div class="prop-chart-title">Target Revision History</div>
-      <div id="prop-target-history"></div>
+    <div class="charts-row">
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Target Revision History</div>
+        <div id="prop-target-history"></div>
+      </div>
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Target Breakdown by Category</div>
+        <div id="prop-category-targets"></div>
+      </div>
     </div>
-    <div class="prop-chart-card">
-      <div class="prop-chart-title">Closed by Executive</div>
-      <div class="prop-bar-chart" id="prop-sales-by-owner"></div>
+    <div class="charts-row">
+      <div class="prop-chart-card" id="prop-yoy-charts" style="margin-bottom:0"></div>
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Closed by Executive</div>
+        <div class="prop-bar-chart" id="prop-sales-by-owner"></div>
+      </div>
     </div>
     <div class="prop-chart-card">
       <div class="section-title">Top 10 Deals</div>
+      <div class="prop-filter-bar" id="deals-stage-filter"></div>
       <table class="prop-data-table" id="prop-detail-deals-table">
         <thead>
           <tr>
@@ -960,6 +1101,7 @@
     </div>
     <div class="prop-chart-card">
       <div class="section-title">Open Opportunities</div>
+      <div class="prop-filter-bar" id="opps-stage-filter"></div>
       <table class="prop-data-table" id="prop-detail-opps-table">
         <thead>
           <tr>
@@ -1005,6 +1147,7 @@
 <div id="tooltip" class="prop-tooltip" style="display: none;"></div>
 
 <script>
+const TODAY = new Date('2026-04-09');
 const COLORS = ['#2E5C8A', '#5B9BD5', '#70AD47', '#FFC000', '#C5504E', '#4472C4', '#ED7D31', '#A5A5A5', '#5B9BD5', '#70AD47'];
 
 const STAGE_MAPPING = {
@@ -1030,36 +1173,40 @@ const DATA = {
       properties: [
         { id: 'P001', name: 'Winter Wonderland', category: 'Seasonal Events',
           targets: { 2025: { original: 12000000, q1_revised: null, q2_revised: 12500000, q3_revised: null, q4_revised: null }, 2026: { original: 13500000, q1_revised: 13200000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 4200000, Exhibitors: 3000000, Sponsorship: 4800000 }, 2026: { Hospitality: 4620000, Exhibitors: 3300000, Sponsorship: 5280000 } },
           deals: [
-            { id: 'D1001', account: 'Merlin Entertainments', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2025-01-20', contract: 'CTR-2025-001', quarter: 'Q1', year: 2025 },
-            { id: 'D1002', account: 'Coca-Cola Europacific', owner: 'Tom Ngata', value: 1200000, stage: 'Closed', close_date: '2025-03-12', contract: 'CTR-2025-002', quarter: 'Q1', year: 2025 },
-            { id: 'D1003', account: 'Swarovski AG', owner: 'Rachel Adams', value: 1680000, stage: 'Closed', close_date: '2025-05-08', contract: 'CTR-2025-003', quarter: 'Q2', year: 2025 },
-            { id: 'D1004', account: 'Lindt & Sprungli', owner: 'Tom Ngata', value: 980000, stage: 'Closed', close_date: '2025-06-18', contract: 'CTR-2025-004', quarter: 'Q2', year: 2025 },
-            { id: 'D1005', account: 'Sky UK', owner: 'Rachel Adams', value: 1850000, stage: 'Closed', close_date: '2025-07-25', contract: 'CTR-2025-005', quarter: 'Q3', year: 2025 },
-            { id: 'D1006', account: 'Haagen-Dazs', owner: 'Tom Ngata', value: 920000, stage: 'Closed', close_date: '2025-09-10', contract: 'CTR-2025-006', quarter: 'Q3', year: 2025 },
-            { id: 'D1007', account: 'Baileys (Diageo)', owner: 'Rachel Adams', value: 1550000, stage: 'Closed', close_date: '2025-10-28', contract: 'CTR-2025-007', quarter: 'Q4', year: 2025 },
-            { id: 'D1008', account: 'EDF Energy', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-12-10', contract: 'CTR-2025-008', quarter: 'Q4', year: 2025 },
-            { id: 'D1009', account: 'Unilever', owner: 'Rachel Adams', value: 1320000, stage: 'Closed', close_date: '2026-02-14', contract: 'CTR-2026-001', quarter: 'Q1', year: 2026 },
-            { id: 'D1010', account: 'Google', owner: 'Tom Ngata', value: 1670000, stage: 'Closed', close_date: '2026-03-20', contract: 'CTR-2026-002', quarter: 'Q1', year: 2026 },
+            { id: 'D1001', account: 'Merlin Entertainments', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2025-01-20', contract: 'CTR-2025-001', quarter: 'Q1', year: 2025, category: 'Hospitality' },
+            { id: 'D1002', account: 'Coca-Cola Europacific', owner: 'Tom Ngata', value: 1200000, stage: 'Closed', close_date: '2025-03-12', contract: 'CTR-2025-002', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D1003', account: 'Swarovski AG', owner: 'Rachel Adams', value: 1680000, stage: 'Closed', close_date: '2025-05-08', contract: 'CTR-2025-003', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D1004', account: 'Lindt & Sprungli', owner: 'Tom Ngata', value: 980000, stage: 'Closed', close_date: '2025-06-18', contract: 'CTR-2025-004', quarter: 'Q2', year: 2025, category: 'Hospitality' },
+            { id: 'D1005', account: 'Sky UK', owner: 'Rachel Adams', value: 1850000, stage: 'Closed', close_date: '2025-07-25', contract: 'CTR-2025-005', quarter: 'Q3', year: 2025, category: 'Sponsorship' },
+            { id: 'D1006', account: 'Haagen-Dazs', owner: 'Tom Ngata', value: 920000, stage: 'Closed', close_date: '2025-09-10', contract: 'CTR-2025-006', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D1007', account: 'Baileys (Diageo)', owner: 'Rachel Adams', value: 1550000, stage: 'Closed', close_date: '2025-10-28', contract: 'CTR-2025-007', quarter: 'Q4', year: 2025, category: 'Sponsorship' },
+            { id: 'D1008', account: 'EDF Energy', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-12-10', contract: 'CTR-2025-008', quarter: 'Q4', year: 2025, category: 'Exhibitors' },
+            { id: 'D1009', account: 'Unilever', owner: 'Rachel Adams', value: 1320000, stage: 'Closed', close_date: '2026-02-14', contract: 'CTR-2026-001', quarter: 'Q1', year: 2026, category: 'Hospitality' },
+            { id: 'D1010', account: 'Google', owner: 'Tom Ngata', value: 1670000, stage: 'Closed', close_date: '2026-03-20', contract: 'CTR-2026-002', quarter: 'Q1', year: 2026, category: 'Sponsorship' },
+            { id: 'D1095', account: 'Nike UK', owner: 'Rachel Adams', value: 1420000, stage: 'Closed', close_date: '2026-04-07', contract: 'CTR-2026-050', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'D1096', account: 'Dyson Ltd', owner: 'Tom Ngata', value: 960000, stage: 'Closed', close_date: '2026-04-04', contract: 'CTR-2026-051', quarter: 'Q2', year: 2026, category: 'Hospitality' },
           ],
           opportunities: [
-            { id: 'OPP1001', account: 'Pepsi Co', owner: 'Rachel Adams', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026 },
-            { id: 'OPP1002', account: 'Mercedes Benz', owner: 'Tom Ngata', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026 },
-            { id: 'OPP1003', account: 'Nike', owner: 'Rachel Adams', value: 2500000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-22', quarter: 'Q3', year: 2026 },
-            { id: 'OPP1004', account: 'Apple Inc', owner: 'Tom Ngata', value: 1800000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-20', quarter: 'Q2', year: 2026 },
+            { id: 'OPP1001', account: 'Pepsi Co', owner: 'Rachel Adams', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP1002', account: 'Mercedes Benz', owner: 'Tom Ngata', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+            { id: 'OPP1003', account: 'Nike', owner: 'Rachel Adams', value: 2500000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-22', quarter: 'Q3', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP1004', account: 'Apple Inc', owner: 'Tom Ngata', value: 1800000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-20', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
           ]
         },
         { id: 'P002', name: 'Art Fair', category: 'Art Events',
           targets: { 2025: { original: 8500000, q1_revised: null, q2_revised: null, q3_revised: 8800000, q4_revised: null }, 2026: { original: 9200000, q1_revised: null, q2_revised: 9400000, q3_revised: null, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 1700000, Exhibitors: 4675000, Sponsorship: 2125000 }, 2026: { Hospitality: 1880000, Exhibitors: 5170000, Sponsorship: 2350000 } },
           deals: [
-            { id: 'D2001', account: 'Sotheby\'s', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-02-10', contract: 'CTR-2025-009', quarter: 'Q1', year: 2025 },
-            { id: 'D2002', account: 'Christie\'s', owner: 'Rachel Adams', value: 950000, stage: 'Closed', close_date: '2025-04-05', contract: 'CTR-2025-010', quarter: 'Q2', year: 2025 },
-            { id: 'D2003', account: 'Gagosian Gallery', owner: 'Tom Ngata', value: 1280000, stage: 'Closed', close_date: '2025-08-12', contract: 'CTR-2025-011', quarter: 'Q3', year: 2025 },
-            { id: 'D2004', account: 'Pace Gallery', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2026-01-28', contract: 'CTR-2026-003', quarter: 'Q1', year: 2026 },
+            { id: 'D2001', account: 'Sotheby\'s', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-02-10', contract: 'CTR-2025-009', quarter: 'Q1', year: 2025, category: 'Exhibitors' },
+            { id: 'D2002', account: 'Christie\'s', owner: 'Rachel Adams', value: 950000, stage: 'Closed', close_date: '2025-04-05', contract: 'CTR-2025-010', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D2003', account: 'Gagosian Gallery', owner: 'Tom Ngata', value: 1280000, stage: 'Closed', close_date: '2025-08-12', contract: 'CTR-2025-011', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D2004', account: 'Pace Gallery', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2026-01-28', contract: 'CTR-2026-003', quarter: 'Q1', year: 2026, category: 'Exhibitors' },
           ],
           opportunities: [
-            { id: 'OPP2001', account: 'David Castillo Gallery', owner: 'Tom Ngata', value: 1650000, stage: 'In Review', probability: 0.5, expected_close: '2026-06-10', quarter: 'Q2', year: 2026 },
-            { id: 'OPP2002', account: 'Guggenheim', owner: 'Rachel Adams', value: 1400000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-25', quarter: 'Q2', year: 2026 },
+            { id: 'OPP2001', account: 'David Castillo Gallery', owner: 'Tom Ngata', value: 1650000, stage: 'In Review', probability: 0.5, expected_close: '2026-06-10', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP2002', account: 'Guggenheim', owner: 'Rachel Adams', value: 1400000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-25', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
           ]
         }
       ]
@@ -1069,17 +1216,18 @@ const DATA = {
       properties: [
         { id: 'P003', name: 'Grand Slam Series', category: 'Sports Events',
           targets: { 2025: { original: 15000000, q1_revised: null, q2_revised: 15200000, q3_revised: null, q4_revised: null }, 2026: { original: 16000000, q1_revised: null, q2_revised: null, q3_revised: 16500000, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 3750000, Exhibitors: 3750000, Sponsorship: 7500000 }, 2026: { Hospitality: 4125000, Exhibitors: 4125000, Sponsorship: 8250000 } },
           deals: [
-            { id: 'D3001', account: 'Uniqlo', owner: 'Marcus Lee', value: 2200000, stage: 'Closed', close_date: '2025-03-15', contract: 'CTR-2025-012', quarter: 'Q1', year: 2025 },
-            { id: 'D3002', account: 'Rolex', owner: 'Priya Patel', value: 1950000, stage: 'Closed', close_date: '2025-05-22', contract: 'CTR-2025-013', quarter: 'Q2', year: 2025 },
-            { id: 'D3003', account: 'Louis Vuitton', owner: 'Marcus Lee', value: 2400000, stage: 'Closed', close_date: '2025-07-10', contract: 'CTR-2025-014', quarter: 'Q3', year: 2025 },
-            { id: 'D3004', account: 'Lacoste', owner: 'Priya Patel', value: 1850000, stage: 'Closed', close_date: '2025-09-18', contract: 'CTR-2025-015', quarter: 'Q3', year: 2025 },
-            { id: 'D3005', account: 'Subaru', owner: 'Marcus Lee', value: 1750000, stage: 'Closed', close_date: '2026-02-28', contract: 'CTR-2026-004', quarter: 'Q1', year: 2026 },
+            { id: 'D3001', account: 'Uniqlo', owner: 'Marcus Lee', value: 2200000, stage: 'Closed', close_date: '2025-03-15', contract: 'CTR-2025-012', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D3002', account: 'Rolex', owner: 'Priya Patel', value: 1950000, stage: 'Closed', close_date: '2025-05-22', contract: 'CTR-2025-013', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D3003', account: 'Louis Vuitton', owner: 'Marcus Lee', value: 2400000, stage: 'Closed', close_date: '2025-07-10', contract: 'CTR-2025-014', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D3004', account: 'Lacoste', owner: 'Priya Patel', value: 1850000, stage: 'Closed', close_date: '2025-09-18', contract: 'CTR-2025-015', quarter: 'Q3', year: 2025, category: 'Exhibitors' },
+            { id: 'D3005', account: 'Subaru', owner: 'Marcus Lee', value: 1750000, stage: 'Closed', close_date: '2026-02-28', contract: 'CTR-2026-004', quarter: 'Q1', year: 2026, category: 'Sponsorship' },
           ],
           opportunities: [
-            { id: 'OPP3001', account: 'BMW', owner: 'Priya Patel', value: 2800000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026 },
-            { id: 'OPP3002', account: 'Mercedes-Benz', owner: 'Marcus Lee', value: 2300000, stage: 'Terms Agreed', probability: 0.75, expected_close: '2026-04-15', quarter: 'Q2', year: 2026 },
-            { id: 'OPP3003', account: 'Audi', owner: 'Priya Patel', value: 2100000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-10', quarter: 'Q2', year: 2026 },
+            { id: 'OPP3001', account: 'BMW', owner: 'Priya Patel', value: 2800000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP3002', account: 'Mercedes-Benz', owner: 'Marcus Lee', value: 2300000, stage: 'Terms Agreed', probability: 0.75, expected_close: '2026-04-15', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+            { id: 'OPP3003', account: 'Audi', owner: 'Priya Patel', value: 2100000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-10', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
           ]
         }
       ]
@@ -1089,16 +1237,19 @@ const DATA = {
       properties: [
         { id: 'P004', name: 'Frieze Masters', category: 'Art Fair',
           targets: { 2025: { original: 11000000, q1_revised: null, q2_revised: null, q3_revised: 11300000, q4_revised: null }, 2026: { original: 11800000, q1_revised: null, q2_revised: 12000000, q3_revised: null, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 2750000, Exhibitors: 4950000, Sponsorship: 3300000 }, 2026: { Hospitality: 3000000, Exhibitors: 5400000, Sponsorship: 3600000 } },
           deals: [
-            { id: 'D4001', account: 'LVMH', owner: 'Elena Rodriguez', value: 2100000, stage: 'Closed', close_date: '2025-04-10', contract: 'CTR-2025-016', quarter: 'Q2', year: 2025 },
-            { id: 'D4002', account: 'Richemont', owner: 'James Park', value: 1850000, stage: 'Closed', close_date: '2025-06-20', contract: 'CTR-2025-017', quarter: 'Q2', year: 2025 },
-            { id: 'D4003', account: 'Kering', owner: 'Elena Rodriguez', value: 2300000, stage: 'Closed', close_date: '2025-09-05', contract: 'CTR-2025-018', quarter: 'Q3', year: 2025 },
-            { id: 'D4004', account: 'Hermès', owner: 'James Park', value: 1950000, stage: 'Closed', close_date: '2026-03-12', contract: 'CTR-2026-005', quarter: 'Q1', year: 2026 },
+            { id: 'D4001', account: 'LVMH', owner: 'Elena Rodriguez', value: 2100000, stage: 'Closed', close_date: '2025-04-10', contract: 'CTR-2025-016', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D4002', account: 'Richemont', owner: 'James Park', value: 1850000, stage: 'Closed', close_date: '2025-06-20', contract: 'CTR-2025-017', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D4003', account: 'Kering', owner: 'Elena Rodriguez', value: 2300000, stage: 'Closed', close_date: '2025-09-05', contract: 'CTR-2025-018', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D4004', account: 'Hermès', owner: 'James Park', value: 1950000, stage: 'Closed', close_date: '2026-03-12', contract: 'CTR-2026-005', quarter: 'Q1', year: 2026, category: 'Exhibitors' },
+            { id: 'D4095', account: 'Cartier International', owner: 'Elena Rodriguez', value: 1850000, stage: 'Closed', close_date: '2026-04-08', contract: 'CTR-2026-060', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'D4096', account: 'Tiffany & Co.', owner: 'James Park', value: 1120000, stage: 'Closed', close_date: '2026-04-05', contract: 'CTR-2026-061', quarter: 'Q2', year: 2026, category: 'Hospitality' },
           ],
           opportunities: [
-            { id: 'OPP4001', account: 'Cartier', owner: 'Elena Rodriguez', value: 2650000, stage: 'Proposal', probability: 0.3, expected_close: '2026-07-20', quarter: 'Q3', year: 2026 },
-            { id: 'OPP4002', account: 'Van Cleef & Arpels', owner: 'James Park', value: 2200000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-30', quarter: 'Q3', year: 2026 },
-            { id: 'OPP4003', account: 'Piaget', owner: 'Elena Rodriguez', value: 1950000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-18', quarter: 'Q2', year: 2026 },
+            { id: 'OPP4001', account: 'Cartier', owner: 'Elena Rodriguez', value: 2650000, stage: 'Proposal', probability: 0.3, expected_close: '2026-07-20', quarter: 'Q3', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP4002', account: 'Van Cleef & Arpels', owner: 'James Park', value: 2200000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-30', quarter: 'Q3', year: 2026, category: 'Hospitality' },
+            { id: 'OPP4003', account: 'Piaget', owner: 'Elena Rodriguez', value: 1950000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-18', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
           ]
         }
       ]
@@ -1108,30 +1259,31 @@ const DATA = {
       properties: [
         { id: 'P005', name: 'X Games', category: 'Sports Events',
           targets: { 2025: { original: 9500000, q1_revised: null, q2_revised: 9700000, q3_revised: null, q4_revised: null }, 2026: { original: 10200000, q1_revised: null, q2_revised: null, q3_revised: 10500000, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 1900000, Exhibitors: 2850000, Sponsorship: 4750000 }, 2026: { Hospitality: 2100000, Exhibitors: 3150000, Sponsorship: 5250000 } },
           deals: [
-            { id: 'D5001', account: 'Red Bull', owner: 'Alex Kumar', value: 1850000, stage: 'Closed', close_date: '2025-02-28', contract: 'CTR-2025-019', quarter: 'Q1', year: 2025 },
-            { id: 'D5002', account: 'Monster Energy', owner: 'Nicole Hart', value: 1650000, stage: 'Closed', close_date: '2025-05-15', contract: 'CTR-2025-020', quarter: 'Q2', year: 2025 },
-            { id: 'D5003', account: 'GoPro', owner: 'Alex Kumar', value: 1420000, stage: 'Closed', close_date: '2025-08-10', contract: 'CTR-2025-021', quarter: 'Q3', year: 2025 },
-            { id: 'D5004', account: 'Nike SB', owner: 'Nicole Hart', value: 1680000, stage: 'Closed', close_date: '2026-01-20', contract: 'CTR-2026-006', quarter: 'Q1', year: 2026 },
+            { id: 'D5001', account: 'Red Bull', owner: 'Alex Kumar', value: 1850000, stage: 'Closed', close_date: '2025-02-28', contract: 'CTR-2025-019', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D5002', account: 'Monster Energy', owner: 'Nicole Hart', value: 1650000, stage: 'Closed', close_date: '2025-05-15', contract: 'CTR-2025-020', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D5003', account: 'GoPro', owner: 'Alex Kumar', value: 1420000, stage: 'Closed', close_date: '2025-08-10', contract: 'CTR-2025-021', quarter: 'Q3', year: 2025, category: 'Exhibitors' },
+            { id: 'D5004', account: 'Nike SB', owner: 'Nicole Hart', value: 1680000, stage: 'Closed', close_date: '2026-01-20', contract: 'CTR-2026-006', quarter: 'Q1', year: 2026, category: 'Hospitality' },
           ],
           opportunities: [
-            { id: 'OPP5001', account: 'Redbull Media House', owner: 'Alex Kumar', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-04-30', quarter: 'Q2', year: 2026 },
-            { id: 'OPP5002', account: 'Puma', owner: 'Nicole Hart', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026 },
-            { id: 'OPP5003', account: 'Adidas', owner: 'Alex Kumar', value: 1750000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-12', quarter: 'Q2', year: 2026 },
+            { id: 'OPP5001', account: 'Redbull Media House', owner: 'Alex Kumar', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-04-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP5002', account: 'Puma', owner: 'Nicole Hart', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP5003', account: 'Adidas', owner: 'Alex Kumar', value: 1750000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-12', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
           ]
         }
       ]
     }
   ],
   salesExecs: [
-    { name: 'Rachel Adams', businessUnit: 'Arts and Entertainment', target: 4000000 },
-    { name: 'Tom Ngata', businessUnit: 'Arts and Entertainment', target: 3800000 },
-    { name: 'Marcus Lee', businessUnit: 'Tennis', target: 5200000 },
-    { name: 'Priya Patel', businessUnit: 'Tennis', target: 5000000 },
-    { name: 'Elena Rodriguez', businessUnit: 'Frieze', target: 4600000 },
-    { name: 'James Park', businessUnit: 'Frieze', target: 4400000 },
-    { name: 'Alex Kumar', businessUnit: 'Action Sports', target: 3900000 },
-    { name: 'Nicole Hart', businessUnit: 'Action Sports', target: 3700000 },
+    { name: 'Rachel Adams', businessUnit: 'Arts and Entertainment', target: 4000000, categoryTargets: { Hospitality: 1600000, Exhibitors: 1200000, Sponsorship: 1200000 } },
+    { name: 'Tom Ngata', businessUnit: 'Arts and Entertainment', target: 3800000, categoryTargets: { Hospitality: 1140000, Exhibitors: 1520000, Sponsorship: 1140000 } },
+    { name: 'Marcus Lee', businessUnit: 'Tennis', target: 5200000, categoryTargets: { Hospitality: 1300000, Exhibitors: 1040000, Sponsorship: 2860000 } },
+    { name: 'Priya Patel', businessUnit: 'Tennis', target: 5000000, categoryTargets: { Hospitality: 1250000, Exhibitors: 1500000, Sponsorship: 2250000 } },
+    { name: 'Elena Rodriguez', businessUnit: 'Frieze', target: 4600000, categoryTargets: { Hospitality: 920000, Exhibitors: 2300000, Sponsorship: 1380000 } },
+    { name: 'James Park', businessUnit: 'Frieze', target: 4400000, categoryTargets: { Hospitality: 1320000, Exhibitors: 1760000, Sponsorship: 1320000 } },
+    { name: 'Alex Kumar', businessUnit: 'Action Sports', target: 3900000, categoryTargets: { Hospitality: 780000, Exhibitors: 780000, Sponsorship: 2340000 } },
+    { name: 'Nicole Hart', businessUnit: 'Action Sports', target: 3700000, categoryTargets: { Hospitality: 925000, Exhibitors: 925000, Sponsorship: 1850000 } },
   ]
 };
 
@@ -1329,7 +1481,7 @@ function renderOverview() {
   });
 
   const attainment = totalTarget > 0 ? totalRevenue / totalTarget : 0;
-  const leftToAchieve = Math.max(0, totalTarget - totalRevenue);
+  const leftToAchieve = totalRevenue - totalTarget;
 
   const kpiHTML = `
     <div class="kpi-card">
@@ -1343,7 +1495,7 @@ function renderOverview() {
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Left to Achieve</div>
-      <div class="kpi-value" style="color:${leftToAchieve > 0 ? 'var(--color-secondary)' : 'var(--color-success)'}">${leftToAchieve > 0 ? formatCurrency(leftToAchieve) : 'Target met'}</div>
+      <div class="kpi-value" style="color:${leftToAchieve < 0 ? 'var(--color-secondary)' : 'var(--color-success)'}">${leftToAchieve < 0 ? '-' + formatCurrency(Math.abs(leftToAchieve)) : '+' + formatCurrency(leftToAchieve)}</div>
     </div>
   `;
   document.getElementById('kpi-overview').innerHTML = kpiHTML;
@@ -1417,7 +1569,7 @@ function renderOverview() {
       <td>${exec.businessUnit}</td>
       <td style="font-weight:600">${formatCurrency(execTarget)}</td>
       <td style="font-weight:600">${formatCurrency(kpis.revenue)}</td>
-      <td style="color:${(execTarget - kpis.revenue) > 0 ? 'var(--color-secondary)' : 'var(--color-success)'}; font-weight:600">${(execTarget - kpis.revenue) > 0 ? formatCurrency(execTarget - kpis.revenue) : 'Target met'}</td>
+      <td style="color:${kpis.revenue < execTarget ? 'var(--color-secondary)' : 'var(--color-success)'}; font-weight:600">${kpis.revenue < execTarget ? '-' + formatCurrency(execTarget - kpis.revenue) : '+' + formatCurrency(kpis.revenue - execTarget)}</td>
       <td>${kpis.dealsWon}</td>
       <td>${kpis.winRate}</td>
       <td style="color:var(--color-secondary)">${formatCurrency(pipeVal)}</td>
@@ -1426,6 +1578,98 @@ function renderOverview() {
     `;
     tbody.appendChild(row);
   });
+
+  // ========== YoY BUTTERFLY + QUARTERLY ==========
+  const yoyContainer = document.getElementById('yoy-charts-overview');
+  if (yoyContainer) {
+    const color25 = '#8babc7', color26 = '#2c5f8a';
+    const fmtM = v => { if (v >= 1000000) return '£' + (v/1000000).toFixed(1) + 'M'; if (v >= 1000) return '£' + (v/1000).toFixed(0) + 'K'; return '£' + v.toFixed(0); };
+    const buFilter = currentBusinessUnit === 'all' ? DATA.businessUnits : DATA.businessUnits.filter(bu => bu.name === currentBusinessUnit);
+
+    // Collect per-property revenue for 2025 and 2026
+    const propYoY = [];
+    buFilter.forEach(bu => {
+      bu.properties.forEach(p => {
+        let rev25 = 0, rev26 = 0, d25 = 0, d26 = 0;
+        p.deals.filter(d => d.stage === 'Closed').forEach(d => {
+          const yr = new Date(d.close_date).getFullYear();
+          if (yr === 2025) { rev25 += d.value; d25++; }
+          if (yr === 2026) { rev26 += d.value; d26++; }
+        });
+        propYoY.push({ name: p.name, rev25, rev26, deals25: d25, deals26: d26 });
+      });
+    });
+    const maxBfly = Math.max(...propYoY.map(p => Math.max(p.rev25, p.rev26)), 1);
+
+    // Butterfly HTML
+    let bfHTML = '<div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">';
+    bfHTML += '<div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Revenue by Property — YoY</div>';
+    bfHTML += '<div class="m-bfly-hdr"><div class="m-bfly-left">← FY 2025</div><div class="m-bfly-center">Property</div><div class="m-bfly-right">FY 2026 →</div></div>';
+    propYoY.forEach(p => {
+      const w25 = (p.rev25 / maxBfly * 100).toFixed(1);
+      const w26 = (p.rev26 / maxBfly * 100).toFixed(1);
+      const shortName = p.name.length > 16 ? p.name.substring(0, 14) + '...' : p.name;
+      bfHTML += '<div class="m-butterfly-row">';
+      bfHTML += '<div class="m-bfly-left"><div class="m-bfly-val m-bfly-val-right">' + fmtM(p.rev25) + '</div><div class="m-bfly-bar m-bfly-bar-left" style="width:' + w25 + '%;background:' + color25 + '"><span>' + p.deals25 + '</span></div></div>';
+      bfHTML += '<div class="m-bfly-center">' + shortName + '</div>';
+      bfHTML += '<div class="m-bfly-right"><div class="m-bfly-bar m-bfly-bar-right" style="width:' + w26 + '%;background:' + color26 + '"><span>' + p.deals26 + '</span></div><div class="m-bfly-val m-bfly-val-left">' + fmtM(p.rev26) + '</div></div>';
+      bfHTML += '</div>';
+    });
+    bfHTML += '<div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:10px;color:#999">';
+    bfHTML += '<div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + color25 + ';display:inline-block"></span>FY 2025</div>';
+    bfHTML += '<div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + color26 + ';display:inline-block"></span>FY 2026</div>';
+    bfHTML += '</div></div>';
+
+    yoyContainer.innerHTML = bfHTML;
+  }
+
+  // Recent Deals (last 7 days)
+  const sevenDaysAgo = new Date(TODAY);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentDeals = [];
+  const buList = currentBusinessUnit === 'all' ? DATA.businessUnits : DATA.businessUnits.filter(bu => bu.name === currentBusinessUnit);
+  buList.forEach(bu => {
+    bu.properties.forEach(prop => {
+      prop.deals.forEach(d => {
+        if (d.stage === 'Closed') {
+          const closeDate = new Date(d.close_date);
+          if (closeDate >= sevenDaysAgo && closeDate <= TODAY) {
+            recentDeals.push({ ...d, propertyName: prop.name, businessUnit: bu.name });
+          }
+        }
+      });
+    });
+  });
+  recentDeals.sort((a, b) => new Date(b.close_date) - new Date(a.close_date));
+
+  const countEl = document.getElementById('recentDealsCount');
+  const bodyEl = document.getElementById('recentDealsBody');
+  countEl.textContent = recentDeals.length + ' deal' + (recentDeals.length !== 1 ? 's' : '') + ' in last 7 days';
+
+  if (recentDeals.length === 0) {
+    bodyEl.innerHTML = '<div style="text-align:center;padding:24px;color:#999;font-size:13px">No recent deals in the last 7 days</div>';
+  } else {
+    let rdHTML = '<table id="recent-deals-table"><thead><tr>';
+    rdHTML += '<th>Deal ID</th><th>Account</th><th>Owner</th><th>Business Unit</th><th>Property</th><th>Value</th><th>Close Date</th><th>Contract</th>';
+    rdHTML += '</tr></thead><tbody>';
+    recentDeals.forEach(d => {
+      const daysAgo = Math.round((TODAY - new Date(d.close_date)) / 86400000);
+      const daysLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : daysAgo + ' days ago';
+      rdHTML += `
+        <tr onclick="openDealDetail('${d.id}')" style="cursor:pointer">
+          <td>${d.id}</td>
+          <td><strong>${d.account}</strong></td>
+          <td>${d.owner}</td>
+          <td>${d.businessUnit}</td>
+          <td>${d.propertyName}</td>
+          <td style="font-weight:600">${formatCurrency(d.value)}</td>
+          <td>${d.close_date} <span style="font-size:10px;color:#999">(${daysLabel})</span></td>
+          <td>${d.contract || '—'}</td>
+        </tr>`;
+    });
+    rdHTML += '</tbody></table>';
+    bodyEl.innerHTML = rdHTML;
+  }
 }
 
 function renderTeamsOverview() {
@@ -1594,6 +1838,7 @@ function renderExecDealsTable(deals) {
       <td><strong>${deal.account}</strong></td>
       <td style="font-size:12px;color:var(--color-neutral)">${deal.propertyName}</td>
       <td style="font-weight:600">${formatCurrency(deal.value)}</td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${deal.category === 'Hospitality' ? '#FFF3E0' : deal.category === 'Exhibitors' ? '#E3F2FD' : '#F3E5F5'};color:${deal.category === 'Hospitality' ? '#E65100' : deal.category === 'Exhibitors' ? '#1565C0' : '#7B1FA2'}">${deal.category || '—'}</span></td>
       <td><span class="exec-stage-badge ${stageClass}">${deal.stage}</span></td>
       <td>${deal.close_date || '—'}</td>
       <td>${deal.year}</td>
@@ -1635,7 +1880,7 @@ function showDetail(execName) {
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Left to Achieve</div>
-      <div class="kpi-value" style="color:${(execTarget - revenue) > 0 ? 'var(--color-secondary)' : 'var(--color-success)'}">${(execTarget - revenue) > 0 ? formatCurrency(execTarget - revenue) : 'Target met'}</div>
+      <div class="kpi-value" style="color:${revenue < execTarget ? 'var(--color-secondary)' : 'var(--color-success)'}">${revenue < execTarget ? '-' + formatCurrency(execTarget - revenue) : '+' + formatCurrency(revenue - execTarget)}</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Avg Deal Size</div>
@@ -1707,6 +1952,140 @@ function showDetail(execName) {
       ${opps.length > 0 ? pipelineChartHTML : '<div style="color:var(--color-neutral);text-align:center;padding:20px">No open opportunities</div>'}
     </div>
   `;
+
+  // Category Target Split (Hospitality / Exhibitors / Sponsorship)
+  const catColors = { Hospitality: '#E65100', Exhibitors: '#1565C0', Sponsorship: '#7B1FA2' };
+  const catBg = { Hospitality: '#FFF3E0', Exhibitors: '#E3F2FD', Sponsorship: '#F3E5F5' };
+  const categories = ['Hospitality', 'Exhibitors', 'Sponsorship'];
+  const catTargets = exec.categoryTargets || {};
+  const catActuals = {};
+  const catPipeline = {};
+  const catDealCounts = {};
+  categories.forEach(c => { catActuals[c] = 0; catPipeline[c] = 0; catDealCounts[c] = 0; });
+  closedDeals.forEach(d => {
+    const cat = d.category || 'Sponsorship';
+    catActuals[cat] = (catActuals[cat] || 0) + d.value;
+    catDealCounts[cat] = (catDealCounts[cat] || 0) + 1;
+  });
+  opps.forEach(o => {
+    const cat = o.category || 'Sponsorship';
+    catPipeline[cat] = (catPipeline[cat] || 0) + o.value;
+  });
+
+  const catSplitRow = document.getElementById('category-split-row');
+  let catHTML = '';
+
+  // Left card: Summary + actuals vs target bars
+  catHTML += '<div class="cat-split-card" style="flex:1">';
+  catHTML += '<div class="cat-title">Target Split — Actuals vs Target by Category</div>';
+
+  // Summary boxes
+  catHTML += '<div class="cat-summary-grid">';
+  categories.forEach(cat => {
+    const actual = catActuals[cat] || 0;
+    const tgt = catTargets[cat] || 0;
+    const att = tgt > 0 ? actual / tgt : 0;
+    catHTML += '<div class="cat-summary-box" style="background:' + catBg[cat] + ';border-color:' + catColors[cat] + '">';
+    catHTML += '<div class="cat-sum-label">' + cat + '</div>';
+    catHTML += '<div class="cat-sum-val" style="color:' + catColors[cat] + '">' + formatCurrency(actual) + '</div>';
+    catHTML += '<div class="cat-sum-sub">Target: ' + formatCurrency(tgt) + ' · ' + (att * 100).toFixed(0) + '% achieved</div>';
+    catHTML += '</div>';
+  });
+  catHTML += '</div>';
+
+  // Bars: actual vs target per category
+  const maxCatVal = Math.max(...categories.map(c => Math.max(catActuals[c] || 0, catTargets[c] || 0)), 1);
+  categories.forEach(cat => {
+    const actual = catActuals[cat] || 0;
+    const tgt = catTargets[cat] || 0;
+    const att = tgt > 0 ? actual / tgt : 0;
+    const actualPct = (actual / maxCatVal * 100).toFixed(1);
+    const tgtPct = (tgt / maxCatVal * 100).toFixed(1);
+    const attColor = att >= 1 ? 'var(--color-success)' : att >= 0.7 ? 'var(--color-warning)' : 'var(--color-danger)';
+    catHTML += '<div class="cat-row">';
+    catHTML += '<span class="cat-label" style="color:' + catColors[cat] + '">' + cat + '</span>';
+    catHTML += '<div class="cat-bar-wrap">';
+    catHTML += '<div class="cat-bar-fill" style="width:' + actualPct + '%;background:' + catColors[cat] + ';opacity:0.8"></div>';
+    catHTML += '<div class="cat-bar-target" style="left:' + tgtPct + '%" title="Target: ' + formatCurrency(tgt) + '"></div>';
+    catHTML += '</div>';
+    catHTML += '<div class="cat-vals"><span class="cat-actual">' + formatCurrency(actual) + '</span><span class="cat-target">/ ' + formatCurrency(tgt) + '</span></div>';
+    catHTML += '<span class="cat-attain" style="color:' + attColor + '">' + (att * 100).toFixed(0) + '%</span>';
+    catHTML += '</div>';
+  });
+
+  // Gap / surplus per category
+  catHTML += '<div style="margin-top:14px;border-top:1px solid var(--color-border);padding-top:12px">';
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Gap to Target</div>';
+  categories.forEach(cat => {
+    const actual = catActuals[cat] || 0;
+    const tgt = catTargets[cat] || 0;
+    const gap = tgt - actual;
+    const isOver = gap <= 0;
+    catHTML += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    catHTML += '<span style="font-size:11px;color:' + catColors[cat] + ';font-weight:500">' + cat + '</span>';
+    catHTML += '<span style="font-size:12px;font-weight:600;color:' + (isOver ? 'var(--color-success)' : 'var(--color-secondary)') + '">' + (isOver ? 'Exceeded by ' + formatCurrency(Math.abs(gap)) : formatCurrency(gap) + ' remaining') + '</span>';
+    catHTML += '</div>';
+  });
+  catHTML += '</div>';
+  catHTML += '</div>';
+
+  // Right card: Pipeline coverage + category composition donut-style
+  catHTML += '<div class="cat-split-card" style="flex:1">';
+  catHTML += '<div class="cat-title">Category Pipeline & Composition</div>';
+
+  // Pipeline by category bars
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Open Pipeline by Category</div>';
+  const maxPipeCat = Math.max(...categories.map(c => catPipeline[c] || 0), 1);
+  categories.forEach(cat => {
+    const pv = catPipeline[cat] || 0;
+    catHTML += '<div class="cat-row">';
+    catHTML += '<span class="cat-label" style="color:' + catColors[cat] + '">' + cat + '</span>';
+    catHTML += '<div class="cat-bar-wrap">';
+    catHTML += '<div class="cat-bar-fill" style="width:' + (pv / maxPipeCat * 100).toFixed(1) + '%;background:' + catColors[cat] + ';opacity:0.5"></div>';
+    catHTML += '</div>';
+    catHTML += '<div style="min-width:80px;text-align:right;font-size:12px;font-weight:600">' + formatCurrency(pv) + '</div>';
+    catHTML += '</div>';
+  });
+
+  // Total coverage (closed + pipeline) vs target per category
+  catHTML += '<div style="margin-top:16px;border-top:1px solid var(--color-border);padding-top:12px">';
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Coverage (Closed + Pipeline) vs Target</div>';
+  categories.forEach(cat => {
+    const coverage = (catActuals[cat] || 0) + (catPipeline[cat] || 0);
+    const tgt = catTargets[cat] || 0;
+    const covPct = tgt > 0 ? (coverage / tgt * 100) : 0;
+    const covColor = covPct >= 100 ? 'var(--color-success)' : covPct >= 70 ? 'var(--color-warning)' : 'var(--color-danger)';
+    catHTML += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+    catHTML += '<span style="width:90px;font-size:11px;font-weight:500;color:' + catColors[cat] + '">' + cat + '</span>';
+    catHTML += '<div style="flex:1;height:16px;background:var(--color-light);border-radius:3px;overflow:visible;position:relative">';
+    catHTML += '<div style="height:100%;width:' + Math.min(covPct, 100).toFixed(1) + '%;background:' + catColors[cat] + ';border-radius:3px;opacity:0.65"></div>';
+    if (tgt > 0) catHTML += '<div style="position:absolute;left:100%;top:-2px;bottom:-2px;width:2px;background:#333;border-radius:1px" title="Target: ' + formatCurrency(tgt) + '"></div>';
+    catHTML += '</div>';
+    catHTML += '<span style="min-width:50px;text-align:right;font-size:11px;font-weight:600;color:' + covColor + '">' + covPct.toFixed(0) + '%</span>';
+    catHTML += '</div>';
+  });
+  catHTML += '</div>';
+
+  // Closed deal count by category
+  catHTML += '<div style="margin-top:16px;border-top:1px solid var(--color-border);padding-top:12px">';
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Closed Deals by Category</div>';
+  const totalCatDeals = categories.reduce((s, c) => s + (catDealCounts[c] || 0), 0);
+  catHTML += '<div style="height:24px;display:flex;border-radius:4px;overflow:hidden;margin-bottom:6px">';
+  categories.forEach(cat => {
+    const cnt = catDealCounts[cat] || 0;
+    const pct = totalCatDeals > 0 ? (cnt / totalCatDeals * 100) : 0;
+    if (pct > 0) catHTML += '<div style="width:' + pct.toFixed(1) + '%;background:' + catColors[cat] + ';display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">' + (pct > 12 ? cnt : '') + '</div>';
+  });
+  catHTML += '</div>';
+  catHTML += '<div style="display:flex;gap:16px;justify-content:center">';
+  categories.forEach(cat => {
+    catHTML += '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:2px;background:' + catColors[cat] + ';display:inline-block"></span>' + cat + ' (' + (catDealCounts[cat] || 0) + ')</div>';
+  });
+  catHTML += '</div>';
+  catHTML += '</div>';
+
+  catHTML += '</div>';
+  catSplitRow.innerHTML = catHTML;
 
   // Reset filter pills
   document.querySelectorAll('#exec-deal-filters .exec-filter-pill').forEach(p => p.classList.remove('active'));
@@ -1925,7 +2304,7 @@ function renderPropertyOverview() {
     </div>
     <div class="prop-kpi-card">
       <div class="prop-kpi-label">Left to Achieve</div>
-      <div class="prop-kpi-value" style="color:${(divTarget - divSales) > 0 ? 'var(--color-secondary)' : 'var(--color-success)'}">${(divTarget - divSales) > 0 ? formatCurrency(divTarget - divSales) : 'Target met'}</div>
+      <div class="prop-kpi-value" style="color:${divSales < divTarget ? 'var(--color-secondary)' : 'var(--color-success)'}">${divSales < divTarget ? '-' + formatCurrency(divTarget - divSales) : '+' + formatCurrency(divSales - divTarget)}</div>
     </div>
     <div class="prop-kpi-card">
       <div class="prop-kpi-label">Won Deals</div>
@@ -2009,7 +2388,7 @@ function renderPropertyOverview() {
       <td style="font-weight:600">${formatCurrency(target)}</td>
       <td style="font-weight:600">${formatCurrency(sales)}</td>
       <td style="color:var(--color-secondary)">${formatCurrency(pipeline)}</td>
-      <td style="color:${(target - sales) > 0 ? 'var(--color-secondary)' : 'var(--color-success)'}; font-weight:600">${(target - sales) > 0 ? formatCurrency(target - sales) : 'Target met'}</td>
+      <td style="color:${sales < target ? 'var(--color-secondary)' : 'var(--color-success)'}; font-weight:600">${sales < target ? '-' + formatCurrency(target - sales) : '+' + formatCurrency(sales - target)}</td>
       <td>${opps}</td>
       <td>${wonDealsCount}</td>
     `;
@@ -2049,7 +2428,7 @@ function showPropertyDetail(propId) {
     </div>
     <div class="prop-kpi-card">
       <div class="prop-kpi-label">Left to Achieve</div>
-      <div class="prop-kpi-value" style="color:${(target - sales) > 0 ? 'var(--color-secondary)' : 'var(--color-success)'}">${(target - sales) > 0 ? formatCurrency(target - sales) : 'Target met'}</div>
+      <div class="prop-kpi-value" style="color:${sales < target ? 'var(--color-secondary)' : 'var(--color-success)'}">${sales < target ? '-' + formatCurrency(target - sales) : '+' + formatCurrency(sales - target)}</div>
     </div>
     <div class="prop-kpi-card">
       <div class="prop-kpi-label">Avg Deal Size</div>
@@ -2075,6 +2454,73 @@ function showPropertyDetail(propId) {
   }
   document.getElementById('prop-target-history').innerHTML = historyHTML;
 
+  // Category Target Breakdown
+  const catTargetEl = document.getElementById('prop-category-targets');
+  const catColors = { Hospitality: '#e67e22', Exhibitors: '#2980b9', Sponsorship: '#27ae60' };
+  const categories = ['Hospitality', 'Exhibitors', 'Sponsorship'];
+  const propCatTargets = prop.categoryTargets && prop.categoryTargets[year] ? prop.categoryTargets[year] : {};
+  const totalCatTarget = categories.reduce((s, c) => s + (propCatTargets[c] || 0), 0);
+
+  let catHTML = '';
+  // Stacked bar showing target split
+  if (totalCatTarget > 0) {
+    catHTML += '<div style="display:flex;height:28px;border-radius:4px;overflow:hidden;margin-bottom:16px">';
+    categories.forEach(c => {
+      const ct = propCatTargets[c] || 0;
+      const pct = (ct / totalCatTarget * 100).toFixed(1);
+      if (pct > 0) {
+        catHTML += '<div style="width:' + pct + '%;background:' + catColors[c] + ';display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">' + (pct > 12 ? pct + '%' : '') + '</div>';
+      }
+    });
+    catHTML += '</div>';
+  }
+
+  // Table: Category | Target | Closed | Left to Achieve | Attainment
+  catHTML += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  catHTML += '<thead><tr style="border-bottom:2px solid #eee">';
+  catHTML += '<th style="text-align:left;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Category</th>';
+  catHTML += '<th style="text-align:right;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Target</th>';
+  catHTML += '<th style="text-align:right;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Closed</th>';
+  catHTML += '<th style="text-align:right;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Left to Achieve</th>';
+  catHTML += '<th style="text-align:left;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600;min-width:100px">Attainment</th>';
+  catHTML += '</tr></thead><tbody>';
+
+  let grandCatTarget = 0, grandCatClosed = 0;
+  categories.forEach(c => {
+    const ct = propCatTargets[c] || 0;
+    const catClosed = wonDeals.filter(d => d.category === c).reduce((s, d) => s + d.value, 0);
+    const catLeft = catClosed - ct;
+    const catAtt = ct > 0 ? catClosed / ct : 0;
+    const attColor = catAtt >= 1 ? 'var(--color-success)' : catAtt >= 0.7 ? '#e67e22' : 'var(--color-secondary)';
+    const leftColor = catLeft < 0 ? 'var(--color-secondary)' : 'var(--color-success)';
+    grandCatTarget += ct;
+    grandCatClosed += catClosed;
+
+    catHTML += '<tr style="border-bottom:1px solid #f0f0f0">';
+    catHTML += '<td style="padding:10px 6px;font-weight:500"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + catColors[c] + ';margin-right:8px;vertical-align:middle"></span>' + c + '</td>';
+    catHTML += '<td style="text-align:right;padding:10px 6px;font-weight:600">' + formatCurrency(ct) + '</td>';
+    catHTML += '<td style="text-align:right;padding:10px 6px;font-weight:600">' + formatCurrency(catClosed) + '</td>';
+    catHTML += '<td style="text-align:right;padding:10px 6px;font-weight:600;color:' + leftColor + '">' + (catLeft < 0 ? '-' + formatCurrency(Math.abs(catLeft)) : '+' + formatCurrency(catLeft)) + '</td>';
+    catHTML += '<td style="padding:10px 6px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + Math.min(catAtt * 100, 100).toFixed(1) + '%;background:' + attColor + ';border-radius:4px"></div></div><span style="font-size:10px;font-weight:600;color:' + attColor + '">' + (catAtt * 100).toFixed(0) + '%</span></div></td>';
+    catHTML += '</tr>';
+  });
+
+  // Total row
+  const grandLeft = grandCatClosed - grandCatTarget;
+  const grandAtt = grandCatTarget > 0 ? grandCatClosed / grandCatTarget : 0;
+  const grandAttColor = grandAtt >= 1 ? 'var(--color-success)' : grandAtt >= 0.7 ? '#e67e22' : 'var(--color-secondary)';
+  const grandLeftColor = grandLeft < 0 ? 'var(--color-secondary)' : 'var(--color-success)';
+  catHTML += '<tr style="border-top:2px solid #ddd;font-weight:700">';
+  catHTML += '<td style="padding:10px 6px">Total</td>';
+  catHTML += '<td style="text-align:right;padding:10px 6px">' + formatCurrency(grandCatTarget) + '</td>';
+  catHTML += '<td style="text-align:right;padding:10px 6px">' + formatCurrency(grandCatClosed) + '</td>';
+  catHTML += '<td style="text-align:right;padding:10px 6px;color:' + grandLeftColor + '">' + (grandLeft < 0 ? '-' + formatCurrency(Math.abs(grandLeft)) : '+' + formatCurrency(grandLeft)) + '</td>';
+  catHTML += '<td style="padding:10px 6px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + Math.min(grandAtt * 100, 100).toFixed(1) + '%;background:' + grandAttColor + ';border-radius:4px"></div></div><span style="font-size:10px;font-weight:700;color:' + grandAttColor + '">' + (grandAtt * 100).toFixed(0) + '%</span></div></td>';
+  catHTML += '</tr>';
+  catHTML += '</tbody></table>';
+
+  catTargetEl.innerHTML = catHTML;
+
   // Sales by Executive
   const ownerSales = {};
   wonDeals.forEach(d => {
@@ -2096,42 +2542,112 @@ function showPropertyDetail(propId) {
   });
   document.getElementById('prop-sales-by-owner').innerHTML = ownerHTML;
 
-  // Top 10 Deals
+  // Top 10 Deals — with stage filter
   const allDeals = getDeals(propId, year);
-  const top10 = allDeals.sort((a, b) => b.value - a.value).slice(0, 10);
-  const dealsTable = document.getElementById('prop-detail-deals-tbody');
-  dealsTable.innerHTML = '';
-  top10.forEach(deal => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${deal.id}')">${deal.id}<span class="link-arrow">↗</span></a></td>
-      <td>${deal.account}</td>
-      <td>${deal.owner}</td>
-      <td>${formatCurrency(deal.value)}</td>
-      <td><span class="prop-deal-stage ${deal.stage.toLowerCase()}">${deal.stage}</span></td>
-      <td>${deal.close_date || '-'}</td>
-    `;
-    dealsTable.appendChild(row);
+  const dealStages = [...new Set(allDeals.map(d => d.stage))].sort();
+  const dealsFilterBar = document.getElementById('deals-stage-filter');
+  let dfHTML = '<button class="prop-filter-pill active" onclick="filterDetailDeals(\'All\', this)">All</button>';
+  dealStages.forEach(s => {
+    dfHTML += '<button class="prop-filter-pill" onclick="filterDetailDeals(\'' + s + '\', this)">' + s + '</button>';
   });
+  dealsFilterBar.innerHTML = dfHTML;
 
-  // Open Opportunities
+  window._detailDeals = allDeals;
+  function renderDetailDeals(filtered) {
+    const top10 = [...filtered].sort((a, b) => b.value - a.value).slice(0, 10);
+    const dealsTable = document.getElementById('prop-detail-deals-tbody');
+    dealsTable.innerHTML = '';
+    top10.forEach(deal => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${deal.id}')">${deal.id}<span class="link-arrow">↗</span></a></td>
+        <td>${deal.account}</td>
+        <td>${deal.owner}</td>
+        <td>${formatCurrency(deal.value)}</td>
+        <td><span class="prop-deal-stage ${deal.stage.toLowerCase()}">${deal.stage}</span></td>
+        <td>${deal.close_date || '-'}</td>
+      `;
+      dealsTable.appendChild(row);
+    });
+  }
+  renderDetailDeals(allDeals);
+
+  // Open Opportunities — with stage filter
   const opps = getOpportunities(propId, year);
-  const oppsTable = document.getElementById('prop-detail-opps-tbody');
-  oppsTable.innerHTML = '';
-  opps.forEach(opp => {
-    const row = document.createElement('tr');
-    const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '-');
-    row.innerHTML = `
-      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${opp.id}')">${opp.id}<span class="link-arrow">↗</span></a></td>
-      <td>${opp.account}</td>
-      <td>${opp.owner}</td>
-      <td>${formatCurrency(opp.value)}</td>
-      <td><span class="prop-deal-stage ${stageClass}">${opp.stage}</span></td>
-      <td>${(opp.probability * 100).toFixed(0)}%</td>
-      <td>${opp.expected_close || '-'}</td>
-    `;
-    oppsTable.appendChild(row);
+  const oppStages = [...new Set(opps.map(o => o.stage))].sort();
+  const oppsFilterBar = document.getElementById('opps-stage-filter');
+  let ofHTML = '<button class="prop-filter-pill active" onclick="filterDetailOpps(\'All\', this)">All</button>';
+  oppStages.forEach(s => {
+    ofHTML += '<button class="prop-filter-pill" onclick="filterDetailOpps(\'' + s.replace(/'/g, "\\'") + '\', this)">' + s + '</button>';
   });
+  oppsFilterBar.innerHTML = ofHTML;
+
+  window._detailOpps = opps;
+  function renderDetailOpps(filtered) {
+    const oppsTable = document.getElementById('prop-detail-opps-tbody');
+    oppsTable.innerHTML = '';
+    filtered.forEach(opp => {
+      const row = document.createElement('tr');
+      const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '-');
+      row.innerHTML = `
+        <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${opp.id}')">${opp.id}<span class="link-arrow">↗</span></a></td>
+        <td>${opp.account}</td>
+        <td>${opp.owner}</td>
+        <td>${formatCurrency(opp.value)}</td>
+        <td><span class="prop-deal-stage ${stageClass}">${opp.stage}</span></td>
+        <td>${(opp.probability * 100).toFixed(0)}%</td>
+        <td>${opp.expected_close || '-'}</td>
+      `;
+      oppsTable.appendChild(row);
+    });
+  }
+  renderDetailOpps(opps);
+
+  // ========== PROPERTY YoY BUTTERFLY + QUARTERLY ==========
+  const propYoyEl = document.getElementById('prop-yoy-charts');
+  if (propYoyEl) {
+    const c25 = '#8babc7', c26 = '#2c5f8a';
+    const fmtY = v => { if (v >= 1000000) return '£' + (v/1000000).toFixed(1) + 'M'; if (v >= 1000) return '£' + (v/1000).toFixed(0) + 'K'; return '£' + v.toFixed(0); };
+
+    // Revenue by owner for each year
+    const ownerYoY = {};
+    let pRev25 = 0, pRev26 = 0, pD25 = 0, pD26 = 0;
+    prop.deals.filter(d => d.stage === 'Closed').forEach(d => {
+      const yr = new Date(d.close_date).getFullYear();
+      if (!ownerYoY[d.owner]) ownerYoY[d.owner] = { rev25: 0, rev26: 0, d25: 0, d26: 0 };
+      if (yr === 2025) { ownerYoY[d.owner].rev25 += d.value; ownerYoY[d.owner].d25++; pRev25 += d.value; pD25++; }
+      if (yr === 2026) { ownerYoY[d.owner].rev26 += d.value; ownerYoY[d.owner].d26++; pRev26 += d.value; pD26++; }
+    });
+    const ownerYoYArr = Object.entries(ownerYoY).sort((a,b) => Math.max(b[1].rev25, b[1].rev26) - Math.max(a[1].rev25, a[1].rev26));
+    const maxPBfly = Math.max(...ownerYoYArr.map(([,v]) => Math.max(v.rev25, v.rev26)), 1);
+
+    const pYoyChg = pRev25 > 0 ? ((pRev26 - pRev25) / pRev25 * 100).toFixed(1) : '—';
+    const pYoyCls = parseFloat(pYoyChg) >= 0 ? 'var(--color-success)' : 'var(--color-secondary)';
+    const pYoySign = parseFloat(pYoyChg) >= 0 ? '+' + pYoyChg + '%' : pYoyChg + '%';
+
+    // Butterfly card
+    let bfCard = '<div style="display:block;text-align:left">';
+    bfCard += '<div style="font-weight:600;margin-bottom:10px;color:var(--color-dark)">Revenue YoY — By Account Owner</div>';
+    bfCard += '<div style="display:flex;gap:12px;margin-bottom:12px">';
+    bfCard += '<div style="flex:1;text-align:center;padding:8px;background:var(--color-light);border-radius:6px"><div style="font-size:9px;font-weight:600;color:#999;text-transform:uppercase">FY 2025</div><div style="font-size:16px;font-weight:700;color:' + c25 + '">' + fmtY(pRev25) + '</div><div style="font-size:9px;color:#666">' + pD25 + ' deals</div></div>';
+    bfCard += '<div style="flex:1;text-align:center;padding:8px;background:var(--color-light);border-radius:6px"><div style="font-size:9px;font-weight:600;color:#999;text-transform:uppercase">FY 2026</div><div style="font-size:16px;font-weight:700;color:' + c26 + '">' + fmtY(pRev26) + '</div><div style="font-size:9px;color:#666">' + pD26 + ' deals</div></div>';
+    bfCard += '<div style="flex:1;text-align:center;padding:8px;background:var(--color-light);border-radius:6px"><div style="font-size:9px;font-weight:600;color:#999;text-transform:uppercase">YoY</div><div style="font-size:16px;font-weight:700;color:' + pYoyCls + '">' + (pYoyChg !== '—' ? pYoySign : '—') + '</div><div style="font-size:9px;color:#666">' + fmtY(pRev26 - pRev25) + '</div></div>';
+    bfCard += '</div>';
+    bfCard += '<div class="m-bfly-hdr"><div class="m-bfly-left">← FY 2025</div><div class="m-bfly-center">Owner</div><div class="m-bfly-right">FY 2026 →</div></div>';
+    ownerYoYArr.forEach(([name, v]) => {
+      const w25 = (v.rev25 / maxPBfly * 100).toFixed(1);
+      const w26 = (v.rev26 / maxPBfly * 100).toFixed(1);
+      bfCard += '<div class="m-butterfly-row">';
+      bfCard += '<div class="m-bfly-left"><div class="m-bfly-val m-bfly-val-right">' + fmtY(v.rev25) + '</div><div class="m-bfly-bar m-bfly-bar-left" style="width:' + w25 + '%;background:' + c25 + '"><span>' + v.d25 + '</span></div></div>';
+      bfCard += '<div class="m-bfly-center">' + name + '</div>';
+      bfCard += '<div class="m-bfly-right"><div class="m-bfly-bar m-bfly-bar-right" style="width:' + w26 + '%;background:' + c26 + '"><span>' + v.d26 + '</span></div><div class="m-bfly-val m-bfly-val-left">' + fmtY(v.rev26) + '</div></div>';
+      bfCard += '</div>';
+    });
+    bfCard += '<div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:10px;color:#999"><div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + c25 + ';display:inline-block"></span>FY 2025</div><div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + c26 + ';display:inline-block"></span>FY 2026</div></div>';
+    bfCard += '</div>';
+
+    propYoyEl.innerHTML = bfCard;
+  }
 
   document.getElementById('property-overview').classList.add('hidden');
   document.getElementById('property-detail-view').classList.remove('hidden');
@@ -2234,6 +2750,73 @@ function renderPropertyDealsTable(deals) {
       <td>${deal.close_date || '-'}</td>
       <td>${deal.quarter}</td>
       <td>${deal.year}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function filterDetailDeals(stage, btn) {
+  const container = document.getElementById('deals-stage-filter');
+  if (stage === 'All') {
+    container.querySelectorAll('.prop-filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    container.querySelector('.prop-filter-pill:first-child').classList.remove('active');
+    btn.classList.toggle('active');
+    const anyActive = container.querySelectorAll('.prop-filter-pill.active');
+    if (anyActive.length === 0) {
+      container.querySelector('.prop-filter-pill:first-child').classList.add('active');
+    }
+  }
+  const activeStages = Array.from(container.querySelectorAll('.prop-filter-pill.active')).map(b => b.textContent);
+  const isAll = activeStages.includes('All');
+  const filtered = isAll ? window._detailDeals : window._detailDeals.filter(d => activeStages.includes(d.stage));
+  const top10 = [...filtered].sort((a, b) => b.value - a.value).slice(0, 10);
+  const tbody = document.getElementById('prop-detail-deals-tbody');
+  tbody.innerHTML = '';
+  top10.forEach(deal => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${deal.id}')">${deal.id}<span class="link-arrow">↗</span></a></td>
+      <td>${deal.account}</td>
+      <td>${deal.owner}</td>
+      <td>${formatCurrency(deal.value)}</td>
+      <td><span class="prop-deal-stage ${deal.stage.toLowerCase()}">${deal.stage}</span></td>
+      <td>${deal.close_date || '-'}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function filterDetailOpps(stage, btn) {
+  const container = document.getElementById('opps-stage-filter');
+  if (stage === 'All') {
+    container.querySelectorAll('.prop-filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    container.querySelector('.prop-filter-pill:first-child').classList.remove('active');
+    btn.classList.toggle('active');
+    const anyActive = container.querySelectorAll('.prop-filter-pill.active');
+    if (anyActive.length === 0) {
+      container.querySelector('.prop-filter-pill:first-child').classList.add('active');
+    }
+  }
+  const activeStages = Array.from(container.querySelectorAll('.prop-filter-pill.active')).map(b => b.textContent);
+  const isAll = activeStages.includes('All');
+  const filtered = isAll ? window._detailOpps : window._detailOpps.filter(o => activeStages.includes(o.stage));
+  const tbody = document.getElementById('prop-detail-opps-tbody');
+  tbody.innerHTML = '';
+  filtered.forEach(opp => {
+    const row = document.createElement('tr');
+    const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '-');
+    row.innerHTML = `
+      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${opp.id}')">${opp.id}<span class="link-arrow">↗</span></a></td>
+      <td>${opp.account}</td>
+      <td>${opp.owner}</td>
+      <td>${formatCurrency(opp.value)}</td>
+      <td><span class="prop-deal-stage ${stageClass}">${opp.stage}</span></td>
+      <td>${(opp.probability * 100).toFixed(0)}%</td>
+      <td>${opp.expected_close || '-'}</td>
     `;
     tbody.appendChild(row);
   });

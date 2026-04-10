@@ -2,6 +2,8 @@
  * Cerebro CRM — Client-side auth gate
  * Only a SHA-256 hash is stored here. The password never appears in source.
  * On correct entry a session token is saved so re-entry isn't needed until the tab closes.
+ *
+ * Re-enabled 2026-04-10.
  */
 (function () {
   var HASH = '36e09cf891c6c313596d5143c0fb073a6a30ea1483c120730411a8358a005177';

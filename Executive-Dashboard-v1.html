@@ -1209,24 +1209,12 @@ function getPipelineValue(prop, year) {
   return getOpportunities(prop, year).reduce((s, o) => s + o.value, 0);
 }
 
-function getWeightedPipeline(prop, year) {
-  return getOpportunities(prop, year).reduce((s, o) => s + (o.value * o.probability), 0);
-}
-
 function getDivPipeline(div, year) {
   return div.properties.reduce((s, p) => s + getPipelineValue(p, year), 0);
 }
 
-function getDivWeightedPipeline(div, year) {
-  return div.properties.reduce((s, p) => s + getWeightedPipeline(p, year), 0);
-}
-
 function getGroupPipeline(year) {
   return DATA.divisions.reduce((s, d) => s + getDivPipeline(d, year), 0);
-}
-
-function getGroupWeightedPipeline(year) {
-  return DATA.divisions.reduce((s, d) => s + getDivWeightedPipeline(d, year), 0);
 }
 
 function getGroupOpportunityCount(year) {
@@ -1354,7 +1342,6 @@ function renderGroupView(container) {
   const attainment = totalTarget > 0 ? totalSales / totalTarget : 0;
   const groupTDelta = totalTarget - totalOrigTarget;
   const totalPipeline = getGroupPipeline(y);
-  const totalWeightedPipeline = getGroupWeightedPipeline(y);
   const totalOpps = getGroupOpportunityCount(y);
 
   // YoY comparison
@@ -1390,11 +1377,6 @@ function renderGroupView(container) {
         <div class="kpi-label">Open Pipeline</div>
         <div class="kpi-value" style="color:var(--tableau-purple)">${fmt(totalPipeline)}</div>
         <div class="kpi-compare" style="color:var(--text-muted)">${totalOpps} opportunities</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Weighted Pipeline</div>
-        <div class="kpi-value" style="color:var(--tableau-teal)">${fmt(totalWeightedPipeline)}</div>
-        <div class="kpi-compare" style="color:var(--text-muted)">Probability-adjusted</div>
       </div>
     </div>
 
@@ -1757,7 +1739,6 @@ function renderPropertyView(container) {
   const tDelta = target - origTarget;
   const opps = getOpportunities(prop, y);
   const pipelineVal = getPipelineValue(prop, y);
-  const weightedPipeline = getWeightedPipeline(prop, y);
 
   // Quarterly targets & actuals
   const quarters = ['Q1','Q2','Q3','Q4'];
@@ -1790,7 +1771,7 @@ function renderPropertyView(container) {
       <div class="kpi-card">
         <div class="kpi-label">Open Pipeline</div>
         <div class="kpi-value" style="color:var(--tableau-purple)">${fmt(pipelineVal)}</div>
-        <div class="kpi-compare" style="color:var(--text-muted)">${opps.length} opps (wtd: ${fmt(weightedPipeline)})</div>
+        <div class="kpi-compare" style="color:var(--text-muted)">${opps.length} opportunities</div>
       </div>
     </div>
 
@@ -1842,7 +1823,6 @@ function renderPropertyView(container) {
             <th class="num">Value</th>
             <th>Stage</th>
             <th class="num">Probability</th>
-            <th class="num">Weighted Value</th>
             <th>Expected Close</th>
             <th>Quarter</th>
           </tr>
@@ -1976,14 +1956,13 @@ function renderPropertyView(container) {
   sortedOpps.forEach(opp => {
     const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '');
     oppTbody.innerHTML += `
-      <tr onmouseenter="showTooltip(event, '<div class=tt-title>${opp.account}</div><div class=tt-row><span class=tt-label>Value:</span><span class=tt-val>${fmtFull(opp.value)}</span></div><div class=tt-row><span class=tt-label>Weighted:</span><span class=tt-val>${fmtFull(Math.round(opp.value * opp.probability))}</span></div>')"
+      <tr onmouseenter="showTooltip(event, '<div class=tt-title>${opp.account}</div><div class=tt-row><span class=tt-label>Value:</span><span class=tt-val>${fmtFull(opp.value)}</span></div>')"
           onmouseleave="hideTooltip()">
         <td style="font-weight:500">${opp.account}</td>
         <td>${opp.owner}</td>
         <td class="num" style="font-weight:600">${fmtFull(opp.value)}</td>
         <td><span class="deal-stage ${stageClass}">${opp.stage}</span></td>
         <td class="num">${(opp.probability * 100).toFixed(0)}%</td>
-        <td class="num">${fmtFull(Math.round(opp.value * opp.probability))}</td>
         <td>${opp.expected_close}</td>
         <td>${opp.quarter} ${opp.year}</td>
       </tr>
@@ -2078,7 +2057,6 @@ function renderDealsView(container) {
             <th class="num">Value</th>
             <th>Stage</th>
             <th class="num">Probability</th>
-            <th class="num">Weighted Value</th>
             <th>Expected Close</th>
             <th>Quarter</th>
             <th>Year</th>
@@ -2098,7 +2076,6 @@ function renderDealsView(container) {
             <th>Stage</th>
             <th class="num">Count</th>
             <th class="num">Total Value</th>
-            <th class="num">Weighted Value</th>
             <th class="num">Avg Deal Size</th>
             <th style="min-width:140px">Distribution</th>
           </tr>
@@ -2142,7 +2119,6 @@ function renderDealsView(container) {
     const stageOpps = opps.filter(o => o.stage === stage);
     if (stageOpps.length === 0) return;
     const totalV = stageOpps.reduce((s,o) => s + o.value, 0);
-    const weightedV = stageOpps.reduce((s,o) => s + o.value * o.probability, 0);
     const avgV = totalV / stageOpps.length;
     const sharePct = pipelineVal > 0 ? (totalV / pipelineVal * 100) : 0;
     const stageClass = stage.toLowerCase().replace(/\s+/g, '');
@@ -2151,7 +2127,6 @@ function renderDealsView(container) {
         <td><span class="deal-stage ${stageClass}">${stage}</span></td>
         <td class="num">${stageOpps.length}</td>
         <td class="num" style="font-weight:600">${fmtFull(totalV)}</td>
-        <td class="num">${fmtFull(Math.round(weightedV))}</td>
         <td class="num">${fmtFull(Math.round(avgV))}</td>
         <td>
           <div class="attainment-bar">

@@ -785,7 +785,6 @@
             <th>Deals Won</th>
             <th>Win Rate</th>
             <th>Pipeline Value</th>
-            <th>Weighted Pipeline</th>
             <th>Open Opps</th>
             <th>Avg Deal Size</th>
             <th>Action</th>
@@ -842,7 +841,6 @@
             <th>Value</th>
             <th>Stage</th>
             <th>Probability</th>
-            <th>Weighted Value</th>
             <th>Expected Close</th>
             <th>Quarter</th>
           </tr>
@@ -859,7 +857,6 @@
             <th>Stage</th>
             <th>Count</th>
             <th>Total Value</th>
-            <th>Weighted Value</th>
             <th>Avg Deal Size</th>
             <th style="min-width:140px">Distribution</th>
           </tr>
@@ -1674,10 +1671,6 @@ function getPipelineValue(propId, year) {
   return opps.reduce((sum, o) => sum + o.value, 0);
 }
 
-function getWeightedPipeline(propId, year) {
-  const opps = getOpportunities(propId, year);
-  return opps.reduce((sum, o) => sum + (o.value * o.probability), 0);
-}
 
 function getDivSalesTotal(divName, year) {
   let total = 0;
@@ -1876,7 +1869,7 @@ function renderOverview() {
   }
 
   // Aggregate KPIs
-  let totalRevenue = 0, totalDeals = 0, totalOpps = 0, totalPipeline = 0, totalWeightedPipeline = 0;
+  let totalRevenue = 0, totalDeals = 0, totalOpps = 0, totalPipeline = 0;
   execs.forEach(exec => {
     const kpis = calculateKPIs(exec.name);
     totalRevenue += kpis.revenue;
@@ -1884,7 +1877,6 @@ function renderOverview() {
     totalOpps += kpis.dealsPipeline;
     const opps = getFilteredOpportunitiesWithProperty(exec.name);
     totalPipeline += opps.reduce((s, o) => s + o.value, 0);
-    totalWeightedPipeline += opps.reduce((s, o) => s + (o.value * o.probability), 0);
   });
 
   const kpiHTML = `
@@ -1901,11 +1893,6 @@ function renderOverview() {
       <div class="kpi-label">Pipeline Value</div>
       <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(totalPipeline)}</div>
       <div class="kpi-change" style="color:var(--color-neutral)">${totalOpps} open opportunities</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Weighted Pipeline</div>
-      <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(totalWeightedPipeline)}</div>
-      <div class="kpi-change" style="color:var(--color-neutral)">Probability adjusted</div>
     </div>
   `;
   document.getElementById('kpi-overview').innerHTML = kpiHTML;
@@ -1968,7 +1955,6 @@ function renderOverview() {
     const kpis = calculateKPIs(exec.name);
     const opps = getFilteredOpportunitiesWithProperty(exec.name);
     const pipeVal = opps.reduce((s, o) => s + o.value, 0);
-    const wtdPipe = opps.reduce((s, o) => s + (o.value * o.probability), 0);
     const avgDeal = kpis.dealsWon > 0 ? kpis.revenue / kpis.dealsWon : 0;
     const row = document.createElement('tr');
     row.style.cursor = 'pointer';
@@ -1980,7 +1966,6 @@ function renderOverview() {
       <td>${kpis.dealsWon}</td>
       <td>${kpis.winRate}</td>
       <td style="color:var(--color-secondary)">${formatCurrency(pipeVal)}</td>
-      <td style="color:var(--color-secondary)">${formatCurrency(wtdPipe)}</td>
       <td>${opps.length}</td>
       <td>${formatCurrency(avgDeal)}</td>
       <td><button onclick="event.stopPropagation(); showDetail('${exec.name}')" style="padding: 4px 8px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size:11px;">Details →</button></td>
@@ -2077,7 +2062,6 @@ function showDetail(execName) {
   const opps = getFilteredOpportunitiesWithProperty(execName);
   const revenue = wonDeals.reduce((sum, d) => sum + d.value, 0);
   const pipelineVal = opps.reduce((sum, o) => sum + o.value, 0);
-  const weightedPipeline = opps.reduce((sum, o) => sum + (o.value * o.probability), 0);
   const winRate = deals.length > 0 ? ((wonDeals.length / deals.length) * 100).toFixed(1) + '%' : '0%';
   const avgDeal = wonDeals.length > 0 ? revenue / wonDeals.length : 0;
 
@@ -2096,11 +2080,6 @@ function showDetail(execName) {
       <div class="kpi-label">Pipeline Value</div>
       <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(pipelineVal)}</div>
       <div class="kpi-change" style="color:var(--color-neutral)">${opps.length} opportunities</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Weighted Pipeline</div>
-      <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(weightedPipeline)}</div>
-      <div class="kpi-change" style="color:var(--color-neutral)">Probability adjusted</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Win Rate</div>
@@ -2172,7 +2151,7 @@ function showDetail(execName) {
   renderExecDealsTable(deals);
 
   // Opportunities Table
-  document.getElementById('exec-opp-count').textContent = opps.length + ' open opportunit' + (opps.length !== 1 ? 'ies' : 'y') + ' — ' + formatCurrency(pipelineVal) + ' total pipeline (weighted: ' + formatCurrency(weightedPipeline) + ')';
+  document.getElementById('exec-opp-count').textContent = opps.length + ' open opportunit' + (opps.length !== 1 ? 'ies' : 'y') + ' — ' + formatCurrency(pipelineVal) + ' total pipeline';
   const oppsTbody = document.getElementById('opps-tbody');
   oppsTbody.innerHTML = '';
   const sortedOpps = [...opps].sort((a, b) => {
@@ -2189,7 +2168,6 @@ function showDetail(execName) {
       <td style="font-weight:600">${formatCurrency(opp.value)}</td>
       <td><span class="exec-stage-badge ${stageClass}">${opp.stage}</span></td>
       <td>${(opp.probability * 100).toFixed(0)}%</td>
-      <td>${formatCurrency(Math.round(opp.value * opp.probability))}</td>
       <td>${opp.expected_close}</td>
       <td>${opp.quarter} ${opp.year}</td>
     `;
@@ -2203,7 +2181,6 @@ function showDetail(execName) {
     const stageOpps = opps.filter(o => o.stage === stage);
     if (stageOpps.length === 0) return;
     const totalV = stageOpps.reduce((s, o) => s + o.value, 0);
-    const weightedV = stageOpps.reduce((s, o) => s + o.value * o.probability, 0);
     const avgV = totalV / stageOpps.length;
     const sharePct = pipelineVal > 0 ? (totalV / pipelineVal * 100) : 0;
     const stageClass = stage.toLowerCase().replace(/\s+/g, '');
@@ -2212,7 +2189,6 @@ function showDetail(execName) {
       <td><span class="exec-stage-badge ${stageClass}">${stage}</span></td>
       <td>${stageOpps.length}</td>
       <td style="font-weight:600">${formatCurrency(totalV)}</td>
-      <td>${formatCurrency(Math.round(weightedV))}</td>
       <td>${formatCurrency(Math.round(avgV))}</td>
       <td>
         <div class="exec-attainment-bar">

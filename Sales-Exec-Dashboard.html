@@ -197,7 +197,7 @@
 <script>
 const TODAY = new Date('2026-04-09');
 
-// Stage names and probabilities (NO weighted pipeline)
+// Stage names and probabilities
 const STAGES = {
   'Engaged (10%)': 0.10,
   'Proposal (30%)': 0.30,
@@ -1011,7 +1011,7 @@ function renderExecDashboard() {
   const totalSales = closedDeals.reduce((s, d) => s + d.value, 0);
   const target = getExecTarget(exec, y);
   const origTarget = getExecOrigTarget(exec, y);
-  const leftToAchieve = Math.max(0, target - totalSales);
+  const leftToAchieve = totalSales - target;
   const opps = getExecOpps(exec.name, y);
   const pipelineVal = opps.reduce((s, o) => s + o.value, 0);
   const allPayments = getExecPayments(exec.name, y);
@@ -1028,7 +1028,7 @@ function renderExecDashboard() {
   html += '<div class="kpi-strip">';
   html += '<div class="kpi-card"><div class="kpi-label">Target</div><div class="kpi-value">' + fmt(target) + '</div><div class="kpi-compare" style="color:var(--text-muted)">Current FY target</div></div>';
   html += '<div class="kpi-card"><div class="kpi-label">Sales</div><div class="kpi-value">' + fmt(totalSales) + '</div><div class="kpi-compare" style="color:var(--text-muted)">' + closedDeals.length + ' closed deals</div></div>';
-  html += '<div class="kpi-card"><div class="kpi-label">Left to Achieve</div><div class="kpi-value" style="color:' + (leftToAchieve > 0 ? 'var(--tableau-red)' : '#333') + '">' + fmt(leftToAchieve) + '</div><div class="kpi-compare" style="color:var(--text-muted)">' + (leftToAchieve <= 0 ? 'Target exceeded!' : leftToAchieve > 0 ? 'To reach target' : '') + '</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Left to Achieve</div><div class="kpi-value" style="color:' + (leftToAchieve < 0 ? 'var(--tableau-red)' : 'var(--tableau-green)') + '">' + (leftToAchieve < 0 ? '-' + fmt(Math.abs(leftToAchieve)) : '+' + fmt(leftToAchieve)) + '</div><div class="kpi-compare" style="color:var(--text-muted)">' + (leftToAchieve >= 0 ? 'Target exceeded!' : 'To reach target') + '</div></div>';
   html += '</div>';
 
   // === TARGET BREAKDOWN BY PROPERTY ===
@@ -1051,7 +1051,7 @@ function renderExecDashboard() {
 
   // === DEALS TABLE ===
   html += '<div class="data-table-wrapper">';
-  html += '<div class="data-table-header"><span class="table-title">Pipeline — ' + exec.name + '</span><span style="font-size:11px;color:var(--text-muted)" id="dealCount">' + deals.length + ' deals</span></div>';
+  html += '<div class="data-table-header"><span class="table-title">Deals — ' + exec.name + '</span><span style="font-size:11px;color:var(--text-muted)" id="dealCount">' + deals.length + ' deals</span></div>';
   // Build property list from exec's propertyTargets + any properties from actual deals
   var execPropSet = {};
   var ptYears = y === 'all' ? [2025, 2026] : [parseInt(y)];
@@ -1075,6 +1075,19 @@ function renderExecDashboard() {
   html += '<th>Deal ID</th><th>Property</th><th>Account</th><th>Type</th><th class="num">Deal Value</th><th>Stage</th><th>Close Date</th><th>Contract Ref</th><th>Quarter</th><th>Action</th>';
   html += '</tr></thead><tbody id="dealsBody"></tbody></table></div>';
 
+  // === PIPELINE SUMMARY BY STAGE (clickable to drill into opportunities) ===
+  html += '<div class="data-table-wrapper" style="margin-top:24px">';
+  html += '<div class="data-table-header"><span class="table-title">Pipeline Summary by Stage</span><span style="font-size:11px;color:var(--text-muted)">Click a stage to view opportunities</span></div>';
+  html += '<table class="tableau-table"><thead><tr>';
+  html += '<th>Stage</th><th class="num">Count</th><th class="num">Total Value</th><th class="num">Avg Size</th><th style="min-width:160px">Distribution</th>';
+  html += '</tr></thead><tbody id="pipelineSummaryBody"></tbody></table>';
+  html += '<div id="stageDetailWrapper" style="display:none;border-top:2px solid var(--border-color)">';
+  html += '<div class="data-table-header" style="background:#f8f9fc"><span class="table-title" id="stageDetailTitle">Stage Detail</span><span style="font-size:11px;color:var(--tableau-blue);cursor:pointer" onclick="closeStageDetail()">✕ Close</span></div>';
+  html += '<table class="tableau-table"><thead><tr>';
+  html += '<th>Opp ID</th><th>Property</th><th>Account</th><th>Type</th><th class="num">Value</th><th>Stage</th><th>Probability</th><th>Expected Close</th><th>Quarter</th>';
+  html += '</tr></thead><tbody id="stageDetailBody"></tbody></table>';
+  html += '</div></div>';
+
   // === PAYMENT STATUS BAR ===
   html += '<div class="data-table-wrapper" style="margin-top:24px">';
   html += '<div class="data-table-header"><span class="table-title">Payment Status Overview</span></div>';
@@ -1088,7 +1101,7 @@ function renderExecDashboard() {
   html += '<th>Status</th><th class="num">Count</th><th class="num">Total Amount</th><th class="num">% of Total</th><th style="min-width:180px">Distribution</th>';
   html += '</tr></thead><tbody id="paySummaryBody"></tbody></table></div>';
 
-  // === PIPELINE TABLE (renamed from "Open Opportunities") ===
+  // === PIPELINE TABLE (full opportunities list) ===
   // Build property list from exec's propertyTargets + any properties from actual opps
   var oppPropSet = {};
   ptYears.forEach(function(yr) { var pt = exec.propertyTargets[yr] || {}; Object.keys(pt).forEach(function(p) { oppPropSet[p] = true; }); });
@@ -1103,15 +1116,8 @@ function renderExecDashboard() {
   });
   html += '</div>';
   html += '<table class="tableau-table"><thead><tr>';
-  html += '<th>Opp ID</th><th>Property</th><th>Account</th><th>Type</th><th class="num">Value</th><th>Stage</th><th>Probability</th><th class="num">Weighted Value</th><th>Expected Close</th><th>Quarter</th>';
+  html += '<th>Opp ID</th><th>Property</th><th>Account</th><th>Type</th><th class="num">Value</th><th>Stage</th><th>Probability</th><th>Expected Close</th><th>Quarter</th>';
   html += '</tr></thead><tbody id="oppsBody"></tbody></table></div>';
-
-  // === PIPELINE SUMMARY BY STAGE ===
-  html += '<div class="data-table-wrapper" style="margin-top:24px">';
-  html += '<div class="data-table-header"><span class="table-title">Pipeline Summary by Stage</span></div>';
-  html += '<table class="tableau-table"><thead><tr>';
-  html += '<th>Stage</th><th class="num">Count</th><th class="num">Total Value</th><th class="num">Avg Size</th><th style="min-width:160px">Distribution</th>';
-  html += '</tr></thead><tbody id="pipelineSummaryBody"></tbody></table></div>';
 
   app.innerHTML = html;
 
@@ -1155,10 +1161,10 @@ function populateTargetBreakdown(exec, year, overallTarget) {
   var thtml = '';
   var grandTarget = 0, grandSales = 0;
   chartData.forEach(function(item, idx) {
-    var leftToAchieve = Math.max(0, item.target - item.sales);
+    var leftToAchieve = item.sales - item.target;
     var attainment = item.target > 0 ? item.sales / item.target : 0;
     var attColor = attainmentColor(attainment);
-    var leftColor = leftToAchieve > 0 ? 'var(--tableau-red)' : 'var(--tableau-green)';
+    var leftColor = leftToAchieve < 0 ? 'var(--tableau-red)' : 'var(--tableau-green)';
     grandTarget += item.target;
     grandSales += item.sales;
     thtml += '<tr>';
@@ -1166,8 +1172,8 @@ function populateTargetBreakdown(exec, year, overallTarget) {
     thtml += '<td class="num" style="font-weight:600">' + fmtFull(item.target) + '</td>';
     thtml += '<td class="num">' + (item.pctOfTotal * 100).toFixed(1) + '%</td>';
     thtml += '<td class="num" style="font-weight:600">' + fmtFull(item.sales) + '</td>';
-    var leftPct = item.target > 0 ? (leftToAchieve / item.target * 100).toFixed(1) : '0.0';
-    thtml += '<td class="num" style="font-weight:600;color:' + leftColor + '">' + (leftToAchieve > 0 ? fmtFull(leftToAchieve) + ' (' + leftPct + '%)' : 'Target met') + '</td>';
+    var leftPct = item.target > 0 ? (Math.abs(leftToAchieve) / item.target * 100).toFixed(1) : '0.0';
+    thtml += '<td class="num" style="font-weight:600;color:' + leftColor + '">' + (leftToAchieve < 0 ? '-' + fmtFull(Math.abs(leftToAchieve)) : '+' + fmtFull(leftToAchieve)) + '</td>';
     thtml += '<td><div class="attainment-bar"><div class="attainment-track">';
     thtml += '<div class="attainment-fill" style="width:' + Math.min(attainment * 100, 100).toFixed(1) + '%;background:' + attColor + '"></div>';
     thtml += '</div></div></td>';
@@ -1178,17 +1184,17 @@ function populateTargetBreakdown(exec, year, overallTarget) {
     cats.forEach(function(cat) {
       var catTarget = (item.categoryTargets && item.categoryTargets[cat]) || 0;
       var catSales = getPropertyCategorySales(exec.name, item.property, cat, year);
-      var catLeft = Math.max(0, catTarget - catSales);
+      var catLeft = catSales - catTarget;
       var catAtt = catTarget > 0 ? catSales / catTarget : 0;
       var catColor = attainmentColor(catAtt);
-      var catLeftColor = catLeft > 0 ? 'var(--tableau-red)' : 'var(--tableau-green)';
-      
+      var catLeftColor = catLeft < 0 ? 'var(--tableau-red)' : 'var(--tableau-green)';
+
       thtml += '<tr style="background:#f9f9f9;font-weight:normal">';
       thtml += '<td style="padding-left:24px;font-size:11px;color:#666">' + cat + '</td>';
       thtml += '<td class="num" style="font-size:11px;color:#666">' + fmtFull(catTarget) + '</td>';
       thtml += '<td></td>';
       thtml += '<td class="num" style="font-size:11px;color:#666">' + fmtFull(catSales) + '</td>';
-      thtml += '<td class="num" style="font-size:11px;color:' + catLeftColor + ';">' + (catLeft > 0 ? fmtFull(catLeft) : 'Complete') + '</td>';
+      thtml += '<td class="num" style="font-size:11px;color:' + catLeftColor + ';">' + (catLeft < 0 ? '-' + fmtFull(Math.abs(catLeft)) : '+' + fmtFull(catLeft)) + '</td>';
       thtml += '<td></td>';
       thtml += '</tr>';
     });
@@ -1204,7 +1210,7 @@ function populateTargetBreakdown(exec, year, overallTarget) {
   thtml += '<td class="num">' + fmtFull(grandTarget) + '</td>';
   thtml += '<td class="num">100%</td>';
   thtml += '<td class="num">' + fmtFull(grandSales) + '</td>';
-  thtml += '<td class="num" style="color:' + grandLeftColor + '">' + (grandLeft > 0 ? fmtFull(grandLeft) + ' (' + grandLeftPct + '%)' : 'Target met') + '</td>';
+  thtml += '<td class="num" style="color:' + grandLeftColor + '">' + (grandLeft > 0 ? fmtFull(grandLeft) + ' (' + grandLeftPct + '%)' : '+' + fmtFull(Math.abs(grandLeft))) + '</td>';
   thtml += '<td><div class="attainment-bar"><div class="attainment-track">';
   thtml += '<div class="attainment-fill" style="width:' + Math.min(grandAtt * 100, 100).toFixed(1) + '%;background:' + grandColor + '"></div>';
   thtml += '</div></div></td>';
@@ -1248,7 +1254,7 @@ function populatePropChart(closedDeals, exec, year) {
   propArr.forEach(function(entry, i) {
     var name = entry[0];
     var data = entry[1];
-    var leftToAchieve = Math.max(0, data.target - data.sales);
+    var leftToAchieve = data.sales - data.target;
     var attainment = data.target > 0 ? data.sales / data.target : (data.sales > 0 ? 1 : 0);
     var attColor = attainmentColor(attainment);
     var tPct = (data.target / maxVal * 100).toFixed(1);
@@ -1257,8 +1263,8 @@ function populatePropChart(closedDeals, exec, year) {
     h += '<div style="margin-bottom:16px">';
     h += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">';
     h += '<span style="font-weight:600;font-size:12px;color:#333">' + name + '</span>';
-    var headerLeftPct = data.target > 0 ? (leftToAchieve / data.target * 100).toFixed(1) : '0.0';
-    h += '<span style="font-size:11px;font-weight:700;color:' + (leftToAchieve > 0 ? 'var(--tableau-red)' : 'var(--tableau-green)') + '">' + (leftToAchieve > 0 ? fmt(leftToAchieve) + ' left (' + headerLeftPct + '%)' : 'Target met!') + '</span>';
+    var headerLeftPct = data.target > 0 ? (Math.abs(leftToAchieve) / data.target * 100).toFixed(1) : '0.0';
+    h += '<span style="font-size:11px;font-weight:700;color:' + (leftToAchieve < 0 ? 'var(--tableau-red)' : 'var(--tableau-green)') + '">' + (leftToAchieve < 0 ? '-' + fmt(Math.abs(leftToAchieve)) + ' (' + headerLeftPct + '%)' : '+' + fmt(leftToAchieve) + ' exceeded') + '</span>';
     h += '</div>';
 
     // Target bar (muted)
@@ -1270,7 +1276,7 @@ function populatePropChart(closedDeals, exec, year) {
 
     // Sales bar (exec, colored by attainment)
     h += '<div style="display:flex;align-items:center;margin-bottom:2px"';
-    h += ' onmouseenter="showTooltip(event, \'<div class=tt-title>' + name + '</div><div class=tt-row><span class=tt-label>Target:</span><span class=tt-val>' + fmtFull(data.target) + '</span></div><div class=tt-row><span class=tt-label>My Sales:</span><span class=tt-val>' + fmtFull(data.sales) + '</span></div><div class=tt-row><span class=tt-label>Property Total:</span><span class=tt-val>' + fmtFull(data.totalPropSales) + '</span></div><div class=tt-row><span class=tt-label>Left:</span><span class=tt-val>' + fmtFull(leftToAchieve) + '</span></div>\')"';
+    h += ' onmouseenter="showTooltip(event, \'<div class=tt-title>' + name + '</div><div class=tt-row><span class=tt-label>Target:</span><span class=tt-val>' + fmtFull(data.target) + '</span></div><div class=tt-row><span class=tt-label>My Sales:</span><span class=tt-val>' + fmtFull(data.sales) + '</span></div><div class=tt-row><span class=tt-label>Property Total:</span><span class=tt-val>' + fmtFull(data.totalPropSales) + '</span></div><div class=tt-row><span class=tt-label>Left:</span><span class=tt-val>' + (leftToAchieve < 0 ? '-' + fmtFull(Math.abs(leftToAchieve)) : '+' + fmtFull(leftToAchieve)) + '</span></div>\')"';
     h += ' onmouseleave="hideTooltip()">';
     h += '<span style="width:70px;font-size:9px;color:#999;text-transform:uppercase">My Sales</span>';
     h += '<div style="flex:1;height:14px;background:#f0f0f0;border-radius:2px;overflow:hidden">';
@@ -1284,12 +1290,6 @@ function populatePropChart(closedDeals, exec, year) {
     h += '<div style="flex:1;height:14px;background:#f0f0f0;border-radius:2px;overflow:hidden">';
     h += '<div style="width:' + tpPct + '%;height:100%;background:#7986cb;border-radius:2px"></div></div>';
     h += '<span style="width:70px;text-align:right;font-size:10px;font-weight:600;color:#5c6bc0">' + fmt(data.totalPropSales) + '</span></div>';
-
-    // Left to achieve line
-    h += '<div style="display:flex;align-items:center">';
-    h += '<span style="width:70px;font-size:9px;color:#999;text-transform:uppercase">Left</span>';
-    var leftPctChart = data.target > 0 ? (leftToAchieve / data.target * 100).toFixed(1) : '0.0';
-    h += '<span style="font-size:10px;color:' + (leftToAchieve > 0 ? 'var(--tableau-red)' : 'var(--tableau-green)') + ';font-weight:600">' + (leftToAchieve > 0 ? fmt(leftToAchieve) + ' remaining (' + leftPctChart + '%)' : 'Target met!') + '</span></div>';
 
     h += '</div>';
   });
@@ -1590,7 +1590,6 @@ function populateOppsTable(opps) {
       '<td class="num" style="font-weight:600">' + fmtFull(opp.value) + '</td>' +
       '<td><span class="deal-stage ' + stageClass + '">' + opp.stage + ' (' + Math.round(stageProbability * 100) + '%)</span></td>' +
       '<td class="num">' + Math.round(stageProbability * 100) + '%</td>' +
-      '<td class="num">' + fmtFull(Math.round(opp.value * stageProbability)) + '</td>' +
       '<td>' + opp.expected_close + '</td>' +
       '<td>' + opp.quarter + '</td></tr>';
   });
@@ -1602,7 +1601,10 @@ function populateOppsTable(opps) {
 // =============================================
 //  PIPELINE SUMMARY BY STAGE
 // =============================================
+var _pipelineOpps = []; // stored for stage drill-down
+
 function populatePipelineSummary(opps, pipelineVal) {
+  _pipelineOpps = opps;
   const tbody = document.getElementById('pipelineSummaryBody');
 
   STAGE_ORDER.forEach(stage => {
@@ -1613,9 +1615,10 @@ function populatePipelineSummary(opps, pipelineVal) {
     const share = pipelineVal > 0 ? (total / pipelineVal * 100) : 0;
     const stageClass = stage.toLowerCase().replace(/\s+/g, '');
     const stageProbability = STAGES[stage] || 0;
+    const escapedStage = stage.replace(/'/g, "\\'");
 
-    tbody.innerHTML += '<tr>' +
-      '<td><span class="deal-stage ' + stageClass + '">' + stage + ' (' + Math.round(stageProbability * 100) + '%)</span></td>' +
+    tbody.innerHTML += '<tr style="cursor:pointer;transition:background 0.15s" onclick="showStageDetail(\'' + escapedStage + '\')" onmouseenter="this.style.background=\'#f0f4fa\'" onmouseleave="this.style.background=\'\'">' +
+      '<td><span class="deal-stage ' + stageClass + '">' + stage + '</span></td>' +
       '<td class="num">' + items.length + '</td>' +
       '<td class="num" style="font-weight:600">' + fmtFull(total) + '</td>' +
       '<td class="num">' + fmtFull(Math.round(avg)) + '</td>' +
@@ -1631,6 +1634,45 @@ function populatePipelineSummary(opps, pipelineVal) {
       '<td class="num">' + fmtFull(Math.round(pipelineVal / opps.length)) + '</td>' +
       '<td></td></tr>';
   }
+}
+
+function showStageDetail(stage) {
+  var wrapper = document.getElementById('stageDetailWrapper');
+  var title = document.getElementById('stageDetailTitle');
+  var tbody = document.getElementById('stageDetailBody');
+  if (!wrapper || !tbody) return;
+
+  var items = _pipelineOpps.filter(o => o.stage === stage);
+  title.textContent = stage + ' — ' + items.length + ' Opportunit' + (items.length === 1 ? 'y' : 'ies');
+
+  var h = '';
+  items.sort((a, b) => b.value - a.value).forEach(function(o) {
+    var prob = STAGES[o.stage] || 0;
+    var stageClass = o.stage.toLowerCase().replace(/\s+/g, '');
+    h += '<tr>';
+    h += '<td><span class="deal-id-link" onclick="openItemDetail(\'Opportunity\',\'' + o.id + '\')">' + o.id + ' <span class="link-arrow">↗</span></span></td>';
+    h += '<td>' + (o.property || '') + '</td>';
+    h += '<td>' + o.account + '</td>';
+    h += '<td>' + (o.dealType || '—') + '</td>';
+    h += '<td class="num" style="font-weight:600">' + fmtFull(o.value) + '</td>';
+    h += '<td><span class="deal-stage ' + stageClass + '">' + o.stage + '</span></td>';
+    h += '<td class="num">' + (prob * 100).toFixed(0) + '%</td>';
+    h += '<td>' + o.close_date + '</td>';
+    h += '<td>' + (o.quarter || '') + '</td>';
+    h += '</tr>';
+  });
+  tbody.innerHTML = h;
+  wrapper.style.display = 'block';
+  wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Highlight the clicked row in the summary
+  var rows = document.getElementById('pipelineSummaryBody').querySelectorAll('tr');
+  rows.forEach(function(r) { r.style.background = ''; });
+}
+
+function closeStageDetail() {
+  var wrapper = document.getElementById('stageDetailWrapper');
+  if (wrapper) wrapper.style.display = 'none';
 }
 
 // =============================================
