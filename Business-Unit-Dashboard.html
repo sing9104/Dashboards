@@ -1,0 +1,3111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Unit Dashboard | CerebroCRM</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --color-primary: #2E5C8A;
+    --color-secondary: #5B9BD5;
+    --color-success: #70AD47;
+    --color-warning: #FFC000;
+    --color-danger: #C5504E;
+    --color-neutral: #A0A0A0;
+    --color-light: #F5F5F5;
+    --color-white: #FFFFFF;
+    --color-dark: #1F1F1F;
+    --color-border: #D9D9D9;
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-size-base: 13px;
+    --font-size-sm: 11px;
+    --font-size-lg: 15px;
+    --font-size-xl: 18px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-family);
+    background: #f9f9f9;
+    color: var(--color-dark);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+  }
+
+  .topbar {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: var(--color-white);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-md);
+    border-bottom: 2px solid var(--color-primary);
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .branding {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .branding-sub {
+    font-size: var(--font-size-sm);
+    color: rgba(255,255,255,0.85);
+    margin-top: 2px;
+  }
+
+  .year-toggle {
+    display: flex;
+    gap: var(--spacing-xs);
+  }
+
+  .year-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--color-white);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: all 0.2s;
+  }
+
+  .year-btn.active {
+    background: var(--color-white);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .currency-selector {
+    padding: 6px 12px;
+    font-size: 13px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-white);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  .selector-bar {
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+
+  .selector-bar label {
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    color: var(--color-dark);
+  }
+
+  .business-unit-select {
+    padding: 8px 14px;
+    font-size: var(--font-size-base);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-white);
+    min-width: 280px;
+    cursor: pointer;
+    color: var(--color-dark);
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  .business-unit-select:focus {
+    outline: none;
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 0 3px rgba(91,155,213,0.15);
+  }
+
+  .business-unit-info {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .business-unit-info__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  .business-unit-info__badge--head {
+    background: #E2F0D9;
+    color: #548235;
+  }
+
+  .business-unit-info__badge--count {
+    background: #E3F2FD;
+    color: #1565C0;
+  }
+
+  .breadcrumb {
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-base);
+    color: var(--color-dark);
+    font-weight: 500;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
+
+  .view-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .kpi-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+
+  .kpi-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-secondary);
+  }
+
+  .kpi-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+  }
+
+  .kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .kpi-change {
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-sm);
+    color: var(--color-success);
+  }
+
+  .section {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--spacing-md);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-base);
+  }
+
+  thead th {
+    background: var(--color-light);
+    color: var(--color-dark);
+    font-weight: 600;
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  tbody td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-dark);
+  }
+
+  tbody tr:hover {
+    background: var(--color-light);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  .badge--success {
+    background: #D4EDDA;
+    color: #155724;
+  }
+
+  .badge--warning {
+    background: #FFF3CD;
+    color: #856404;
+  }
+
+  .badge--danger {
+    background: #F8D7DA;
+    color: #721C24;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .exec-filter-pill {
+    padding: 5px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background: var(--color-white);
+    color: var(--color-dark);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .exec-filter-pill:hover {
+    border-color: var(--color-secondary);
+    background: #f0f7ff;
+  }
+  .exec-filter-pill.active {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+  }
+
+  .deal-id-link {
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--color-primary);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .deal-id-link:hover { text-decoration: underline; }
+  .deal-id-link .link-arrow { font-size: 9px; margin-left: 2px; opacity: 0.6; }
+  .deal-id-link:hover .link-arrow { opacity: 1; }
+
+  .exec-stage-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+  .exec-stage-badge.closed { background: #D4EDDA; color: #155724; }
+  .exec-stage-badge.contractissued { background: #CCE5FF; color: #004085; }
+  .exec-stage-badge.termsagreed { background: #FFE5B4; color: #8B6914; }
+  .exec-stage-badge.inreview { background: #FFF3CD; color: #856404; }
+  .exec-stage-badge.proposal { background: #E2E3E5; color: #383D41; }
+  .exec-stage-badge.engaged { background: #F8D7DA; color: #721C24; }
+
+  .exec-attainment-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .exec-attainment-track {
+    flex: 1;
+    height: 8px;
+    background: #eef1f5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .exec-attainment-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+  .exec-attainment-pct {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    min-width: 44px;
+    text-align: right;
+  }
+
+  .back-button {
+    background: var(--color-light);
+    border: 1px solid var(--color-border);
+    color: var(--color-dark);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-lg);
+    transition: all 0.2s;
+  }
+
+  .back-button:hover {
+    background: var(--color-dark);
+    color: var(--color-white);
+  }
+
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .chart-placeholder {
+    background: var(--color-light);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--color-neutral);
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* === YOY BUTTERFLY + QUARTERLY === */
+  .m-butterfly-row { display: flex; align-items: center; margin-bottom: 8px; }
+  .m-butterfly-row:last-child { margin-bottom: 0; }
+  .m-bfly-left { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+  .m-bfly-center { min-width: 110px; text-align: center; font-weight: 600; font-size: 10px; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-bfly-right { flex: 1; display: flex; align-items: center; gap: 6px; }
+  .m-bfly-bar { height: 18px; border-radius: 3px; display: flex; align-items: center; min-width: 2px; transition: width 0.4s ease; }
+  .m-bfly-bar-left { justify-content: flex-start; padding-left: 4px; }
+  .m-bfly-bar-right { justify-content: flex-end; padding-right: 4px; }
+  .m-bfly-bar span { font-size: 9px; font-weight: 600; color: white; white-space: nowrap; }
+  .m-bfly-val { font-size: 10px; font-weight: 500; min-width: 48px; }
+  .m-bfly-val-left { text-align: left; }
+  .m-bfly-val-right { text-align: right; }
+  .m-bfly-hdr { display: flex; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--color-border); }
+  .m-bfly-hdr .m-bfly-left { font-size: 10px; font-weight: 700; color: #8babc7; text-transform: uppercase; letter-spacing: .3px; }
+  .m-bfly-hdr .m-bfly-center { font-size: 10px; font-weight: 700; color: var(--color-neutral); text-transform: uppercase; }
+  .m-bfly-hdr .m-bfly-right { font-size: 10px; font-weight: 700; color: #2c5f8a; text-transform: uppercase; letter-spacing: .3px; }
+  .m-yoy-tile { background: linear-gradient(135deg, #1e2a3a 0%, #2c5f8a 100%); border-radius: 8px; padding: 14px 20px; color: white; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .m-yoy-tile:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(44,95,138,0.3); }
+  .m-yoy-tile .tile-title { font-size: 14px; font-weight: 700; }
+  .m-yoy-tile .tile-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+  .m-yoy-tile .tile-arrow { font-size: 20px; opacity: 0.6; }
+
+  /* Section Toggle Tabs */
+  .section-toggle {
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0;
+    display: flex;
+    gap: 0;
+  }
+
+  .section-tab {
+    flex: 0 0 auto;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-white);
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--color-neutral);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .section-tab:hover {
+    color: var(--color-dark);
+    background: var(--color-light);
+  }
+
+  .section-tab.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+
+  /* Property KPI Strip */
+  .prop-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .prop-kpi-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .prop-kpi-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+  }
+
+  .prop-kpi-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  /* Chart Cards */
+  .prop-chart-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .prop-chart-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  /* Bar Chart */
+  .prop-bar-chart {
+    margin: var(--spacing-lg) 0;
+  }
+
+  .prop-bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .prop-bar-label {
+    min-width: 120px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-dark);
+  }
+
+  .prop-bar-track {
+    flex: 1;
+    height: 24px;
+    background: var(--color-light);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .prop-bar-fill {
+    height: 100%;
+    background: var(--color-secondary);
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 6px;
+  }
+
+  .prop-bar-fill::after {
+    content: attr(data-label);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-white);
+    white-space: nowrap;
+  }
+
+  /* Stacked Bar */
+  .prop-stacked-bar {
+    display: flex;
+    height: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: var(--spacing-md) 0;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .prop-stacked-segment {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-white);
+  }
+
+  .prop-stacked-legend {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+
+  .prop-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .prop-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+
+  /* Attainment Bar */
+  .prop-attainment-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+  }
+
+  .prop-attainment-track {
+    flex: 1;
+    height: 20px;
+    background: var(--color-light);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .prop-attainment-fill {
+    height: 100%;
+    background: var(--color-success);
+    border-radius: 3px;
+  }
+
+  .prop-attainment-pct {
+    min-width: 50px;
+    text-align: right;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-dark);
+  }
+
+  /* Deal Stage Badge */
+  .prop-deal-stage {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  .prop-deal-stage.closed {
+    background: #D4EDDA;
+    color: #155724;
+  }
+
+  .prop-deal-stage.pipeline {
+    background: #E3F2FD;
+    color: #1565C0;
+  }
+
+  .prop-deal-stage.inreview {
+    background: #FFF3CD;
+    color: #856404;
+  }
+
+  .prop-deal-stage.proposal {
+    background: #E2E3E5;
+    color: #383D41;
+  }
+
+  .prop-deal-stage.engaged {
+    background: #F8D7DA;
+    color: #721C24;
+  }
+
+  .prop-deal-stage.termsagreed {
+    background: #e0f2f1;
+    color: #00695c;
+  }
+
+  .prop-deal-stage.contractissued {
+    background: #e8eaf6;
+    color: #283593;
+  }
+
+  /* Filter Bar */
+  .prop-filter-bar {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+
+  .prop-filter-pill {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    border-radius: 20px;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-dark);
+  }
+
+  .prop-filter-pill:hover {
+    border-color: var(--color-secondary);
+    background: var(--color-light);
+  }
+
+  .prop-filter-pill.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+  }
+
+  /* Back Button */
+  .prop-back-btn {
+    background: var(--color-light);
+    border: 1px solid var(--color-border);
+    color: var(--color-dark);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-lg);
+    transition: all 0.2s;
+  }
+
+  .prop-back-btn:hover {
+    background: var(--color-dark);
+    color: var(--color-white);
+  }
+
+  /* Data Table */
+  .prop-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-base);
+  }
+
+  .prop-data-table thead th {
+    background: var(--color-light);
+    color: var(--color-dark);
+    font-weight: 600;
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .prop-data-table tbody td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-dark);
+  }
+
+  .prop-data-table tbody tr:hover {
+    background: var(--color-light);
+  }
+
+  /* Tooltip */
+  .prop-tooltip {
+    position: absolute;
+    background: var(--color-dark);
+    color: var(--color-white);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 4px;
+    font-size: var(--font-size-sm);
+    z-index: 1000;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Variance */
+  .variance-pos {
+    color: var(--color-success);
+    font-weight: 600;
+  }
+
+  .variance-neg {
+    color: var(--color-danger);
+    font-weight: 600;
+  }
+
+  /* Sparkline */
+  .prop-sparkline {
+    display: inline-block;
+    width: 80px;
+    height: 24px;
+  }
+
+  /* Drill Icon */
+  .prop-drill-icon {
+    cursor: pointer;
+    color: #333;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .prop-drill-icon:hover {
+    color: #000;
+  }
+
+  .cat-split-card {
+    background: var(--color-white);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .cat-split-card .cat-title {
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    margin-bottom: 14px;
+    color: var(--color-dark);
+  }
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .cat-label {
+    width: 90px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #444;
+  }
+  .cat-bar-wrap {
+    flex: 1;
+    height: 22px;
+    background: var(--color-light);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .cat-bar-target {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background: #333;
+    z-index: 2;
+  }
+  .cat-vals {
+    min-width: 160px;
+    text-align: right;
+    font-size: 11px;
+  }
+  .cat-vals .cat-actual {
+    font-weight: 600;
+  }
+  .cat-vals .cat-target {
+    color: var(--color-neutral);
+    margin-left: 4px;
+  }
+  .cat-attain {
+    min-width: 55px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .cat-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .cat-summary-box {
+    text-align: center;
+    padding: 12px 8px;
+    border-radius: 6px;
+    border-top: 3px solid;
+  }
+  .cat-summary-box .cat-sum-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .cat-summary-box .cat-sum-val {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .cat-summary-box .cat-sum-sub {
+    font-size: 10px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div>
+      <div class="branding">CerebroCRM</div>
+      <div class="branding-sub">Business Unit Dashboard</div>
+    </div>
+  </div>
+  <div class="year-toggle">
+    <button class="year-btn" data-year="all">All Years</button>
+    <button class="year-btn" data-year="2025">FY 2025</button>
+    <button class="year-btn active" data-year="2026">FY 2026</button>
+  </div>
+</div>
+
+<div class="selector-bar">
+  <label for="businessUnitSelect">Business Unit:</label>
+  <select id="businessUnitSelect" class="business-unit-select" onchange="selectBusinessUnit(this.value)">
+    <option value="all">All Business Units</option>
+  </select>
+  <div class="business-unit-info" id="businessUnitInfo"></div>
+  <label for="currencySelect" style="margin-left:auto;font-weight:600;font-size:13px;color:#666;">Currency:</label>
+  <select id="currencySelect" class="currency-selector" onchange="setCurrency(this.value)">
+    <option value="GBP" selected>GBP (£)</option>
+    <option value="USD">USD ($)</option>
+    <option value="EUR">EUR (€)</option>
+  </select>
+</div>
+
+<div class="breadcrumb">
+  <span id="breadcrumb-content">Business Unit Dashboard</span>
+</div>
+
+
+<div class="container">
+  <div id="overview-view" class="hidden">
+    <div class="view-title">Sales Performance</div>
+    <div class="kpi-grid" id="kpi-overview"></div>
+    <div class="charts-row" id="charts-overview"></div>
+
+    <div class="charts-row" id="yoy-charts-overview"></div>
+
+    <div class="section">
+      <div class="section-title">Sales Execs</div>
+      <table id="execs-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Business Unit</th>
+            <th>Target</th>
+            <th>Closed</th>
+            <th>Left to Achieve</th>
+            <th>Deals Won</th>
+            <th>Win Rate</th>
+            <th>Pipeline Value</th>
+            <th>Avg Deal Size</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="execs-tbody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Recent Deals (last 7 days) -->
+    <div class="section" id="recent-deals-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="section-title">Recent Deals</div>
+        <span id="recentDealsCount" style="font-size:11px;font-weight:600;background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:12px"></span>
+      </div>
+      <div id="recentDealsBody"></div>
+    </div>
+  </div>
+
+  <div id="detail-view" class="hidden">
+    <button class="back-button" onclick="backToOverview()">← Back to Overview</button>
+    <div class="view-title" id="detail-title">Executive Details</div>
+    <div class="kpi-grid" id="kpi-detail"></div>
+    <div class="charts-row" id="charts-detail"></div>
+    <div class="charts-row" id="category-split-row" style="margin-top:0"></div>
+    <div class="section">
+      <div class="section-title">Deals</div>
+      <div id="exec-deal-filters" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="exec-filter-pill active" data-filter="all" onclick="filterExecDeals('all', this)">All</button>
+        <button class="exec-filter-pill" data-filter="Closed" onclick="filterExecDeals('Closed', this)">Closed</button>
+        <button class="exec-filter-pill" data-filter="In Review" onclick="filterExecDeals('In Review', this)">In Review</button>
+        <button class="exec-filter-pill" data-filter="Proposal" onclick="filterExecDeals('Proposal', this)">Proposal</button>
+        <button class="exec-filter-pill" data-filter="Terms Agreed" onclick="filterExecDeals('Terms Agreed', this)">Terms Agreed</button>
+        <button class="exec-filter-pill" data-filter="Engaged" onclick="filterExecDeals('Engaged', this)">Engaged</button>
+      </div>
+      <div id="exec-deal-count" style="font-size:11px;color:var(--color-neutral);margin-bottom:8px;"></div>
+      <table id="deals-table">
+        <thead>
+          <tr>
+            <th>Deal ID</th>
+            <th>Account</th>
+            <th>Property</th>
+            <th>Value</th>
+            <th>Category</th>
+            <th>Stage</th>
+            <th>Close Date</th>
+            <th>Year</th>
+            <th>Quarter</th>
+          </tr>
+        </thead>
+        <tbody id="deals-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Pipeline</div>
+      <div id="exec-opp-count" style="font-size:11px;color:var(--color-neutral);margin-bottom:8px;"></div>
+      <div id="mainOppsStageFilter" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap"></div>
+      <table id="opps-table">
+        <thead>
+          <tr>
+            <th>Opp ID</th>
+            <th>Account</th>
+            <th>Property</th>
+            <th>Value</th>
+            <th>Stage</th>
+            <th>Probability</th>
+            <th>Expected Close</th>
+            <th>Quarter</th>
+          </tr>
+        </thead>
+        <tbody id="opps-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Pipeline Summary by Stage</div>
+      <table id="stage-summary-table">
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Count</th>
+            <th>Total Value</th>
+            <th>Avg Deal Size</th>
+            <th style="min-width:140px">Distribution</th>
+          </tr>
+        </thead>
+        <tbody id="stage-summary-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Property Performance Views -->
+  <div id="property-overview">
+    <div class="view-title" id="prop-overview-title">Property Performance</div>
+    <div class="prop-kpi-strip" id="prop-kpi-overview"></div>
+    <div class="prop-chart-card">
+      <div class="prop-chart-title">Closed + Pipeline vs Target</div>
+      <div class="prop-bar-chart" id="prop-bar-chart"></div>
+    </div>
+    <div class="charts-row">
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Week on Week — New Business Closed</div>
+        <div id="wow-closed-chart"></div>
+      </div>
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Deals by Value Range</div>
+        <div id="deal-value-range-chart"></div>
+      </div>
+    </div>
+    <div class="prop-chart-card">
+      <div class="section-title">Properties</div>
+      <table class="prop-data-table" id="prop-overview-table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Category</th>
+            <th>Target</th>
+            <th>Closed</th>
+            <th>Pipeline</th>
+            <th>Left to Achieve</th>
+            <th>Opps</th>
+            <th>Won Deals</th>
+          </tr>
+        </thead>
+        <tbody id="prop-overview-tbody"></tbody>
+      </table>
+    </div>
+    <div class="prop-chart-card">
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Recent Deals</span>
+        <span id="prop-deals-count" style="font-size:11px;font-weight:500;background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:12px"></span>
+      </div>
+      <table class="prop-data-table" id="prop-deals-table">
+        <thead>
+          <tr>
+            <th>Deal ID</th>
+            <th>Property</th>
+            <th>Account</th>
+            <th>Owner</th>
+            <th>Category</th>
+            <th>Value</th>
+            <th>Close Date</th>
+          </tr>
+        </thead>
+        <tbody id="prop-deals-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="property-detail-view" class="hidden">
+    <button class="prop-back-btn" onclick="backToPropertyOverview()">← Back to Properties</button>
+    <div class="view-title" id="prop-detail-title">Property Details</div>
+    <div class="prop-kpi-strip" id="prop-kpi-detail"></div>
+    <div class="charts-row">
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Target Revision History</div>
+        <div id="prop-target-history"></div>
+      </div>
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Target Breakdown by Category</div>
+        <div id="prop-category-targets"></div>
+      </div>
+    </div>
+    <div class="charts-row">
+      <div class="prop-chart-card" id="prop-yoy-charts" style="margin-bottom:0"></div>
+      <div class="prop-chart-card" style="margin-bottom:0">
+        <div class="prop-chart-title">Closed by Executive</div>
+        <div class="prop-bar-chart" id="prop-sales-by-owner"></div>
+      </div>
+    </div>
+    <div class="prop-chart-card">
+      <div class="section-title">Top 10 Deals</div>
+      <div class="prop-filter-bar" id="deals-stage-filter"></div>
+      <table class="prop-data-table" id="prop-detail-deals-table">
+        <thead>
+          <tr>
+            <th>Deal ID</th>
+            <th>Account</th>
+            <th>Executive</th>
+            <th>Value</th>
+            <th>Stage</th>
+            <th>Close Date</th>
+          </tr>
+        </thead>
+        <tbody id="prop-detail-deals-tbody"></tbody>
+      </table>
+      <button onclick="showPropertyDeals()" style="margin-top: var(--spacing-md); padding: 6px 12px; background: var(--color-secondary); color: white; border: none; border-radius: 4px; cursor: pointer;">View All Deals</button>
+    </div>
+    <div class="prop-chart-card">
+      <div class="section-title">Open Opportunities</div>
+      <div class="prop-filter-bar" id="opps-stage-filter"></div>
+      <table class="prop-data-table" id="prop-detail-opps-table">
+        <thead>
+          <tr>
+            <th>Opportunity ID</th>
+            <th>Account</th>
+            <th>Executive</th>
+            <th>Value</th>
+            <th>Stage</th>
+            <th>Probability</th>
+            <th>Expected Close</th>
+          </tr>
+        </thead>
+        <tbody id="prop-detail-opps-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="property-deals-view" class="hidden">
+    <button class="prop-back-btn" onclick="backToPropertyDetail()">← Back to Property</button>
+    <div class="view-title" id="prop-deals-title">All Deals</div>
+    <div class="prop-kpi-strip" id="prop-deals-kpi"></div>
+    <div class="prop-filter-bar" id="prop-stage-filter"></div>
+    <div class="prop-chart-card">
+      <table class="prop-data-table" id="prop-all-deals-table">
+        <thead>
+          <tr>
+            <th>Deal ID</th>
+            <th>Account</th>
+            <th>Executive</th>
+            <th>Value</th>
+            <th>Stage</th>
+            <th>Close Date</th>
+            <th>Quarter</th>
+            <th>Year</th>
+          </tr>
+        </thead>
+        <tbody id="prop-all-deals-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="tooltip" class="prop-tooltip" style="display: none;"></div>
+
+<script>
+const TODAY = new Date('2026-04-09');
+const COLORS = ['#2E5C8A', '#5B9BD5', '#70AD47', '#FFC000', '#C5504E', '#4472C4', '#ED7D31', '#A5A5A5', '#5B9BD5', '#70AD47'];
+
+const STAGE_MAPPING = {
+  'Engaged': { display: 'Engaged (10%)', prob: 0.10 },
+  'Proposal': { display: 'Proposal (30%)', prob: 0.30 },
+  'In Review': { display: 'In Review (50%)', prob: 0.50 },
+  'Terms Agreed': { display: 'Terms Agreed (75%)', prob: 0.75 },
+  'Contract Issued': { display: 'Contract Issued (90%)', prob: 0.90 },
+  'Closed': { display: 'Closed (100%)', prob: 1.0 }
+};
+
+let currentBusinessUnit = 'all';
+let currentYear = '2026';
+let currentSection = 'property-perf';
+let currentExec = null;
+let currentProperty = null;
+let currentTeam = null;
+
+const DATA = {
+  businessUnits: [
+    {
+      id: 'DIV001', name: 'Arts and Entertainment', head: 'James Crawford', status: 'Active',
+      properties: [
+        { id: 'P001', name: 'Winter Wonderland', category: 'Seasonal Events',
+          targets: { 2025: { original: 12000000, q1_revised: null, q2_revised: 12500000, q3_revised: null, q4_revised: null }, 2026: { original: 13500000, q1_revised: 13200000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 4200000, Exhibitors: 3000000, Sponsorship: 4800000 }, 2026: { Hospitality: 4620000, Exhibitors: 3300000, Sponsorship: 5280000 } },
+          deals: [
+            { id: 'D1001', account: 'Merlin Entertainments', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2025-01-20', contract: 'CTR-2025-001', quarter: 'Q1', year: 2025, category: 'Hospitality' },
+            { id: 'D1002', account: 'Coca-Cola Europacific', owner: 'Tom Ngata', value: 1200000, stage: 'Closed', close_date: '2025-03-12', contract: 'CTR-2025-002', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D1003', account: 'Swarovski AG', owner: 'Rachel Adams', value: 1680000, stage: 'Closed', close_date: '2025-05-08', contract: 'CTR-2025-003', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D1004', account: 'Lindt & Sprungli', owner: 'Tom Ngata', value: 980000, stage: 'Closed', close_date: '2025-06-18', contract: 'CTR-2025-004', quarter: 'Q2', year: 2025, category: 'Hospitality' },
+            { id: 'D1005', account: 'Sky UK', owner: 'Rachel Adams', value: 1850000, stage: 'Closed', close_date: '2025-07-25', contract: 'CTR-2025-005', quarter: 'Q3', year: 2025, category: 'Sponsorship' },
+            { id: 'D1006', account: 'Haagen-Dazs', owner: 'Tom Ngata', value: 920000, stage: 'Closed', close_date: '2025-09-10', contract: 'CTR-2025-006', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D1007', account: 'Baileys (Diageo)', owner: 'Rachel Adams', value: 1550000, stage: 'Closed', close_date: '2025-10-28', contract: 'CTR-2025-007', quarter: 'Q4', year: 2025, category: 'Sponsorship' },
+            { id: 'D1008', account: 'EDF Energy', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-12-10', contract: 'CTR-2025-008', quarter: 'Q4', year: 2025, category: 'Exhibitors' },
+            { id: 'D1009', account: 'Unilever', owner: 'Rachel Adams', value: 1320000, stage: 'Closed', close_date: '2026-02-14', contract: 'CTR-2026-001', quarter: 'Q1', year: 2026, category: 'Hospitality' },
+            { id: 'D1010', account: 'Google', owner: 'Tom Ngata', value: 1670000, stage: 'Closed', close_date: '2026-03-20', contract: 'CTR-2026-002', quarter: 'Q1', year: 2026, category: 'Sponsorship' },
+            { id: 'D1095', account: 'Nike UK', owner: 'Rachel Adams', value: 1420000, stage: 'Closed', close_date: '2026-04-07', contract: 'CTR-2026-050', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'D1096', account: 'Dyson Ltd', owner: 'Tom Ngata', value: 960000, stage: 'Closed', close_date: '2026-04-04', contract: 'CTR-2026-051', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+          ],
+          opportunities: [
+            { id: 'OPP1001', account: 'Pepsi Co', owner: 'Rachel Adams', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP1002', account: 'Mercedes Benz', owner: 'Tom Ngata', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+            { id: 'OPP1003', account: 'Nike', owner: 'Rachel Adams', value: 2500000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-22', quarter: 'Q3', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP1004', account: 'Apple Inc', owner: 'Tom Ngata', value: 1800000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-20', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        },
+        { id: 'P002', name: 'Art Fair', category: 'Art Events',
+          targets: { 2025: { original: 8500000, q1_revised: null, q2_revised: null, q3_revised: 8800000, q4_revised: null }, 2026: { original: 9200000, q1_revised: null, q2_revised: 9400000, q3_revised: null, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 1700000, Exhibitors: 4675000, Sponsorship: 2125000 }, 2026: { Hospitality: 1880000, Exhibitors: 5170000, Sponsorship: 2350000 } },
+          deals: [
+            { id: 'D2001', account: 'Sotheby\'s', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-02-10', contract: 'CTR-2025-009', quarter: 'Q1', year: 2025, category: 'Exhibitors' },
+            { id: 'D2002', account: 'Christie\'s', owner: 'Rachel Adams', value: 950000, stage: 'Closed', close_date: '2025-04-05', contract: 'CTR-2025-010', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D2003', account: 'Gagosian Gallery', owner: 'Tom Ngata', value: 1280000, stage: 'Closed', close_date: '2025-08-12', contract: 'CTR-2025-011', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D2004', account: 'Pace Gallery', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2026-01-28', contract: 'CTR-2026-003', quarter: 'Q1', year: 2026, category: 'Exhibitors' },
+          ],
+          opportunities: [
+            { id: 'OPP2001', account: 'David Castillo Gallery', owner: 'Tom Ngata', value: 1650000, stage: 'In Review', probability: 0.5, expected_close: '2026-06-10', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP2002', account: 'Guggenheim', owner: 'Rachel Adams', value: 1400000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-25', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV002', name: 'Tennis', head: 'Sarah Mitchell', status: 'Active',
+      properties: [
+        { id: 'P003', name: 'Grand Slam Series', category: 'Sports Events',
+          targets: { 2025: { original: 15000000, q1_revised: null, q2_revised: 15200000, q3_revised: null, q4_revised: null }, 2026: { original: 16000000, q1_revised: null, q2_revised: null, q3_revised: 16500000, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 3750000, Exhibitors: 3750000, Sponsorship: 7500000 }, 2026: { Hospitality: 4125000, Exhibitors: 4125000, Sponsorship: 8250000 } },
+          deals: [
+            { id: 'D3001', account: 'Uniqlo', owner: 'Marcus Lee', value: 2200000, stage: 'Closed', close_date: '2025-03-15', contract: 'CTR-2025-012', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D3002', account: 'Rolex', owner: 'Priya Patel', value: 1950000, stage: 'Closed', close_date: '2025-05-22', contract: 'CTR-2025-013', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D3003', account: 'Louis Vuitton', owner: 'Marcus Lee', value: 2400000, stage: 'Closed', close_date: '2025-07-10', contract: 'CTR-2025-014', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D3004', account: 'Lacoste', owner: 'Priya Patel', value: 1850000, stage: 'Closed', close_date: '2025-09-18', contract: 'CTR-2025-015', quarter: 'Q3', year: 2025, category: 'Exhibitors' },
+            { id: 'D3005', account: 'Subaru', owner: 'Marcus Lee', value: 1750000, stage: 'Closed', close_date: '2026-02-28', contract: 'CTR-2026-004', quarter: 'Q1', year: 2026, category: 'Sponsorship' },
+          ],
+          opportunities: [
+            { id: 'OPP3001', account: 'BMW', owner: 'Priya Patel', value: 2800000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP3002', account: 'Mercedes-Benz', owner: 'Marcus Lee', value: 2300000, stage: 'Terms Agreed', probability: 0.75, expected_close: '2026-04-15', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+            { id: 'OPP3003', account: 'Audi', owner: 'Priya Patel', value: 2100000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-10', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV003', name: 'Frieze', head: 'Michael Chen', status: 'Active',
+      properties: [
+        { id: 'P004', name: 'Frieze Masters', category: 'Art Fair',
+          targets: { 2025: { original: 11000000, q1_revised: null, q2_revised: null, q3_revised: 11300000, q4_revised: null }, 2026: { original: 11800000, q1_revised: null, q2_revised: 12000000, q3_revised: null, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 2750000, Exhibitors: 4950000, Sponsorship: 3300000 }, 2026: { Hospitality: 3000000, Exhibitors: 5400000, Sponsorship: 3600000 } },
+          deals: [
+            { id: 'D4001', account: 'LVMH', owner: 'Elena Rodriguez', value: 2100000, stage: 'Closed', close_date: '2025-04-10', contract: 'CTR-2025-016', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D4002', account: 'Richemont', owner: 'James Park', value: 1850000, stage: 'Closed', close_date: '2025-06-20', contract: 'CTR-2025-017', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D4003', account: 'Kering', owner: 'Elena Rodriguez', value: 2300000, stage: 'Closed', close_date: '2025-09-05', contract: 'CTR-2025-018', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D4004', account: 'Hermès', owner: 'James Park', value: 1950000, stage: 'Closed', close_date: '2026-03-12', contract: 'CTR-2026-005', quarter: 'Q1', year: 2026, category: 'Exhibitors' },
+            { id: 'D4095', account: 'Cartier International', owner: 'Elena Rodriguez', value: 1850000, stage: 'Closed', close_date: '2026-04-08', contract: 'CTR-2026-060', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'D4096', account: 'Tiffany & Co.', owner: 'James Park', value: 1120000, stage: 'Closed', close_date: '2026-04-05', contract: 'CTR-2026-061', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+          ],
+          opportunities: [
+            { id: 'OPP4001', account: 'Cartier', owner: 'Elena Rodriguez', value: 2650000, stage: 'Proposal', probability: 0.3, expected_close: '2026-07-20', quarter: 'Q3', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP4002', account: 'Van Cleef & Arpels', owner: 'James Park', value: 2200000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-30', quarter: 'Q3', year: 2026, category: 'Hospitality' },
+            { id: 'OPP4003', account: 'Piaget', owner: 'Elena Rodriguez', value: 1950000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-18', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV004', name: 'Action Sports', head: 'David Williams', status: 'Active',
+      properties: [
+        { id: 'P005', name: 'X Games', category: 'Sports Events',
+          targets: { 2025: { original: 9500000, q1_revised: null, q2_revised: 9700000, q3_revised: null, q4_revised: null }, 2026: { original: 10200000, q1_revised: null, q2_revised: null, q3_revised: 10500000, q4_revised: null } },
+          categoryTargets: { 2025: { Hospitality: 1900000, Exhibitors: 2850000, Sponsorship: 4750000 }, 2026: { Hospitality: 2100000, Exhibitors: 3150000, Sponsorship: 5250000 } },
+          deals: [
+            { id: 'D5001', account: 'Red Bull', owner: 'Alex Kumar', value: 1850000, stage: 'Closed', close_date: '2025-02-28', contract: 'CTR-2025-019', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D5002', account: 'Monster Energy', owner: 'Nicole Hart', value: 1650000, stage: 'Closed', close_date: '2025-05-15', contract: 'CTR-2025-020', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D5003', account: 'GoPro', owner: 'Alex Kumar', value: 1420000, stage: 'Closed', close_date: '2025-08-10', contract: 'CTR-2025-021', quarter: 'Q3', year: 2025, category: 'Exhibitors' },
+            { id: 'D5004', account: 'Nike SB', owner: 'Nicole Hart', value: 1680000, stage: 'Closed', close_date: '2026-01-20', contract: 'CTR-2026-006', quarter: 'Q1', year: 2026, category: 'Hospitality' },
+          ],
+          opportunities: [
+            { id: 'OPP5001', account: 'Redbull Media House', owner: 'Alex Kumar', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-04-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP5002', account: 'Puma', owner: 'Nicole Hart', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP5003', account: 'Adidas', owner: 'Alex Kumar', value: 1750000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-12', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        }
+      ]
+    }
+  ],
+  salesExecs: [
+    { name: 'Rachel Adams', businessUnit: 'Arts and Entertainment', target: 4000000, categoryTargets: { Hospitality: 1600000, Exhibitors: 1200000, Sponsorship: 1200000 } },
+    { name: 'Tom Ngata', businessUnit: 'Arts and Entertainment', target: 3800000, categoryTargets: { Hospitality: 1140000, Exhibitors: 1520000, Sponsorship: 1140000 } },
+    { name: 'Marcus Lee', businessUnit: 'Tennis', target: 5200000, categoryTargets: { Hospitality: 1300000, Exhibitors: 1040000, Sponsorship: 2860000 } },
+    { name: 'Priya Patel', businessUnit: 'Tennis', target: 5000000, categoryTargets: { Hospitality: 1250000, Exhibitors: 1500000, Sponsorship: 2250000 } },
+    { name: 'Elena Rodriguez', businessUnit: 'Frieze', target: 4600000, categoryTargets: { Hospitality: 920000, Exhibitors: 2300000, Sponsorship: 1380000 } },
+    { name: 'James Park', businessUnit: 'Frieze', target: 4400000, categoryTargets: { Hospitality: 1320000, Exhibitors: 1760000, Sponsorship: 1320000 } },
+    { name: 'Alex Kumar', businessUnit: 'Action Sports', target: 3900000, categoryTargets: { Hospitality: 780000, Exhibitors: 780000, Sponsorship: 2340000 } },
+    { name: 'Nicole Hart', businessUnit: 'Action Sports', target: 3700000, categoryTargets: { Hospitality: 925000, Exhibitors: 925000, Sponsorship: 1850000 } },
+  ]
+};
+
+function switchSection(section) {
+  currentSection = 'property-perf';
+
+  document.getElementById('overview-view').classList.add('hidden');
+  document.getElementById('detail-view').classList.add('hidden');
+  document.getElementById('property-overview').classList.remove('hidden');
+  document.getElementById('property-detail-view').classList.add('hidden');
+  document.getElementById('property-deals-view').classList.add('hidden');
+
+  renderPropertyOverview();
+}
+
+function selectBusinessUnit(value) {
+  currentBusinessUnit = value;
+  updateBusinessUnitInfo();
+  renderPropertyOverview();
+}
+
+function updateBusinessUnitInfo() {
+  const infoEl = document.getElementById('businessUnitInfo');
+  if (currentBusinessUnit === 'all') {
+    const propCount = DATA.businessUnits.reduce((s, d) => s + d.properties.length, 0);
+    infoEl.innerHTML = '<span class="business-unit-info__badge business-unit-info__badge--count">' + propCount + ' Properties</span>';
+  } else {
+    const div = DATA.businessUnits.find(d => d.name === currentBusinessUnit);
+    const propCount = div ? div.properties.length : 0;
+    infoEl.innerHTML = '<span class="business-unit-info__badge business-unit-info__badge--head">Head: ' + (div ? div.head : '') + '</span><span class="business-unit-info__badge business-unit-info__badge--count">' + propCount + ' Properties</span>';
+  }
+}
+
+function getFilteredExecs() {
+  if (currentBusinessUnit === 'all') return DATA.salesExecs;
+  return DATA.salesExecs.filter(e => e.businessUnit === currentBusinessUnit);
+}
+
+function getFilteredDeals(execName) {
+  let deals = [];
+  DATA.businessUnits.forEach(div => {
+    div.properties.forEach(prop => {
+      prop.deals.forEach(deal => {
+        if (deal.owner === execName) {
+          deals.push(deal);
+        }
+      });
+    });
+  });
+  return filterByYear(deals);
+}
+
+function getFilteredOpportunities(execName) {
+  let opps = [];
+  DATA.businessUnits.forEach(div => {
+    div.properties.forEach(prop => {
+      if (prop.opportunities) {
+        prop.opportunities.forEach(opp => {
+          if (opp.owner === execName) {
+            opps.push(opp);
+          }
+        });
+      }
+    });
+  });
+  return filterByYear(opps);
+}
+
+function filterByYear(items) {
+  if (currentYear === 'all') return items;
+  return items.filter(item => item.year === parseInt(currentYear));
+}
+
+let currentCurrency = 'GBP';
+const CURRENCY_CONFIG = {
+  GBP: { symbol: '£', locale: 'en-GB', rate: 1 },
+  USD: { symbol: '$', locale: 'en-US', rate: 1.27 },
+  EUR: { symbol: '€', locale: 'de-DE', rate: 1.16 }
+};
+
+function convertCurrency(n) {
+  return n * (CURRENCY_CONFIG[currentCurrency] || CURRENCY_CONFIG.GBP).rate;
+}
+function currencySymbol() {
+  return (CURRENCY_CONFIG[currentCurrency] || CURRENCY_CONFIG.GBP).symbol;
+}
+
+function formatCurrency(value) {
+  const converted = convertCurrency(value);
+  const sym = currencySymbol();
+  if (Math.abs(converted) >= 1e6) return (converted < 0 ? '-' : '') + sym + (Math.abs(converted) / 1e6).toFixed(2) + 'M';
+  if (Math.abs(converted) >= 1e3) return (converted < 0 ? '-' : '') + sym + (Math.abs(converted) / 1e3).toFixed(0) + 'K';
+  return sym + converted.toFixed(0);
+}
+
+function openDealDetail(id) {
+  let item = null, itemType = id.startsWith('O') ? 'Opportunity' : 'Deal', propName = '', buName = '';
+  DATA.businessUnits.forEach(bu => {
+    bu.properties.forEach(prop => {
+      const found = (prop.deals || []).find(d => d.id === id) || (prop.opportunities || []).find(o => o.id === id);
+      if (found) { item = found; propName = prop.name; buName = bu.name; }
+    });
+  });
+  if (!item) return;
+  const isOpp = id.startsWith('O');
+  const sym = currencySymbol();
+  const val = convertCurrency(item.value);
+  const fmtVal = sym + val.toLocaleString(undefined, {maximumFractionDigits:0});
+  const w = window.open('', '_blank', 'width=640,height=600,scrollbars=yes');
+  w.document.write(`<!DOCTYPE html><html><head><title>${itemType} ${id} — CerebroCRM</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin:0;background:#f5f6f8;color:#333}
+    .header{background:linear-gradient(135deg,#2E5C8A,#5B9BD5);color:#fff;padding:20px 24px}
+    .header h1{font-size:18px;margin:0} .header .sub{font-size:12px;opacity:.7;margin-top:4px}
+    .body{padding:24px}
+    .field{display:flex;padding:10px 0;border-bottom:1px solid #eee}
+    .label{width:160px;font-weight:600;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:.3px}
+    .val{flex:1;font-size:14px}
+    .stage{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:#e8f5e9;color:#2e7d32}
+    .actions{margin-top:20px;padding-top:16px;border-top:1px solid #ddd;text-align:right}
+    .actions button{padding:8px 20px;border:none;border-radius:4px;cursor:pointer;font-size:13px}
+    .btn-primary{background:#2E5C8A;color:#fff} .btn-secondary{background:#eee;color:#333;margin-right:8px}
+  </style></head><body>
+  <div class="header"><h1>${itemType}: ${id}</h1><div class="sub">${item.account} — ${propName}</div></div>
+  <div class="body">
+    <div class="field"><div class="label">Account</div><div class="val">${item.account}</div></div>
+    <div class="field"><div class="label">Business Unit</div><div class="val">${buName}</div></div>
+    <div class="field"><div class="label">Property</div><div class="val">${propName}</div></div>
+    <div class="field"><div class="label">Owner</div><div class="val">${item.owner}</div></div>
+    <div class="field"><div class="label">Value</div><div class="val">${fmtVal}</div></div>
+    <div class="field"><div class="label">Stage</div><div class="val"><span class="stage">${item.stage}</span></div></div>
+    <div class="field"><div class="label">${isOpp ? 'Expected Close' : 'Close Date'}</div><div class="val">${isOpp ? item.expected_close : item.close_date}</div></div>
+    <div class="field"><div class="label">Quarter / Year</div><div class="val">${item.quarter} ${item.year}</div></div>
+    ${!isOpp && item.contract ? '<div class="field"><div class="label">Contract</div><div class="val">' + item.contract + '</div></div>' : ''}
+    ${isOpp ? '<div class="field"><div class="label">Probability</div><div class="val">' + (item.probability * 100).toFixed(0) + '%</div></div>' : ''}
+    <div class="actions"><button class="btn-secondary" onclick="window.print()">Print</button><button class="btn-primary" onclick="window.close()">Close</button></div>
+  </div></body></html>`);
+  w.document.close();
+}
+
+function setCurrency(curr) {
+  currentCurrency = curr;
+  switchSection(currentSection);
+}
+
+function calculateKPIs(execName) {
+  const deals = getFilteredDeals(execName);
+  const closedDeals = deals.filter(d => d.stage === 'Closed');
+  const opportunities = getFilteredOpportunities(execName);
+
+  const revenue = closedDeals.reduce((sum, d) => sum + d.value, 0);
+  const winRate = deals.length > 0 ? ((closedDeals.length / deals.length) * 100).toFixed(1) + '%' : '0%';
+
+  return {
+    revenue: revenue,
+    dealsWon: closedDeals.length,
+    dealsPipeline: opportunities.length,
+    winRate: winRate,
+    totalDeals: deals.length
+  };
+}
+
+function renderOverview() {
+  const execs = getFilteredExecs();
+
+  const viewTitle = document.querySelector('#overview-view .view-title');
+  if (currentBusinessUnit === 'all') {
+    viewTitle.textContent = 'Sales Performance';
+  } else {
+    viewTitle.textContent = currentBusinessUnit + ' — Sales Performance';
+  }
+
+  // Aggregate KPIs
+  let totalTarget = 0, totalRevenue = 0, totalDeals = 0, totalOpps = 0, totalPipeline = 0;
+  execs.forEach(exec => {
+    totalTarget += exec.target;
+    const kpis = calculateKPIs(exec.name);
+    totalRevenue += kpis.revenue;
+    totalDeals += kpis.dealsWon;
+    totalOpps += kpis.dealsPipeline;
+    const opps = getFilteredOpportunitiesWithProperty(exec.name);
+    totalPipeline += opps.reduce((s, o) => s + o.value, 0);
+  });
+
+  const attainment = totalTarget > 0 ? totalRevenue / totalTarget : 0;
+  const leftToAchieve = totalRevenue - totalTarget;
+
+  const kpiHTML = `
+    <div class="kpi-card">
+      <div class="kpi-label">Target</div>
+      <div class="kpi-value">${formatCurrency(totalTarget)}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Closed</div>
+      <div class="kpi-value">${formatCurrency(totalRevenue)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${totalDeals} won deals</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Left to Achieve</div>
+      <div class="kpi-value" style="color:${leftToAchieve < 0 ? 'var(--color-secondary)' : 'var(--color-success)'}">${leftToAchieve < 0 ? '-' + formatCurrency(Math.abs(leftToAchieve)) : '+' + formatCurrency(leftToAchieve)}</div>
+    </div>
+  `;
+  document.getElementById('kpi-overview').innerHTML = kpiHTML;
+
+  // Overview Charts — Revenue by Exec + Pipeline by Stage
+  const execRevData = execs.map(e => ({name: e.name, revenue: calculateKPIs(e.name).revenue})).sort((a,b) => b.revenue - a.revenue).slice(0, 10);
+  const maxExecRev = execRevData.length > 0 ? execRevData[0].revenue : 1;
+  let revChartHTML = '<div style="padding:4px 0">';
+  execRevData.forEach((e, i) => {
+    revChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;cursor:pointer" onclick="showDetail('${e.name}')">
+        <span style="width:120px;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name}</span>
+        <div style="flex:1;height:16px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${(e.revenue/maxExecRev*100).toFixed(1)}%;background:${COLORS[i % COLORS.length]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:11px;font-weight:600;min-width:60px;text-align:right">${formatCurrency(e.revenue)}</span>
+      </div>
+    `;
+  });
+  revChartHTML += '</div>';
+
+  // Pipeline by Stage aggregate
+  const stageOrder = ['Engaged', 'Proposal', 'In Review', 'Terms Agreed', 'Contract Issued'];
+  const stageColors = { Engaged: '#C5504E', Proposal: '#A0A0A0', 'In Review': '#FFC000', 'Terms Agreed': '#70AD47', 'Contract Issued': '#2E5C8A' };
+  let allOpps = [];
+  execs.forEach(e => { allOpps = allOpps.concat(getFilteredOpportunitiesWithProperty(e.name)); });
+  let stageChartHTML = '<div style="padding:4px 0">';
+  stageOrder.forEach(stage => {
+    const stageOpps = allOpps.filter(o => o.stage === stage);
+    if (stageOpps.length === 0) return;
+    const totalV = stageOpps.reduce((s, o) => s + o.value, 0);
+    stageChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:120px;font-size:12px;font-weight:500">${stage}</span>
+        <div style="flex:1;height:18px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${totalPipeline > 0 ? (totalV/totalPipeline*100).toFixed(1) : 0}%;background:${stageColors[stage]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:12px;font-weight:600;min-width:70px;text-align:right">${formatCurrency(totalV)}</span>
+        <span style="font-size:11px;color:var(--color-neutral);min-width:30px;text-align:right">${stageOpps.length}</span>
+      </div>
+    `;
+  });
+  stageChartHTML += '</div>';
+
+  document.getElementById('charts-overview').innerHTML = `
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Top 10 Sales Execs by Revenue</div>
+      ${revChartHTML}
+    </div>
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Pipeline by Stage</div>
+      ${allOpps.length > 0 ? stageChartHTML : '<div style="color:var(--color-neutral);text-align:center;padding:20px">No open opportunities</div>'}
+    </div>
+  `;
+
+  // Execs Table
+  const tbody = document.getElementById('execs-tbody');
+  tbody.innerHTML = '';
+  execs.forEach(exec => {
+    const kpis = calculateKPIs(exec.name);
+    const opps = getFilteredOpportunitiesWithProperty(exec.name);
+    const pipeVal = opps.reduce((s, o) => s + o.value, 0);
+    const avgDeal = kpis.dealsWon > 0 ? kpis.revenue / kpis.dealsWon : 0;
+    const execTarget = exec.target;
+    const attain = execTarget > 0 ? kpis.revenue / execTarget : 0;
+    const row = document.createElement('tr');
+    row.style.cursor = 'pointer';
+    row.onclick = function() { showDetail(exec.name); };
+    row.innerHTML = `
+      <td><strong>${exec.name}</strong></td>
+      <td>${exec.businessUnit}</td>
+      <td style="font-weight:600">${formatCurrency(execTarget)}</td>
+      <td style="font-weight:600">${formatCurrency(kpis.revenue)}</td>
+      <td style="color:${kpis.revenue < execTarget ? 'var(--color-secondary)' : 'var(--color-success)'}; font-weight:600">${kpis.revenue < execTarget ? '-' + formatCurrency(execTarget - kpis.revenue) : '+' + formatCurrency(kpis.revenue - execTarget)}</td>
+      <td>${kpis.dealsWon}</td>
+      <td>${kpis.winRate}</td>
+      <td style="color:var(--color-secondary)">${formatCurrency(pipeVal)}</td>
+      <td>${formatCurrency(avgDeal)}</td>
+      <td><button onclick="event.stopPropagation(); showDetail('${exec.name}')" style="padding: 4px 8px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size:11px;">Details →</button></td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  // ========== YoY BUTTERFLY + QUARTERLY ==========
+  const yoyContainer = document.getElementById('yoy-charts-overview');
+  if (yoyContainer) {
+    const color25 = '#8babc7', color26 = '#2c5f8a';
+    const fmtM = v => { if (v >= 1000000) return '£' + (v/1000000).toFixed(1) + 'M'; if (v >= 1000) return '£' + (v/1000).toFixed(0) + 'K'; return '£' + v.toFixed(0); };
+    const buFilter = currentBusinessUnit === 'all' ? DATA.businessUnits : DATA.businessUnits.filter(bu => bu.name === currentBusinessUnit);
+
+    // Collect per-property revenue for 2025 and 2026
+    const propYoY = [];
+    buFilter.forEach(bu => {
+      bu.properties.forEach(p => {
+        let rev25 = 0, rev26 = 0, d25 = 0, d26 = 0;
+        p.deals.filter(d => d.stage === 'Closed').forEach(d => {
+          const yr = new Date(d.close_date).getFullYear();
+          if (yr === 2025) { rev25 += d.value; d25++; }
+          if (yr === 2026) { rev26 += d.value; d26++; }
+        });
+        propYoY.push({ name: p.name, rev25, rev26, deals25: d25, deals26: d26 });
+      });
+    });
+    const maxBfly = Math.max(...propYoY.map(p => Math.max(p.rev25, p.rev26)), 1);
+
+    // Butterfly HTML
+    let bfHTML = '<div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">';
+    bfHTML += '<div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Revenue by Property — YoY</div>';
+    bfHTML += '<div class="m-bfly-hdr"><div class="m-bfly-left">← FY 2025</div><div class="m-bfly-center">Property</div><div class="m-bfly-right">FY 2026 →</div></div>';
+    propYoY.forEach(p => {
+      const w25 = (p.rev25 / maxBfly * 100).toFixed(1);
+      const w26 = (p.rev26 / maxBfly * 100).toFixed(1);
+      const shortName = p.name.length > 16 ? p.name.substring(0, 14) + '...' : p.name;
+      bfHTML += '<div class="m-butterfly-row">';
+      bfHTML += '<div class="m-bfly-left"><div class="m-bfly-val m-bfly-val-right">' + fmtM(p.rev25) + '</div><div class="m-bfly-bar m-bfly-bar-left" style="width:' + w25 + '%;background:' + color25 + '"><span>' + p.deals25 + '</span></div></div>';
+      bfHTML += '<div class="m-bfly-center">' + shortName + '</div>';
+      bfHTML += '<div class="m-bfly-right"><div class="m-bfly-bar m-bfly-bar-right" style="width:' + w26 + '%;background:' + color26 + '"><span>' + p.deals26 + '</span></div><div class="m-bfly-val m-bfly-val-left">' + fmtM(p.rev26) + '</div></div>';
+      bfHTML += '</div>';
+    });
+    bfHTML += '<div style="display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:10px;color:#999">';
+    bfHTML += '<div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + color25 + ';display:inline-block"></span>FY 2025</div>';
+    bfHTML += '<div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + color26 + ';display:inline-block"></span>FY 2026</div>';
+    bfHTML += '</div></div>';
+
+    yoyContainer.innerHTML = bfHTML;
+  }
+
+  // Recent Deals (last 7 days)
+  const sevenDaysAgo = new Date(TODAY);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const recentDeals = [];
+  const buList = currentBusinessUnit === 'all' ? DATA.businessUnits : DATA.businessUnits.filter(bu => bu.name === currentBusinessUnit);
+  buList.forEach(bu => {
+    bu.properties.forEach(prop => {
+      prop.deals.forEach(d => {
+        if (d.stage === 'Closed') {
+          const closeDate = new Date(d.close_date);
+          if (closeDate >= sevenDaysAgo && closeDate <= TODAY) {
+            recentDeals.push({ ...d, propertyName: prop.name, businessUnit: bu.name });
+          }
+        }
+      });
+    });
+  });
+  recentDeals.sort((a, b) => new Date(b.close_date) - new Date(a.close_date));
+
+  const countEl = document.getElementById('recentDealsCount');
+  const bodyEl = document.getElementById('recentDealsBody');
+  countEl.textContent = recentDeals.length + ' deal' + (recentDeals.length !== 1 ? 's' : '') + ' in last 7 days';
+
+  if (recentDeals.length === 0) {
+    bodyEl.innerHTML = '<div style="text-align:center;padding:24px;color:#999;font-size:13px">No recent deals in the last 7 days</div>';
+  } else {
+    let rdHTML = '<table id="recent-deals-table"><thead><tr>';
+    rdHTML += '<th>Deal ID</th><th>Account</th><th>Owner</th><th>Business Unit</th><th>Property</th><th>Value</th><th>Close Date</th><th>Contract</th>';
+    rdHTML += '</tr></thead><tbody>';
+    recentDeals.forEach(d => {
+      const daysAgo = Math.round((TODAY - new Date(d.close_date)) / 86400000);
+      const daysLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : daysAgo + ' days ago';
+      rdHTML += `
+        <tr onclick="openDealDetail('${d.id}')" style="cursor:pointer">
+          <td>${d.id}</td>
+          <td><strong>${d.account}</strong></td>
+          <td>${d.owner}</td>
+          <td>${d.businessUnit}</td>
+          <td>${d.propertyName}</td>
+          <td style="font-weight:600">${formatCurrency(d.value)}</td>
+          <td>${d.close_date} <span style="font-size:10px;color:#999">(${daysLabel})</span></td>
+          <td>${d.contract || '—'}</td>
+        </tr>`;
+    });
+    rdHTML += '</tbody></table>';
+    bodyEl.innerHTML = rdHTML;
+  }
+}
+
+function renderTeamsOverview() {
+  const execs = getFilteredExecs();
+  const viewTitle = document.querySelector('#teams-view .view-title');
+  viewTitle.textContent = currentBusinessUnit === 'all' ? 'Teams Overview — All Business Units' : currentBusinessUnit + ' — Team';
+
+  // Build teams from business units
+  const teams = [];
+  const buList = currentBusinessUnit === 'all' ? DATA.businessUnits : DATA.businessUnits.filter(bu => bu.name === currentBusinessUnit);
+  buList.forEach(bu => {
+    const teamExecs = DATA.salesExecs.filter(e => e.businessUnit === bu.name);
+    if (teamExecs.length === 0) return;
+    let teamTarget = 0, teamRevenue = 0, teamDeals = 0, teamPipeline = 0;
+    teamExecs.forEach(exec => {
+      teamTarget += exec.target;
+      const kpis = calculateKPIs(exec.name);
+      teamRevenue += kpis.revenue;
+      teamDeals += kpis.dealsWon;
+      const opps = getFilteredOpportunitiesWithProperty(exec.name);
+      teamPipeline += opps.reduce((s, o) => s + o.value, 0);
+    });
+    teams.push({ name: bu.name, lead: bu.head, members: teamExecs, target: teamTarget, revenue: teamRevenue, deals: teamDeals, pipeline: teamPipeline });
+  });
+
+  // Totals KPI
+  const totalTarget = teams.reduce((s, t) => s + t.target, 0);
+  const totalRevenue = teams.reduce((s, t) => s + t.revenue, 0);
+  const totalPipeline = teams.reduce((s, t) => s + t.pipeline, 0);
+  const totalAttainment = totalTarget > 0 ? totalRevenue / totalTarget : 0;
+
+  document.getElementById('kpi-teams').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Target</div><div class="kpi-value">${formatCurrency(totalTarget)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Sales</div><div class="kpi-value">${formatCurrency(totalRevenue)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Attainment</div><div class="kpi-value">${(totalAttainment * 100).toFixed(1)}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">Pipeline</div><div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(totalPipeline)}</div></div>
+  `;
+
+  // Charts — team revenue comparison bar chart
+  const maxTeamRev = Math.max(...teams.map(t => Math.max(t.revenue, t.target)), 1);
+  let chartHTML = '';
+  teams.forEach((team, i) => {
+    const revPct = (team.revenue / maxTeamRev * 100).toFixed(1);
+    const tgtPct = (team.target / maxTeamRev * 100).toFixed(1);
+    chartHTML += '<div style="margin-bottom:14px">';
+    chartHTML += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:600">' + team.name + '</span><span style="font-size:11px;color:var(--color-neutral)">' + team.members.length + ' execs · Led by ' + team.lead + '</span></div>';
+    chartHTML += '<div style="position:relative;height:24px;background:#f0f0f0;border-radius:4px;overflow:hidden">';
+    chartHTML += '<div style="position:absolute;left:' + tgtPct + '%;top:0;bottom:0;width:2px;background:#333;z-index:2" title="Target: ' + formatCurrency(team.target) + '"></div>';
+    chartHTML += '<div style="height:100%;width:' + revPct + '%;background:' + COLORS[i % COLORS.length] + ';border-radius:4px;display:flex;align-items:center;padding-left:8px">';
+    chartHTML += '<span style="font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.3)">' + formatCurrency(team.revenue) + '</span></div></div></div>';
+  });
+  document.getElementById('charts-teams').innerHTML = '<div style="padding:16px;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1)"><div style="font-weight:600;margin-bottom:16px;color:var(--color-dark)">Sales vs Target by Team <span style="font-size:11px;color:var(--color-neutral);font-weight:400">(black line = target)</span></div>' + chartHTML + '</div>';
+
+  // Teams table
+  const tbody = document.getElementById('teams-tbody');
+  tbody.innerHTML = '';
+  teams.forEach(team => {
+    const attain = team.target > 0 ? team.revenue / team.target : 0;
+    const row = document.createElement('tr');
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <td><strong>${team.name}</strong></td>
+      <td>${team.lead}</td>
+      <td style="font-weight:600">${formatCurrency(team.target)}</td>
+      <td style="font-weight:600">${formatCurrency(team.revenue)}</td>
+      <td>${(attain * 100).toFixed(1)}%</td>
+      <td style="color:var(--color-secondary)">${formatCurrency(team.pipeline)}</td>
+      <td>${team.members.map(e => e.name).join(', ')}</td>
+      <td><button onclick="event.stopPropagation(); expandTeam('${team.name}')" style="padding:4px 8px;background:var(--color-primary);color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px">Expand →</button></td>
+    `;
+    tbody.appendChild(row);
+
+    // Add expandable member rows (hidden by default)
+    team.members.forEach(exec => {
+      const kpis = calculateKPIs(exec.name);
+      const opps = getFilteredOpportunitiesWithProperty(exec.name);
+      const pipeVal = opps.reduce((s, o) => s + o.value, 0);
+      const memberAttain = exec.target > 0 ? kpis.revenue / exec.target : 0;
+      const mRow = document.createElement('tr');
+      mRow.className = 'team-member-row team-' + team.name.replace(/\s+/g, '-');
+      mRow.style.display = 'none';
+      mRow.style.background = '#f9fafb';
+      mRow.innerHTML = `
+        <td style="padding-left:24px;font-size:12px">↳ ${exec.name}</td>
+        <td style="font-size:12px;color:var(--color-neutral)">${exec.businessUnit}</td>
+        <td style="font-size:12px">${formatCurrency(exec.target)}</td>
+        <td style="font-size:12px;font-weight:600">${formatCurrency(kpis.revenue)}</td>
+        <td style="font-size:12px">${(memberAttain * 100).toFixed(1)}%</td>
+        <td style="font-size:12px;color:var(--color-secondary)">${formatCurrency(pipeVal)}</td>
+        <td style="font-size:12px">${kpis.dealsWon} deals won</td>
+        <td><button onclick="event.stopPropagation(); showDetail('${exec.name}')" style="padding:3px 6px;background:var(--color-secondary);color:white;border:none;border-radius:3px;cursor:pointer;font-size:10px">Details</button></td>
+      `;
+      tbody.appendChild(mRow);
+    });
+  });
+}
+
+function expandTeam(teamName) {
+  const cls = 'team-' + teamName.replace(/\s+/g, '-');
+  const rows = document.querySelectorAll('.' + cls);
+  const isVisible = rows.length > 0 && rows[0].style.display !== 'none';
+  rows.forEach(r => r.style.display = isVisible ? 'none' : 'table-row');
+}
+
+function getPropertyNameForDeal(dealId) {
+  for (const div of DATA.businessUnits) {
+    for (const prop of div.properties) {
+      if (prop.deals.some(d => d.id === dealId)) return prop.name;
+      if (prop.opportunities && prop.opportunities.some(o => o.id === dealId)) return prop.name;
+    }
+  }
+  return '—';
+}
+
+function getFilteredDealsWithProperty(execName) {
+  let deals = [];
+  DATA.businessUnits.forEach(div => {
+    div.properties.forEach(prop => {
+      prop.deals.forEach(deal => {
+        if (deal.owner === execName) {
+          deals.push({...deal, propertyName: prop.name});
+        }
+      });
+    });
+  });
+  return filterByYear(deals);
+}
+
+function getFilteredOpportunitiesWithProperty(execName) {
+  let opps = [];
+  DATA.businessUnits.forEach(div => {
+    div.properties.forEach(prop => {
+      if (prop.opportunities) {
+        prop.opportunities.forEach(opp => {
+          if (opp.owner === execName) {
+            opps.push({...opp, propertyName: prop.name});
+          }
+        });
+      }
+    });
+  });
+  return filterByYear(opps);
+}
+
+let currentExecDealFilter = 'all';
+
+function filterExecDeals(stage, btn) {
+  currentExecDealFilter = stage;
+  document.querySelectorAll('#exec-deal-filters .exec-filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const deals = getFilteredDealsWithProperty(currentExec);
+  const filtered = stage === 'all' ? deals : deals.filter(d => d.stage === stage);
+  renderExecDealsTable(filtered);
+  document.getElementById('exec-deal-count').textContent = filtered.length + ' deal' + (filtered.length !== 1 ? 's' : '') + (stage !== 'all' ? ' (' + stage + ')' : '');
+}
+
+function renderExecDealsTable(deals) {
+  const tbody = document.getElementById('deals-tbody');
+  tbody.innerHTML = '';
+  const sorted = [...deals].sort((a, b) => new Date(b.close_date || '2099-01-01') - new Date(a.close_date || '2099-01-01'));
+  sorted.forEach(deal => {
+    const stageClass = deal.stage.toLowerCase().replace(/\s+/g, '');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${deal.id}')">${deal.id}<span class="link-arrow">↗</span></a></td>
+      <td><strong>${deal.account}</strong></td>
+      <td style="font-size:12px;color:var(--color-neutral)">${deal.propertyName}</td>
+      <td style="font-weight:600">${formatCurrency(deal.value)}</td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${deal.category === 'Hospitality' ? '#FFF3E0' : deal.category === 'Exhibitors' ? '#E3F2FD' : '#F3E5F5'};color:${deal.category === 'Hospitality' ? '#E65100' : deal.category === 'Exhibitors' ? '#1565C0' : '#7B1FA2'}">${deal.category || '—'}</span></td>
+      <td><span class="exec-stage-badge ${stageClass}">${deal.stage}</span></td>
+      <td>${deal.close_date || '—'}</td>
+      <td>${deal.year}</td>
+      <td>${deal.quarter}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function showDetail(execName) {
+  currentExec = execName;
+  currentExecDealFilter = 'all';
+  const exec = DATA.salesExecs.find(e => e.name === execName);
+
+  document.getElementById('overview-view').classList.add('hidden');
+  document.getElementById('detail-view').classList.remove('hidden');
+  document.getElementById('breadcrumb-content').textContent = execName;
+  document.getElementById('detail-title').textContent = execName + ' — Performance Details';
+
+  const deals = getFilteredDealsWithProperty(execName);
+  const closedDeals = deals.filter(d => d.stage === 'Closed');
+  const opps = getFilteredOpportunitiesWithProperty(execName);
+  const revenue = closedDeals.reduce((sum, d) => sum + d.value, 0);
+  const pipelineVal = opps.reduce((sum, o) => sum + o.value, 0);
+  const winRate = deals.length > 0 ? ((closedDeals.length / deals.length) * 100).toFixed(1) + '%' : '0%';
+  const avgDeal = closedDeals.length > 0 ? revenue / closedDeals.length : 0;
+  const execTarget = exec.target;
+  const attain = execTarget > 0 ? revenue / execTarget : 0;
+
+  const detailKpiHTML = `
+    <div class="kpi-card">
+      <div class="kpi-label">Target</div>
+      <div class="kpi-value">${formatCurrency(execTarget)}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Closed</div>
+      <div class="kpi-value">${formatCurrency(revenue)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${closedDeals.length} won deals</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Left to Achieve</div>
+      <div class="kpi-value" style="color:${revenue < execTarget ? 'var(--color-secondary)' : 'var(--color-success)'}">${revenue < execTarget ? '-' + formatCurrency(execTarget - revenue) : '+' + formatCurrency(revenue - execTarget)}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Avg Deal Size</div>
+      <div class="kpi-value">${formatCurrency(avgDeal)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${deals.length} total deals</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pipeline Value</div>
+      <div class="kpi-value" style="color:var(--color-secondary)">${formatCurrency(pipelineVal)}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${opps.length} opportunities</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Win Rate</div>
+      <div class="kpi-value">${winRate}</div>
+      <div class="kpi-change" style="color:var(--color-neutral)">${closedDeals.length} of ${deals.length}</div>
+    </div>
+  `;
+  document.getElementById('kpi-detail').innerHTML = detailKpiHTML;
+
+  // Revenue by Property bar chart
+  const propRevenue = {};
+  closedDeals.forEach(d => {
+    propRevenue[d.propertyName] = (propRevenue[d.propertyName] || 0) + d.value;
+  });
+  const propArr = Object.entries(propRevenue).sort((a, b) => b[1] - a[1]);
+  const maxPropRev = propArr.length > 0 ? propArr[0][1] : 1;
+  let revenueChartHTML = '<div style="padding:4px 0">';
+  propArr.forEach(([name, val], i) => {
+    revenueChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:140px;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</span>
+        <div style="flex:1;height:20px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${(val/maxPropRev*100).toFixed(1)}%;background:${COLORS[i % COLORS.length]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:12px;font-weight:600;min-width:70px;text-align:right">${formatCurrency(val)}</span>
+      </div>
+    `;
+  });
+  revenueChartHTML += '</div>';
+
+  // Pipeline by Stage chart
+  const stageOrder = ['Engaged', 'Proposal', 'In Review', 'Terms Agreed', 'Contract Issued'];
+  const stageColors = { Engaged: '#C5504E', Proposal: '#A0A0A0', 'In Review': '#FFC000', 'Terms Agreed': '#70AD47', 'Contract Issued': '#2E5C8A' };
+  let pipelineChartHTML = '<div style="padding:4px 0">';
+  stageOrder.forEach(stage => {
+    const stageOpps = opps.filter(o => o.stage === stage);
+    if (stageOpps.length === 0) return;
+    const totalV = stageOpps.reduce((s, o) => s + o.value, 0);
+    pipelineChartHTML += `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:120px;font-size:12px;font-weight:500">${stage}</span>
+        <div style="flex:1;height:20px;background:var(--color-light);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pipelineVal > 0 ? (totalV/pipelineVal*100).toFixed(1) : 0}%;background:${stageColors[stage]};border-radius:3px"></div>
+        </div>
+        <span style="font-size:12px;font-weight:600;min-width:70px;text-align:right">${formatCurrency(totalV)}</span>
+        <span style="font-size:11px;color:var(--color-neutral);min-width:35px;text-align:right">${stageOpps.length}</span>
+      </div>
+    `;
+  });
+  pipelineChartHTML += '</div>';
+
+  document.getElementById('charts-detail').innerHTML = `
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Sales by Property</div>
+      ${propArr.length > 0 ? revenueChartHTML : '<div style="color:var(--color-neutral);text-align:center;padding:20px">No closed deals</div>'}
+    </div>
+    <div class="chart-placeholder" style="display:block;text-align:left;padding:16px;min-height:auto">
+      <div style="font-weight:600;margin-bottom:12px;color:var(--color-dark)">Pipeline by Stage</div>
+      ${opps.length > 0 ? pipelineChartHTML : '<div style="color:var(--color-neutral);text-align:center;padding:20px">No open opportunities</div>'}
+    </div>
+  `;
+
+  // Category Target Split (Hospitality / Exhibitors / Sponsorship)
+  const catColors = { Hospitality: '#E65100', Exhibitors: '#1565C0', Sponsorship: '#7B1FA2' };
+  const catBg = { Hospitality: '#FFF3E0', Exhibitors: '#E3F2FD', Sponsorship: '#F3E5F5' };
+  const categories = ['Hospitality', 'Exhibitors', 'Sponsorship'];
+  const catTargets = exec.categoryTargets || {};
+  const catActuals = {};
+  const catPipeline = {};
+  const catDealCounts = {};
+  categories.forEach(c => { catActuals[c] = 0; catPipeline[c] = 0; catDealCounts[c] = 0; });
+  closedDeals.forEach(d => {
+    const cat = d.category || 'Sponsorship';
+    catActuals[cat] = (catActuals[cat] || 0) + d.value;
+    catDealCounts[cat] = (catDealCounts[cat] || 0) + 1;
+  });
+  opps.forEach(o => {
+    const cat = o.category || 'Sponsorship';
+    catPipeline[cat] = (catPipeline[cat] || 0) + o.value;
+  });
+
+  const catSplitRow = document.getElementById('category-split-row');
+  let catHTML = '';
+
+  // Left card: Summary + actuals vs target bars
+  catHTML += '<div class="cat-split-card" style="flex:1">';
+  catHTML += '<div class="cat-title">Target Split — Actuals vs Target by Category</div>';
+
+  // Summary boxes
+  catHTML += '<div class="cat-summary-grid">';
+  categories.forEach(cat => {
+    const actual = catActuals[cat] || 0;
+    const tgt = catTargets[cat] || 0;
+    const att = tgt > 0 ? actual / tgt : 0;
+    catHTML += '<div class="cat-summary-box" style="background:' + catBg[cat] + ';border-color:' + catColors[cat] + '">';
+    catHTML += '<div class="cat-sum-label">' + cat + '</div>';
+    catHTML += '<div class="cat-sum-val" style="color:' + catColors[cat] + '">' + formatCurrency(actual) + '</div>';
+    catHTML += '<div class="cat-sum-sub">Target: ' + formatCurrency(tgt) + ' · ' + (att * 100).toFixed(0) + '% achieved</div>';
+    catHTML += '</div>';
+  });
+  catHTML += '</div>';
+
+  // Bars: actual vs target per category
+  const maxCatVal = Math.max(...categories.map(c => Math.max(catActuals[c] || 0, catTargets[c] || 0)), 1);
+  categories.forEach(cat => {
+    const actual = catActuals[cat] || 0;
+    const tgt = catTargets[cat] || 0;
+    const att = tgt > 0 ? actual / tgt : 0;
+    const actualPct = (actual / maxCatVal * 100).toFixed(1);
+    const tgtPct = (tgt / maxCatVal * 100).toFixed(1);
+    const attColor = att >= 1 ? 'var(--color-success)' : att >= 0.7 ? 'var(--color-warning)' : 'var(--color-danger)';
+    catHTML += '<div class="cat-row">';
+    catHTML += '<span class="cat-label" style="color:' + catColors[cat] + '">' + cat + '</span>';
+    catHTML += '<div class="cat-bar-wrap">';
+    catHTML += '<div class="cat-bar-fill" style="width:' + actualPct + '%;background:' + catColors[cat] + ';opacity:0.8"></div>';
+    catHTML += '<div class="cat-bar-target" style="left:' + tgtPct + '%" title="Target: ' + formatCurrency(tgt) + '"></div>';
+    catHTML += '</div>';
+    catHTML += '<div class="cat-vals"><span class="cat-actual">' + formatCurrency(actual) + '</span><span class="cat-target">/ ' + formatCurrency(tgt) + '</span></div>';
+    catHTML += '<span class="cat-attain" style="color:' + attColor + '">' + (att * 100).toFixed(0) + '%</span>';
+    catHTML += '</div>';
+  });
+
+  // Gap / surplus per category
+  catHTML += '<div style="margin-top:14px;border-top:1px solid var(--color-border);padding-top:12px">';
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Gap to Target</div>';
+  categories.forEach(cat => {
+    const actual = catActuals[cat] || 0;
+    const tgt = catTargets[cat] || 0;
+    const gap = tgt - actual;
+    const isOver = gap <= 0;
+    catHTML += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    catHTML += '<span style="font-size:11px;color:' + catColors[cat] + ';font-weight:500">' + cat + '</span>';
+    catHTML += '<span style="font-size:12px;font-weight:600;color:' + (isOver ? 'var(--color-success)' : 'var(--color-secondary)') + '">' + (isOver ? 'Exceeded by ' + formatCurrency(Math.abs(gap)) : formatCurrency(gap) + ' remaining') + '</span>';
+    catHTML += '</div>';
+  });
+  catHTML += '</div>';
+  catHTML += '</div>';
+
+  // Right card: Pipeline coverage + category composition donut-style
+  catHTML += '<div class="cat-split-card" style="flex:1">';
+  catHTML += '<div class="cat-title">Category Pipeline & Composition</div>';
+
+  // Pipeline by category bars
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Open Pipeline by Category</div>';
+  const maxPipeCat = Math.max(...categories.map(c => catPipeline[c] || 0), 1);
+  categories.forEach(cat => {
+    const pv = catPipeline[cat] || 0;
+    catHTML += '<div class="cat-row">';
+    catHTML += '<span class="cat-label" style="color:' + catColors[cat] + '">' + cat + '</span>';
+    catHTML += '<div class="cat-bar-wrap">';
+    catHTML += '<div class="cat-bar-fill" style="width:' + (pv / maxPipeCat * 100).toFixed(1) + '%;background:' + catColors[cat] + ';opacity:0.5"></div>';
+    catHTML += '</div>';
+    catHTML += '<div style="min-width:80px;text-align:right;font-size:12px;font-weight:600">' + formatCurrency(pv) + '</div>';
+    catHTML += '</div>';
+  });
+
+  // Total coverage (closed + pipeline) vs target per category
+  catHTML += '<div style="margin-top:16px;border-top:1px solid var(--color-border);padding-top:12px">';
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Coverage (Closed + Pipeline) vs Target</div>';
+  categories.forEach(cat => {
+    const coverage = (catActuals[cat] || 0) + (catPipeline[cat] || 0);
+    const tgt = catTargets[cat] || 0;
+    const covPct = tgt > 0 ? (coverage / tgt * 100) : 0;
+    const covColor = covPct >= 100 ? 'var(--color-success)' : covPct >= 70 ? 'var(--color-warning)' : 'var(--color-danger)';
+    catHTML += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+    catHTML += '<span style="width:90px;font-size:11px;font-weight:500;color:' + catColors[cat] + '">' + cat + '</span>';
+    catHTML += '<div style="flex:1;height:16px;background:var(--color-light);border-radius:3px;overflow:visible;position:relative">';
+    catHTML += '<div style="height:100%;width:' + Math.min(covPct, 100).toFixed(1) + '%;background:' + catColors[cat] + ';border-radius:3px;opacity:0.65"></div>';
+    if (tgt > 0) catHTML += '<div style="position:absolute;left:100%;top:-2px;bottom:-2px;width:2px;background:#333;border-radius:1px" title="Target: ' + formatCurrency(tgt) + '"></div>';
+    catHTML += '</div>';
+    catHTML += '<span style="min-width:50px;text-align:right;font-size:11px;font-weight:600;color:' + covColor + '">' + covPct.toFixed(0) + '%</span>';
+    catHTML += '</div>';
+  });
+  catHTML += '</div>';
+
+  // Closed deal count by category
+  catHTML += '<div style="margin-top:16px;border-top:1px solid var(--color-border);padding-top:12px">';
+  catHTML += '<div style="font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Closed Deals by Category</div>';
+  const totalCatDeals = categories.reduce((s, c) => s + (catDealCounts[c] || 0), 0);
+  catHTML += '<div style="height:24px;display:flex;border-radius:4px;overflow:hidden;margin-bottom:6px">';
+  categories.forEach(cat => {
+    const cnt = catDealCounts[cat] || 0;
+    const pct = totalCatDeals > 0 ? (cnt / totalCatDeals * 100) : 0;
+    if (pct > 0) catHTML += '<div style="width:' + pct.toFixed(1) + '%;background:' + catColors[cat] + ';display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">' + (pct > 12 ? cnt : '') + '</div>';
+  });
+  catHTML += '</div>';
+  catHTML += '<div style="display:flex;gap:16px;justify-content:center">';
+  categories.forEach(cat => {
+    catHTML += '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:2px;background:' + catColors[cat] + ';display:inline-block"></span>' + cat + ' (' + (catDealCounts[cat] || 0) + ')</div>';
+  });
+  catHTML += '</div>';
+  catHTML += '</div>';
+
+  catHTML += '</div>';
+  catSplitRow.innerHTML = catHTML;
+
+  // Reset filter pills
+  document.querySelectorAll('#exec-deal-filters .exec-filter-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('#exec-deal-filters .exec-filter-pill[data-filter="all"]').classList.add('active');
+
+  // Deals Table
+  document.getElementById('exec-deal-count').textContent = deals.length + ' deal' + (deals.length !== 1 ? 's' : '');
+  renderExecDealsTable(deals);
+
+  // Opportunities Table — with stage filter pills
+  document.getElementById('exec-opp-count').textContent = opps.length + ' open opportunit' + (opps.length !== 1 ? 'ies' : 'y') + ' — ' + formatCurrency(pipelineVal) + ' total pipeline';
+  const oppsTbody = document.getElementById('opps-tbody');
+  oppsTbody.innerHTML = '';
+  const sortedOpps = [...opps].sort((a, b) => {
+    const si = stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage);
+    return si !== 0 ? si : b.value - a.value;
+  });
+  window._mainOpps = sortedOpps;
+
+  const mainOppStages = [...new Set(sortedOpps.map(o => o.stage))].sort((a,b) => stageOrder.indexOf(a) - stageOrder.indexOf(b));
+  const mainFilterBar = document.getElementById('mainOppsStageFilter');
+  let mfHTML = '<button class="prop-filter-pill active" onclick="filterMainOpps(\'All\', this)">All</button>';
+  mainOppStages.forEach(s => {
+    mfHTML += '<button class="prop-filter-pill" onclick="filterMainOpps(\'' + s.replace(/'/g, "\\'") + '\', this)">' + s + '</button>';
+  });
+  mainFilterBar.innerHTML = mfHTML;
+
+  function renderMainOppRows(list) {
+    oppsTbody.innerHTML = '';
+    list.forEach(opp => {
+      const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${opp.id}')">${opp.id}<span class="link-arrow">↗</span></a></td>
+        <td><strong>${opp.account}</strong></td>
+        <td style="font-size:12px;color:var(--color-neutral)">${opp.propertyName}</td>
+        <td style="font-weight:600">${formatCurrency(opp.value)}</td>
+        <td><span class="exec-stage-badge ${stageClass}">${opp.stage}</span></td>
+        <td>${(opp.probability * 100).toFixed(0)}%</td>
+        <td>${opp.expected_close}</td>
+        <td>${opp.quarter} ${opp.year}</td>
+      `;
+      oppsTbody.appendChild(row);
+    });
+  }
+  renderMainOppRows(sortedOpps);
+
+  // Stage Summary Table
+  const stageTbody = document.getElementById('stage-summary-tbody');
+  stageTbody.innerHTML = '';
+  stageOrder.forEach(stage => {
+    const stageOpps = opps.filter(o => o.stage === stage);
+    if (stageOpps.length === 0) return;
+    const totalV = stageOpps.reduce((s, o) => s + o.value, 0);
+    const avgV = totalV / stageOpps.length;
+    const sharePct = pipelineVal > 0 ? (totalV / pipelineVal * 100) : 0;
+    const stageClass = stage.toLowerCase().replace(/\s+/g, '');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><span class="exec-stage-badge ${stageClass}">${stage}</span></td>
+      <td>${stageOpps.length}</td>
+      <td style="font-weight:600">${formatCurrency(totalV)}</td>
+      <td>${formatCurrency(Math.round(avgV))}</td>
+      <td>
+        <div class="exec-attainment-bar">
+          <div class="exec-attainment-track"><div class="exec-attainment-fill" style="width:${sharePct}%;background:${stageColors[stage]}"></div></div>
+          <span class="exec-attainment-pct">${sharePct.toFixed(1)}%</span>
+        </div>
+      </td>
+    `;
+    stageTbody.appendChild(row);
+  });
+}
+
+function backToOverview() {
+  currentExec = null;
+  document.getElementById('detail-view').classList.add('hidden');
+  document.getElementById('overview-view').classList.remove('hidden');
+  document.getElementById('breadcrumb-content').textContent = 'Business Unit Dashboard';
+  renderOverview();
+}
+
+function getFilteredProperties() {
+  if (currentBusinessUnit === 'all') {
+    let props = [];
+    DATA.businessUnits.forEach(div => {
+      props = props.concat(div.properties);
+    });
+    return props;
+  }
+  const div = DATA.businessUnits.find(d => d.name === currentBusinessUnit);
+  return div ? div.properties : [];
+}
+
+function getSales(propId, year) {
+  let total = 0;
+  DATA.businessUnits.forEach(div => {
+    const prop = div.properties.find(p => p.id === propId);
+    if (prop) {
+      prop.deals.forEach(d => {
+        if (d.year === year && d.stage === 'Closed') total += d.value;
+      });
+    }
+  });
+  return total;
+}
+
+function getTarget(propId, year) {
+  for (const div of DATA.businessUnits) {
+    const prop = div.properties.find(p => p.id === propId);
+    if (prop && year in prop.targets) {
+      const targetObj = prop.targets[year];
+      return targetObj.current || targetObj.original;
+    }
+  }
+  return 0;
+}
+
+function getOriginalTarget(propId, year) {
+  for (const div of DATA.businessUnits) {
+    const prop = div.properties.find(p => p.id === propId);
+    if (prop && year in prop.targets) {
+      return prop.targets[year].original;
+    }
+  }
+  return 0;
+}
+
+function getDeals(propId, year) {
+  let deals = [];
+  for (const div of DATA.businessUnits) {
+    const prop = div.properties.find(p => p.id === propId);
+    if (prop) {
+      deals = prop.deals.filter(d => d.year === year);
+      break;
+    }
+  }
+  return deals;
+}
+
+function getOpportunities(propId, year) {
+  let opps = [];
+  for (const div of DATA.businessUnits) {
+    const prop = div.properties.find(p => p.id === propId);
+    if (prop && prop.opportunities) {
+      opps = prop.opportunities.filter(o => o.year === year);
+      break;
+    }
+  }
+  return opps;
+}
+
+function getPipelineValue(propId, year) {
+  return getOpportunities(propId, year).reduce((sum, o) => sum + o.value, 0);
+}
+
+function getDivSalesTotal(divName, year) {
+  let total = 0;
+  const div = DATA.businessUnits.find(d => d.name === divName);
+  if (div) {
+    div.properties.forEach(prop => {
+      prop.deals.forEach(d => {
+        if (d.year === year && d.stage === 'Closed') total += d.value;
+      });
+    });
+  }
+  return total;
+}
+
+function getDivTargetTotal(divName, year) {
+  let total = 0;
+  const div = DATA.businessUnits.find(d => d.name === divName);
+  if (div) {
+    div.properties.forEach(prop => {
+      if (year in prop.targets) {
+        const targetObj = prop.targets[year];
+        total += (targetObj.current || targetObj.original);
+      }
+    });
+  }
+  return total;
+}
+
+function resolveTargetObj(targets) {
+  const current = targets.current || targets.original;
+  return {
+    original: targets.original,
+    current: current,
+    revisions: Object.entries(targets)
+      .filter(([k]) => k.endsWith('_revised') && targets[k])
+      .map(([k, v]) => ({q: k.split('_')[0], value: v}))
+  };
+}
+
+function renderPropertyOverview() {
+  const props = getFilteredProperties();
+  const year = currentYear === 'all' ? 2026 : parseInt(currentYear);
+
+  document.getElementById('prop-overview-title').textContent = currentBusinessUnit === 'all' ? 'Property Performance' : currentBusinessUnit + ' — Property Performance';
+
+  // KPI Strip - reordered: Target, Sales, Attainment
+  let divSales = 0;
+  let divTarget = 0;
+  if (currentBusinessUnit === 'all') {
+    DATA.businessUnits.forEach(div => {
+      divSales += getDivSalesTotal(div.name, year);
+      divTarget += getDivTargetTotal(div.name, year);
+    });
+  } else {
+    divSales = getDivSalesTotal(currentBusinessUnit, year);
+    divTarget = getDivTargetTotal(currentBusinessUnit, year);
+  }
+
+  const attainment = divTarget > 0 ? divSales / divTarget : 0;
+  const wonDeals = [];
+  const openPipeline = [];
+  props.forEach(p => {
+    wonDeals.push(...getDeals(p.id, year).filter(d => d.stage === 'Closed'));
+    openPipeline.push(...getOpportunities(p.id, year));
+  });
+
+  const kpiHTML = `
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Target</div>
+      <div class="prop-kpi-value">${formatCurrency(divTarget)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Closed</div>
+      <div class="prop-kpi-value">${formatCurrency(divSales)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Left to Achieve</div>
+      <div class="prop-kpi-value" style="color:${divSales < divTarget ? 'var(--color-secondary)' : 'var(--color-success)'}">${divSales < divTarget ? '-' + formatCurrency(divTarget - divSales) : '+' + formatCurrency(divSales - divTarget)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Won Deals</div>
+      <div class="prop-kpi-value">${wonDeals.length}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Pipeline</div>
+      <div class="prop-kpi-value">${formatCurrency(openPipeline.reduce((sum, o) => sum + o.value, 0))}</div>
+    </div>
+  `;
+  document.getElementById('prop-kpi-overview').innerHTML = kpiHTML;
+
+  // Bar Chart: Target vs Closed vs Pipeline (single row per property)
+  let globalMax = 1;
+  props.forEach(prop => {
+    const t = getTarget(prop.id, year) || 0;
+    const s = getSales(prop.id, year);
+    const p = getPipelineValue(prop.id, year);
+    const combined = s + p;
+    if (t > globalMax) globalMax = t;
+    if (combined > globalMax) globalMax = combined;
+  });
+
+  let barHTML = '<div style="display:flex;gap:16px;margin-bottom:12px;margin-top:4px">';
+  barHTML += '<div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--color-success)"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--color-success)"></span>Closed</div>';
+  barHTML += '<div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#7986cb"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#7986cb;opacity:0.7"></span>Pipeline</div>';
+  barHTML += '<div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#333"><span style="display:inline-block;width:12px;height:2px;background:#333"></span>Target</div>';
+  barHTML += '</div>';
+
+  props.forEach((prop, idx) => {
+    const sales = getSales(prop.id, year);
+    const target = getTarget(prop.id, year) || 0;
+    const pipeline = getPipelineValue(prop.id, year);
+    const attain = target > 0 ? sales / target : 0;
+    const attColor = attainmentColor(attain);
+    const sPct = (sales / globalMax * 100).toFixed(1);
+    const pPct = (pipeline / globalMax * 100).toFixed(1);
+    const tMarker = (target / globalMax * 100).toFixed(1);
+
+    barHTML += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer" onclick="showPropertyDetail(\'' + prop.id + '\')">';
+    barHTML += '<span style="width:130px;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + prop.name + '</span>';
+    // Stacked bar: Closed + Pipeline, with target marker line
+    barHTML += '<div style="flex:1;height:22px;background:var(--color-light);border-radius:3px;position:relative;overflow:visible">';
+    // Closed segment
+    barHTML += '<div style="position:absolute;left:0;top:0;height:100%;width:' + sPct + '%;background:var(--color-success);border-radius:3px 0 0 3px;z-index:1"></div>';
+    // Pipeline segment (stacked after closed)
+    if (pipeline > 0) {
+      barHTML += '<div style="position:absolute;left:' + sPct + '%;top:0;height:100%;width:' + pPct + '%;background:#7986cb;opacity:0.7;border-radius:0 3px 3px 0;z-index:1"></div>';
+    }
+    // Target marker line
+    barHTML += '<div style="position:absolute;left:' + tMarker + '%;top:-3px;bottom:-3px;width:2px;background:#333;z-index:2;border-radius:1px"></div>';
+    barHTML += '</div>';
+    // Values: Closed / Pipeline / Target
+    barHTML += '<div style="min-width:220px;text-align:right;font-size:10px;white-space:nowrap;flex-shrink:0;display:flex;justify-content:flex-end;gap:4px;align-items:baseline">';
+    barHTML += '<span style="font-weight:600;color:var(--color-success)">' + formatCurrency(sales) + '</span>';
+    barHTML += '<span style="color:var(--color-neutral)">/</span>';
+    barHTML += '<span style="font-weight:600;color:#7986cb">' + formatCurrency(pipeline) + '</span>';
+    barHTML += '<span style="color:var(--color-neutral)">/</span>';
+    barHTML += '<span style="font-weight:700;color:#333">' + formatCurrency(target) + '</span>';
+    barHTML += '</div>';
+    barHTML += '</div>';
+  });
+  document.getElementById('prop-bar-chart').innerHTML = barHTML;
+
+  // ── Week on Week — New Business Closed ────────────────────────
+  (function() {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    thisWeekStart.setHours(0,0,0,0);
+
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+    const thisWeekEnd = new Date(thisWeekStart);
+    thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
+    thisWeekEnd.setHours(23,59,59,999);
+
+    const lastWeekEnd = new Date(thisWeekStart);
+    lastWeekEnd.setTime(lastWeekEnd.getTime() - 1);
+
+    const wowData = [];
+    props.forEach(prop => {
+      const allDeals = getDeals(prop.id, year).filter(d => d.stage === 'Closed');
+      let thisWeek = 0, lastWeek = 0;
+      allDeals.forEach(d => {
+        const cd = new Date(d.close_date);
+        if (cd >= thisWeekStart && cd <= thisWeekEnd) thisWeek += d.value;
+        if (cd >= lastWeekStart && cd <= lastWeekEnd) lastWeek += d.value;
+      });
+      wowData.push({ name: prop.name, thisWeek, lastWeek, id: prop.id });
+    });
+    // Only show properties that have activity in either week
+    const active = wowData.filter(w => w.thisWeek > 0 || w.lastWeek > 0);
+
+    const wowEl = document.getElementById('wow-closed-chart');
+    if (active.length === 0) {
+      wowEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--color-neutral);font-size:12px">No new business closed in the last two weeks</div>';
+    } else {
+      const maxWow = Math.max(...active.map(w => Math.max(w.thisWeek, w.lastWeek)), 1);
+      let wowHTML = '<div style="display:flex;gap:14px;margin-bottom:10px;font-size:10px">';
+      wowHTML += '<div style="display:flex;align-items:center;gap:5px;font-weight:600;color:var(--color-primary)"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--color-primary)"></span>This Week</div>';
+      wowHTML += '<div style="display:flex;align-items:center;gap:5px;font-weight:600;color:var(--color-neutral)"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--color-neutral);opacity:0.4"></span>Last Week</div>';
+      wowHTML += '</div>';
+      active.forEach(w => {
+        const twPct = (w.thisWeek / maxWow * 100).toFixed(1);
+        const lwPct = (w.lastWeek / maxWow * 100).toFixed(1);
+        const delta = w.lastWeek > 0 ? ((w.thisWeek - w.lastWeek) / w.lastWeek * 100) : (w.thisWeek > 0 ? 100 : 0);
+        const deltaColor = delta > 0 ? 'var(--color-success)' : delta < 0 ? 'var(--color-danger)' : 'var(--color-neutral)';
+        const deltaSign = delta > 0 ? '+' : '';
+        wowHTML += '<div style="margin-bottom:10px">';
+        wowHTML += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">';
+        wowHTML += '<span style="font-size:11px;font-weight:600">' + w.name + '</span>';
+        wowHTML += '<span style="font-size:10px;font-weight:600;color:' + deltaColor + '">' + (w.thisWeek > 0 || w.lastWeek > 0 ? deltaSign + delta.toFixed(0) + '%' : '—') + '</span>';
+        wowHTML += '</div>';
+        // This week bar
+        wowHTML += '<div style="height:14px;background:var(--color-light);border-radius:3px;margin-bottom:2px;position:relative">';
+        wowHTML += '<div style="height:100%;width:' + twPct + '%;background:var(--color-primary);border-radius:3px;min-width:' + (w.thisWeek > 0 ? '2px' : '0') + '"></div>';
+        wowHTML += '<span style="position:absolute;right:4px;top:1px;font-size:9px;font-weight:600;color:var(--color-dark)">' + formatCurrency(w.thisWeek) + '</span>';
+        wowHTML += '</div>';
+        // Last week bar (lighter)
+        wowHTML += '<div style="height:14px;background:var(--color-light);border-radius:3px;position:relative">';
+        wowHTML += '<div style="height:100%;width:' + lwPct + '%;background:var(--color-neutral);opacity:0.35;border-radius:3px;min-width:' + (w.lastWeek > 0 ? '2px' : '0') + '"></div>';
+        wowHTML += '<span style="position:absolute;right:4px;top:1px;font-size:9px;font-weight:500;color:var(--color-neutral)">' + formatCurrency(w.lastWeek) + '</span>';
+        wowHTML += '</div>';
+        wowHTML += '</div>';
+      });
+      wowEl.innerHTML = wowHTML;
+    }
+  })();
+
+  // ── Deals by Value Range ──────────────────────────────────────
+  (function() {
+    const allClosedDeals = [];
+    props.forEach(prop => {
+      getDeals(prop.id, year).filter(d => d.stage === 'Closed').forEach(d => {
+        allClosedDeals.push({ value: d.value, property: prop.name });
+      });
+    });
+
+    const ranges = [
+      { label: '7-figure', min: 1000000, max: Infinity, desc: '£1M+', color: '#2E5C8A' },
+      { label: '6-figure', min: 100000, max: 999999, desc: '£100K–£999K', color: '#5B9BD5' },
+      { label: '5-figure', min: 10000, max: 99999, desc: '£10K–£99K', color: '#70AD47' },
+      { label: '4-figure', min: 1000, max: 9999, desc: '£1K–£9K', color: '#FFC000' }
+    ];
+
+    ranges.forEach(r => {
+      r.count = allClosedDeals.filter(d => d.value >= r.min && d.value <= r.max).length;
+      r.total = allClosedDeals.filter(d => d.value >= r.min && d.value <= r.max).reduce((s, d) => s + d.value, 0);
+    });
+
+    const maxCount = Math.max(...ranges.map(r => r.count), 1);
+    const totalDeals = allClosedDeals.length;
+    const vrEl = document.getElementById('deal-value-range-chart');
+
+    let vrHTML = '<div style="display:flex;flex-direction:column;gap:12px">';
+    ranges.forEach(r => {
+      const pctOfTotal = totalDeals > 0 ? (r.count / totalDeals * 100).toFixed(0) : 0;
+      const barW = (r.count / maxCount * 100).toFixed(1);
+      vrHTML += '<div>';
+      vrHTML += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">';
+      vrHTML += '<div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:13px;font-weight:700;color:' + r.color + '">' + r.label + '</span><span style="font-size:10px;color:var(--color-neutral)">' + r.desc + '</span></div>';
+      vrHTML += '<div style="font-size:11px;font-weight:600;color:var(--color-dark)">' + r.count + ' deal' + (r.count !== 1 ? 's' : '') + ' <span style="color:var(--color-neutral);font-weight:400">(' + pctOfTotal + '%)</span></div>';
+      vrHTML += '</div>';
+      vrHTML += '<div style="display:flex;align-items:center;gap:8px">';
+      vrHTML += '<div style="flex:1;height:20px;background:var(--color-light);border-radius:3px;position:relative">';
+      vrHTML += '<div style="height:100%;width:' + barW + '%;background:' + r.color + ';border-radius:3px;opacity:0.8;min-width:' + (r.count > 0 ? '2px' : '0') + '"></div>';
+      vrHTML += '</div>';
+      vrHTML += '<span style="min-width:70px;text-align:right;font-size:11px;font-weight:600">' + formatCurrency(r.total) + '</span>';
+      vrHTML += '</div>';
+      vrHTML += '</div>';
+    });
+    vrHTML += '</div>';
+
+    // Summary footer
+    vrHTML += '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--color-border);display:flex;justify-content:space-between;font-size:11px">';
+    vrHTML += '<span style="color:var(--color-neutral)">Total: <strong style="color:var(--color-dark)">' + totalDeals + ' deals</strong></span>';
+    vrHTML += '<span style="color:var(--color-neutral)">Value: <strong style="color:var(--color-dark)">' + formatCurrency(allClosedDeals.reduce((s,d) => s + d.value, 0)) + '</strong></span>';
+    vrHTML += '</div>';
+
+    vrEl.innerHTML = vrHTML;
+  })();
+
+  // Properties Table
+  const tbody = document.getElementById('prop-overview-tbody');
+  tbody.innerHTML = '';
+  const sortedProps = [...props].sort((a, b) => getSales(b.id, year) - getSales(a.id, year));
+  sortedProps.forEach((prop, idx) => {
+    const sales = getSales(prop.id, year);
+    const target = getTarget(prop.id, year) || 0;
+    const attain = target > 0 ? sales / target : 0;
+    const divSalesTotal = currentBusinessUnit === 'all' ? DATA.businessUnits.reduce((s, d) => s + getDivSalesTotal(d.name, year), 0) : divSales;
+    const pipeline = getPipelineValue(prop.id, year);
+    const opps = getOpportunities(prop.id, year).length;
+    const wonDealsCount = getDeals(prop.id, year).filter(d => d.stage === 'Closed').length;
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><a class="prop-drill-icon" onclick="showPropertyDetail('${prop.id}')" style="cursor: pointer;">${prop.name}</a></td>
+      <td>${prop.category}</td>
+      <td style="font-weight:600">${formatCurrency(target)}</td>
+      <td style="font-weight:600">${formatCurrency(sales)}</td>
+      <td style="color:var(--color-secondary)">${formatCurrency(pipeline)}</td>
+      <td style="color:${sales < target ? 'var(--color-secondary)' : 'var(--color-success)'}; font-weight:600">${sales < target ? '-' + formatCurrency(target - sales) : '+' + formatCurrency(sales - target)}</td>
+      <td>${opps}</td>
+      <td>${wonDealsCount}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  // Recent Deals — Closed in last 7 days
+  renderRecentDeals(props, year);
+}
+
+function renderRecentDeals(props, year) {
+  var today = new Date();
+  var sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(today.getDate() - 7);
+  sevenDaysAgo.setHours(0,0,0,0);
+
+  var recentDeals = [];
+  props.forEach(function(prop) {
+    getDeals(prop.id, year).forEach(function(d) {
+      if (d.stage === 'Closed' && d.close_date) {
+        var cd = new Date(d.close_date);
+        if (cd >= sevenDaysAgo && cd <= today) {
+          recentDeals.push(Object.assign({}, d, { propertyName: prop.name, propertyId: prop.id }));
+        }
+      }
+    });
+  });
+
+  recentDeals.sort(function(a, b) {
+    return new Date(b.close_date) - new Date(a.close_date);
+  });
+
+  document.getElementById('prop-deals-count').textContent = recentDeals.length + ' deal' + (recentDeals.length !== 1 ? 's' : '') + ' in last 7 days';
+
+  var dtbody = document.getElementById('prop-deals-tbody');
+  dtbody.innerHTML = '';
+
+  if (recentDeals.length === 0) {
+    dtbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--color-neutral)">No closed deals in the last 7 days</td></tr>';
+    return;
+  }
+
+  recentDeals.forEach(function(d) {
+    var dealId = d.id;
+    var row = document.createElement('tr');
+    row.style.cursor = 'pointer';
+    row.onclick = function() { openDealDetail(dealId); };
+    row.innerHTML =
+      '<td><a class="deal-id-link" href="javascript:void(0)" onclick="event.stopPropagation(); openDealDetail(\'' + dealId + '\')">' + dealId + ' <span class="link-arrow" style="font-size:9px;margin-left:2px;opacity:0.6">\u2192</span></a></td>' +
+      '<td>' + d.propertyName + '</td>' +
+      '<td style="font-weight:500">' + d.account + '</td>' +
+      '<td>' + d.owner + '</td>' +
+      '<td>' + (d.category || '—') + '</td>' +
+      '<td style="font-weight:600">' + formatCurrency(d.value) + '</td>' +
+      '<td>' + d.close_date + '</td>';
+    dtbody.appendChild(row);
+  });
+}
+
+function showPropertyDetail(propId) {
+  currentProperty = propId;
+  let prop = null;
+  DATA.businessUnits.forEach(div => {
+    if (!prop) {
+      prop = div.properties.find(p => p.id === propId);
+    }
+  });
+
+  if (!prop) return;
+
+  const year = currentYear === 'all' ? 2026 : parseInt(currentYear);
+  const sales = getSales(propId, year);
+  const target = getTarget(propId, year) || 0;
+  const attain = target > 0 ? sales / target : 0;
+  const wonDeals = getDeals(propId, year).filter(d => d.stage === 'Closed');
+  const avgDealSize = wonDeals.length > 0 ? wonDeals.reduce((s, d) => s + d.value, 0) / wonDeals.length : 0;
+  const pipeline = getPipelineValue(propId, year);
+
+  document.getElementById('prop-detail-title').textContent = prop.name + ' — Details';
+
+  const kpiHTML = `
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Target</div>
+      <div class="prop-kpi-value">${formatCurrency(target)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Closed</div>
+      <div class="prop-kpi-value">${formatCurrency(sales)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Left to Achieve</div>
+      <div class="prop-kpi-value" style="color:${sales < target ? 'var(--color-secondary)' : 'var(--color-success)'}">${sales < target ? '-' + formatCurrency(target - sales) : '+' + formatCurrency(sales - target)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Avg Deal Size</div>
+      <div class="prop-kpi-value">${formatCurrency(avgDealSize)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Pipeline</div>
+      <div class="prop-kpi-value">${formatCurrency(pipeline)}</div>
+    </div>
+  `;
+  document.getElementById('prop-kpi-detail').innerHTML = kpiHTML;
+
+  // Target Revision History
+  const targetObj = year in prop.targets ? resolveTargetObj(prop.targets[year]) : {current: 0, original: 0, revisions: []};
+  let historyHTML = `<div style="margin: var(--spacing-md) 0;"><strong>Original Target:</strong> ${formatCurrency(targetObj.original)}</div>`;
+  historyHTML += `<div style="margin: var(--spacing-md) 0;"><strong>Current Target:</strong> ${formatCurrency(targetObj.current)}</div>`;
+  if (targetObj.revisions.length > 0) {
+    historyHTML += '<div style="margin: var(--spacing-md) 0;"><strong>Revisions:</strong>';
+    targetObj.revisions.forEach(rev => {
+      historyHTML += `<div>${rev.q}: ${formatCurrency(rev.value)}</div>`;
+    });
+    historyHTML += '</div>';
+  }
+  document.getElementById('prop-target-history').innerHTML = historyHTML;
+
+  // Category Target Breakdown
+  const catTargetEl = document.getElementById('prop-category-targets');
+  const catColors = { Hospitality: '#e67e22', Exhibitors: '#2980b9', Sponsorship: '#27ae60' };
+  const categories = ['Hospitality', 'Exhibitors', 'Sponsorship'];
+  const propCatTargets = prop.categoryTargets && prop.categoryTargets[year] ? prop.categoryTargets[year] : {};
+  const totalCatTarget = categories.reduce((s, c) => s + (propCatTargets[c] || 0), 0);
+
+  let catHTML = '';
+  // Stacked bar showing target split
+  if (totalCatTarget > 0) {
+    catHTML += '<div style="display:flex;height:28px;border-radius:4px;overflow:hidden;margin-bottom:16px">';
+    categories.forEach(c => {
+      const ct = propCatTargets[c] || 0;
+      const pct = (ct / totalCatTarget * 100).toFixed(1);
+      if (pct > 0) {
+        catHTML += '<div style="width:' + pct + '%;background:' + catColors[c] + ';display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600">' + (pct > 12 ? pct + '%' : '') + '</div>';
+      }
+    });
+    catHTML += '</div>';
+  }
+
+  // Table: Category | Target | Closed | Left to Achieve | Attainment
+  catHTML += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  catHTML += '<thead><tr style="border-bottom:2px solid #eee">';
+  catHTML += '<th style="text-align:left;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Category</th>';
+  catHTML += '<th style="text-align:right;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Target</th>';
+  catHTML += '<th style="text-align:right;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Closed</th>';
+  catHTML += '<th style="text-align:right;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600">Left to Achieve</th>';
+  catHTML += '<th style="text-align:left;padding:8px 6px;font-size:10px;text-transform:uppercase;color:#999;font-weight:600;min-width:100px">Attainment</th>';
+  catHTML += '</tr></thead><tbody>';
+
+  let grandCatTarget = 0, grandCatClosed = 0;
+  categories.forEach(c => {
+    const ct = propCatTargets[c] || 0;
+    const catClosed = wonDeals.filter(d => d.category === c).reduce((s, d) => s + d.value, 0);
+    const catLeft = catClosed - ct;
+    const catAtt = ct > 0 ? catClosed / ct : 0;
+    const attColor = catAtt >= 1 ? 'var(--color-success)' : catAtt >= 0.7 ? '#e67e22' : 'var(--color-secondary)';
+    const leftColor = catLeft < 0 ? 'var(--color-secondary)' : 'var(--color-success)';
+    grandCatTarget += ct;
+    grandCatClosed += catClosed;
+
+    catHTML += '<tr style="border-bottom:1px solid #f0f0f0">';
+    catHTML += '<td style="padding:10px 6px;font-weight:500"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + catColors[c] + ';margin-right:8px;vertical-align:middle"></span>' + c + '</td>';
+    catHTML += '<td style="text-align:right;padding:10px 6px;font-weight:600">' + formatCurrency(ct) + '</td>';
+    catHTML += '<td style="text-align:right;padding:10px 6px;font-weight:600">' + formatCurrency(catClosed) + '</td>';
+    catHTML += '<td style="text-align:right;padding:10px 6px;font-weight:600;color:' + leftColor + '">' + (catLeft < 0 ? '-' + formatCurrency(Math.abs(catLeft)) : '+' + formatCurrency(catLeft)) + '</td>';
+    catHTML += '<td style="padding:10px 6px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + Math.min(catAtt * 100, 100).toFixed(1) + '%;background:' + attColor + ';border-radius:4px"></div></div><span style="font-size:10px;font-weight:600;color:' + attColor + '">' + (catAtt * 100).toFixed(0) + '%</span></div></td>';
+    catHTML += '</tr>';
+  });
+
+  // Total row
+  const grandLeft = grandCatClosed - grandCatTarget;
+  const grandAtt = grandCatTarget > 0 ? grandCatClosed / grandCatTarget : 0;
+  const grandAttColor = grandAtt >= 1 ? 'var(--color-success)' : grandAtt >= 0.7 ? '#e67e22' : 'var(--color-secondary)';
+  const grandLeftColor = grandLeft < 0 ? 'var(--color-secondary)' : 'var(--color-success)';
+  catHTML += '<tr style="border-top:2px solid #ddd;font-weight:700">';
+  catHTML += '<td style="padding:10px 6px">Total</td>';
+  catHTML += '<td style="text-align:right;padding:10px 6px">' + formatCurrency(grandCatTarget) + '</td>';
+  catHTML += '<td style="text-align:right;padding:10px 6px">' + formatCurrency(grandCatClosed) + '</td>';
+  catHTML += '<td style="text-align:right;padding:10px 6px;color:' + grandLeftColor + '">' + (grandLeft < 0 ? '-' + formatCurrency(Math.abs(grandLeft)) : '+' + formatCurrency(grandLeft)) + '</td>';
+  catHTML += '<td style="padding:10px 6px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + Math.min(grandAtt * 100, 100).toFixed(1) + '%;background:' + grandAttColor + ';border-radius:4px"></div></div><span style="font-size:10px;font-weight:700;color:' + grandAttColor + '">' + (grandAtt * 100).toFixed(0) + '%</span></div></td>';
+  catHTML += '</tr>';
+  catHTML += '</tbody></table>';
+
+  catTargetEl.innerHTML = catHTML;
+
+  // Sales by Executive
+  const ownerSales = {};
+  wonDeals.forEach(d => {
+    if (!ownerSales[d.owner]) ownerSales[d.owner] = 0;
+    ownerSales[d.owner] += d.value;
+  });
+  let ownerHTML = '';
+  Object.entries(ownerSales).sort((a, b) => b[1] - a[1]).forEach(([owner, val], idx) => {
+    const maxVal = Object.values(ownerSales)[0];
+    const pctVal = (val / maxVal) * 100;
+    ownerHTML += `
+      <div class="prop-bar-row">
+        <div class="prop-bar-label">${owner}</div>
+        <div class="prop-bar-track">
+          <div class="prop-bar-fill" style="width: ${pctVal}%; background: ${COLORS[idx % COLORS.length]};" data-label="${formatCurrency(val)}"></div>
+        </div>
+      </div>
+    `;
+  });
+  document.getElementById('prop-sales-by-owner').innerHTML = ownerHTML;
+
+  // Top 10 Deals — with stage filter
+  const allDeals = getDeals(propId, year);
+  const dealStages = [...new Set(allDeals.map(d => d.stage))].sort();
+  const dealsFilterBar = document.getElementById('deals-stage-filter');
+  let dfHTML = '<button class="prop-filter-pill active" onclick="filterDetailDeals(\'All\', this)">All</button>';
+  dealStages.forEach(s => {
+    dfHTML += '<button class="prop-filter-pill" onclick="filterDetailDeals(\'' + s + '\', this)">' + s + '</button>';
+  });
+  dealsFilterBar.innerHTML = dfHTML;
+
+  window._detailDeals = allDeals;
+  function renderDetailDeals(filtered) {
+    const top10 = [...filtered].sort((a, b) => b.value - a.value).slice(0, 10);
+    const dealsTable = document.getElementById('prop-detail-deals-tbody');
+    dealsTable.innerHTML = '';
+    top10.forEach(deal => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${deal.id}')">${deal.id}<span class="link-arrow">↗</span></a></td>
+        <td>${deal.account}</td>
+        <td>${deal.owner}</td>
+        <td>${formatCurrency(deal.value)}</td>
+        <td><span class="prop-deal-stage ${deal.stage.toLowerCase()}">${deal.stage}</span></td>
+        <td>${deal.close_date || '-'}</td>
+      `;
+      dealsTable.appendChild(row);
+    });
+  }
+  renderDetailDeals(allDeals);
+
+  // Open Opportunities — with stage filter
+  const opps = getOpportunities(propId, year);
+  const oppStages = [...new Set(opps.map(o => o.stage))].sort();
+  const oppsFilterBar = document.getElementById('opps-stage-filter');
+  let ofHTML = '<button class="prop-filter-pill active" onclick="filterDetailOpps(\'All\', this)">All</button>';
+  oppStages.forEach(s => {
+    ofHTML += '<button class="prop-filter-pill" onclick="filterDetailOpps(\'' + s.replace(/'/g, "\\'") + '\', this)">' + s + '</button>';
+  });
+  oppsFilterBar.innerHTML = ofHTML;
+
+  window._detailOpps = opps;
+  function renderDetailOpps(filtered) {
+    const oppsTable = document.getElementById('prop-detail-opps-tbody');
+    oppsTable.innerHTML = '';
+    filtered.forEach(opp => {
+      const row = document.createElement('tr');
+      const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '-');
+      row.innerHTML = `
+        <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${opp.id}')">${opp.id}<span class="link-arrow">↗</span></a></td>
+        <td>${opp.account}</td>
+        <td>${opp.owner}</td>
+        <td>${formatCurrency(opp.value)}</td>
+        <td><span class="prop-deal-stage ${stageClass}">${opp.stage}</span></td>
+        <td>${(opp.probability * 100).toFixed(0)}%</td>
+        <td>${opp.expected_close || '-'}</td>
+      `;
+      oppsTable.appendChild(row);
+    });
+  }
+  renderDetailOpps(opps);
+
+  // ========== PROPERTY YoY BUTTERFLY + QUARTERLY ==========
+  const propYoyEl = document.getElementById('prop-yoy-charts');
+  if (propYoyEl) {
+    const c25 = '#8babc7', c26 = '#2c5f8a';
+    const fmtY = v => { if (v >= 1000000) return '£' + (v/1000000).toFixed(1) + 'M'; if (v >= 1000) return '£' + (v/1000).toFixed(0) + 'K'; return '£' + v.toFixed(0); };
+
+    // Revenue by owner for each year
+    const ownerYoY = {};
+    let pRev25 = 0, pRev26 = 0, pD25 = 0, pD26 = 0;
+    prop.deals.filter(d => d.stage === 'Closed').forEach(d => {
+      const yr = new Date(d.close_date).getFullYear();
+      if (!ownerYoY[d.owner]) ownerYoY[d.owner] = { rev25: 0, rev26: 0, d25: 0, d26: 0 };
+      if (yr === 2025) { ownerYoY[d.owner].rev25 += d.value; ownerYoY[d.owner].d25++; pRev25 += d.value; pD25++; }
+      if (yr === 2026) { ownerYoY[d.owner].rev26 += d.value; ownerYoY[d.owner].d26++; pRev26 += d.value; pD26++; }
+    });
+    const ownerYoYArr = Object.entries(ownerYoY).sort((a,b) => Math.max(b[1].rev25, b[1].rev26) - Math.max(a[1].rev25, a[1].rev26));
+    const maxPBfly = Math.max(...ownerYoYArr.map(([,v]) => Math.max(v.rev25, v.rev26)), 1);
+
+    const pYoyChg = pRev25 > 0 ? ((pRev26 - pRev25) / pRev25 * 100).toFixed(1) : '—';
+    const pYoyCls = parseFloat(pYoyChg) >= 0 ? 'var(--color-success)' : 'var(--color-secondary)';
+    const pYoySign = parseFloat(pYoyChg) >= 0 ? '+' + pYoyChg + '%' : pYoyChg + '%';
+
+    // Butterfly card
+    let bfCard = '<div style="display:block;text-align:left">';
+    bfCard += '<div style="font-weight:600;margin-bottom:10px;color:var(--color-dark)">Revenue YoY — By Account Owner</div>';
+    bfCard += '<div style="display:flex;gap:12px;margin-bottom:12px">';
+    bfCard += '<div style="flex:1;text-align:center;padding:8px;background:var(--color-light);border-radius:6px"><div style="font-size:9px;font-weight:600;color:#999;text-transform:uppercase">FY 2025</div><div style="font-size:16px;font-weight:700;color:' + c25 + '">' + fmtY(pRev25) + '</div><div style="font-size:9px;color:#666">' + pD25 + ' deals</div></div>';
+    bfCard += '<div style="flex:1;text-align:center;padding:8px;background:var(--color-light);border-radius:6px"><div style="font-size:9px;font-weight:600;color:#999;text-transform:uppercase">FY 2026</div><div style="font-size:16px;font-weight:700;color:' + c26 + '">' + fmtY(pRev26) + '</div><div style="font-size:9px;color:#666">' + pD26 + ' deals</div></div>';
+    bfCard += '<div style="flex:1;text-align:center;padding:8px;background:var(--color-light);border-radius:6px"><div style="font-size:9px;font-weight:600;color:#999;text-transform:uppercase">YoY</div><div style="font-size:16px;font-weight:700;color:' + pYoyCls + '">' + (pYoyChg !== '—' ? pYoySign : '—') + '</div><div style="font-size:9px;color:#666">' + fmtY(pRev26 - pRev25) + '</div></div>';
+    bfCard += '</div>';
+    bfCard += '<div class="m-bfly-hdr"><div class="m-bfly-left">← FY 2025</div><div class="m-bfly-center">Owner</div><div class="m-bfly-right">FY 2026 →</div></div>';
+    ownerYoYArr.forEach(([name, v]) => {
+      const w25 = (v.rev25 / maxPBfly * 100).toFixed(1);
+      const w26 = (v.rev26 / maxPBfly * 100).toFixed(1);
+      bfCard += '<div class="m-butterfly-row">';
+      bfCard += '<div class="m-bfly-left"><div class="m-bfly-val m-bfly-val-right">' + fmtY(v.rev25) + '</div><div class="m-bfly-bar m-bfly-bar-left" style="width:' + w25 + '%;background:' + c25 + '"><span>' + v.d25 + '</span></div></div>';
+      bfCard += '<div class="m-bfly-center">' + name + '</div>';
+      bfCard += '<div class="m-bfly-right"><div class="m-bfly-bar m-bfly-bar-right" style="width:' + w26 + '%;background:' + c26 + '"><span>' + v.d26 + '</span></div><div class="m-bfly-val m-bfly-val-left">' + fmtY(v.rev26) + '</div></div>';
+      bfCard += '</div>';
+    });
+    bfCard += '<div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:10px;color:#999"><div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + c25 + ';display:inline-block"></span>FY 2025</div><div style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + c26 + ';display:inline-block"></span>FY 2026</div></div>';
+    bfCard += '</div>';
+
+    propYoyEl.innerHTML = bfCard;
+  }
+
+  document.getElementById('property-overview').classList.add('hidden');
+  document.getElementById('property-detail-view').classList.remove('hidden');
+  document.getElementById('breadcrumb-content').textContent = prop.name;
+}
+
+function backToPropertyOverview() {
+  currentProperty = null;
+  document.getElementById('property-detail-view').classList.add('hidden');
+  document.getElementById('property-deals-view').classList.add('hidden');
+  document.getElementById('property-overview').classList.remove('hidden');
+  document.getElementById('breadcrumb-content').textContent = 'Property Performance';
+  renderPropertyOverview();
+}
+
+function showPropertyDeals() {
+  const year = currentYear === 'all' ? 2026 : parseInt(currentYear);
+  const allDeals = getDeals(currentProperty, year);
+  const wonDeals = allDeals.filter(d => d.stage === 'Closed');
+  const wonValue = wonDeals.reduce((s, d) => s + d.value, 0);
+  const avgDeal = wonDeals.length > 0 ? wonValue / wonDeals.length : 0;
+  const largestDeal = wonDeals.length > 0 ? Math.max(...wonDeals.map(d => d.value)) : 0;
+  const pipeline = getPipelineValue(currentProperty, year);
+
+  document.getElementById('prop-deals-title').textContent = 'All Deals';
+
+  const kpiHTML = `
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Total Deals</div>
+      <div class="prop-kpi-value">${allDeals.length}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Closed Value</div>
+      <div class="prop-kpi-value">${formatCurrency(wonValue)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Avg Deal Size</div>
+      <div class="prop-kpi-value">${formatCurrency(avgDeal)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Largest Deal</div>
+      <div class="prop-kpi-value">${formatCurrency(largestDeal)}</div>
+    </div>
+    <div class="prop-kpi-card">
+      <div class="prop-kpi-label">Pipeline</div>
+      <div class="prop-kpi-value">${formatCurrency(pipeline)}</div>
+    </div>
+  `;
+  document.getElementById('prop-deals-kpi').innerHTML = kpiHTML;
+
+  // Stage Filter
+  const stages = ['Closed', 'In Review', 'Proposal', 'Terms Agreed', 'Contract Issued', 'Engaged'];
+  let filterHTML = '';
+  stages.forEach(stage => {
+    filterHTML += `<button class="prop-filter-pill active" onclick="filterPropertyDeals('${stage}', this)">${stage}</button>`;
+  });
+  document.getElementById('prop-stage-filter').innerHTML = filterHTML;
+
+  renderPropertyDealsTable(allDeals);
+
+  document.getElementById('property-detail-view').classList.add('hidden');
+  document.getElementById('property-deals-view').classList.remove('hidden');
+  document.getElementById('breadcrumb-content').textContent = 'All Deals';
+}
+
+function backToPropertyDetail() {
+  document.getElementById('property-deals-view').classList.add('hidden');
+  document.getElementById('property-detail-view').classList.remove('hidden');
+  let prop = null;
+  DATA.businessUnits.forEach(div => {
+    if (!prop) {
+      prop = div.properties.find(p => p.id === currentProperty);
+    }
+  });
+  document.getElementById('breadcrumb-content').textContent = prop ? prop.name : 'Property Details';
+}
+
+function filterPropertyDeals(stage, btn) {
+  document.querySelectorAll('.prop-filter-pill').forEach(b => b.classList.toggle('active'));
+  btn.classList.toggle('active');
+  const year = currentYear === 'all' ? 2026 : parseInt(currentYear);
+  const allDeals = getDeals(currentProperty, year);
+  const filtered = Array.from(document.querySelectorAll('.prop-filter-pill.active')).map(b => b.textContent);
+  const dealsToShow = allDeals.filter(d => filtered.includes(d.stage));
+  renderPropertyDealsTable(dealsToShow);
+}
+
+function renderPropertyDealsTable(deals) {
+  const tbody = document.getElementById('prop-all-deals-tbody');
+  tbody.innerHTML = '';
+  deals.forEach(deal => {
+    const row = document.createElement('tr');
+    const stageClass = deal.stage.toLowerCase();
+    row.innerHTML = `
+      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${deal.id}')">${deal.id}<span class="link-arrow">↗</span></a></td>
+      <td>${deal.account}</td>
+      <td>${deal.owner}</td>
+      <td>${formatCurrency(deal.value)}</td>
+      <td><span class="prop-deal-stage ${stageClass}">${deal.stage}</span></td>
+      <td>${deal.close_date || '-'}</td>
+      <td>${deal.quarter}</td>
+      <td>${deal.year}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function filterDetailDeals(stage, btn) {
+  const container = document.getElementById('deals-stage-filter');
+  if (stage === 'All') {
+    container.querySelectorAll('.prop-filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    container.querySelector('.prop-filter-pill:first-child').classList.remove('active');
+    btn.classList.toggle('active');
+    const anyActive = container.querySelectorAll('.prop-filter-pill.active');
+    if (anyActive.length === 0) {
+      container.querySelector('.prop-filter-pill:first-child').classList.add('active');
+    }
+  }
+  const activeStages = Array.from(container.querySelectorAll('.prop-filter-pill.active')).map(b => b.textContent);
+  const isAll = activeStages.includes('All');
+  const filtered = isAll ? window._detailDeals : window._detailDeals.filter(d => activeStages.includes(d.stage));
+  const top10 = [...filtered].sort((a, b) => b.value - a.value).slice(0, 10);
+  const tbody = document.getElementById('prop-detail-deals-tbody');
+  tbody.innerHTML = '';
+  top10.forEach(deal => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${deal.id}')">${deal.id}<span class="link-arrow">↗</span></a></td>
+      <td>${deal.account}</td>
+      <td>${deal.owner}</td>
+      <td>${formatCurrency(deal.value)}</td>
+      <td><span class="prop-deal-stage ${deal.stage.toLowerCase()}">${deal.stage}</span></td>
+      <td>${deal.close_date || '-'}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function filterDetailOpps(stage, btn) {
+  const container = document.getElementById('opps-stage-filter');
+  if (stage === 'All') {
+    container.querySelectorAll('.prop-filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    container.querySelector('.prop-filter-pill:first-child').classList.remove('active');
+    btn.classList.toggle('active');
+    const anyActive = container.querySelectorAll('.prop-filter-pill.active');
+    if (anyActive.length === 0) {
+      container.querySelector('.prop-filter-pill:first-child').classList.add('active');
+    }
+  }
+  const activeStages = Array.from(container.querySelectorAll('.prop-filter-pill.active')).map(b => b.textContent);
+  const isAll = activeStages.includes('All');
+  const filtered = isAll ? window._detailOpps : window._detailOpps.filter(o => activeStages.includes(o.stage));
+  const tbody = document.getElementById('prop-detail-opps-tbody');
+  tbody.innerHTML = '';
+  filtered.forEach(opp => {
+    const row = document.createElement('tr');
+    const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '-');
+    row.innerHTML = `
+      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${opp.id}')">${opp.id}<span class="link-arrow">↗</span></a></td>
+      <td>${opp.account}</td>
+      <td>${opp.owner}</td>
+      <td>${formatCurrency(opp.value)}</td>
+      <td><span class="prop-deal-stage ${stageClass}">${opp.stage}</span></td>
+      <td>${(opp.probability * 100).toFixed(0)}%</td>
+      <td>${opp.expected_close || '-'}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function filterMainOpps(stage, btn) {
+  const container = document.getElementById('mainOppsStageFilter');
+  if (stage === 'All') {
+    container.querySelectorAll('.prop-filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    container.querySelector('.prop-filter-pill:first-child').classList.remove('active');
+    btn.classList.toggle('active');
+    const anyActive = container.querySelectorAll('.prop-filter-pill.active');
+    if (anyActive.length === 0) {
+      container.querySelector('.prop-filter-pill:first-child').classList.add('active');
+    }
+  }
+  const activeStages = Array.from(container.querySelectorAll('.prop-filter-pill.active')).map(b => b.textContent);
+  const isAll = activeStages.includes('All');
+  const filtered = isAll ? window._mainOpps : window._mainOpps.filter(o => activeStages.includes(o.stage));
+  const tbody = document.getElementById('opps-tbody');
+  tbody.innerHTML = '';
+  filtered.forEach(opp => {
+    const stageClass = opp.stage.toLowerCase().replace(/\s+/g, '');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><a class="deal-id-link" href="#" onclick="event.preventDefault(); openDealDetail('${opp.id}')">${opp.id}<span class="link-arrow">↗</span></a></td>
+      <td><strong>${opp.account}</strong></td>
+      <td style="font-size:12px;color:var(--color-neutral)">${opp.propertyName}</td>
+      <td style="font-weight:600">${formatCurrency(opp.value)}</td>
+      <td><span class="exec-stage-badge ${stageClass}">${opp.stage}</span></td>
+      <td>${(opp.probability * 100).toFixed(0)}%</td>
+      <td>${opp.expected_close}</td>
+      <td>${opp.quarter} ${opp.year}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function fmt(val) { return formatCurrency(val); }
+function pct(val) { return val.toFixed(1) + '%'; }
+
+function attainmentColor(attain) {
+  if (attain >= 1.0) return '#70AD47';
+  if (attain >= 0.75) return '#FFC000';
+  return '#C5504E';
+}
+
+function sparklineHTML(propId, year) {
+  return '<span class="prop-sparkline">—</span>';
+}
+
+// Year toggle
+document.querySelectorAll('.year-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentYear = this.dataset.year;
+
+    if (currentProperty) {
+      showPropertyDetail(currentProperty);
+    } else {
+      renderPropertyOverview();
+    }
+  });
+});
+
+// Initialize — populate business unit dropdown
+const buSelect = document.getElementById('businessUnitSelect');
+DATA.businessUnits.forEach(bu => {
+  const opt = document.createElement('option');
+  opt.value = bu.name;
+  opt.textContent = bu.name;
+  buSelect.appendChild(opt);
+});
+
+updateBusinessUnitInfo();
+renderPropertyOverview();
+</script>
+
+</body>
+</html>
