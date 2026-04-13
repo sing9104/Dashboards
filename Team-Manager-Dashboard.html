@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Manager Dashboard | CerebroCRM</title>
+<!-- <script src="auth.js"></script> -->
+<style>
+  :root {
+    --color-primary: #2E5C8A;
+    --color-secondary: #5B9BD5;
+    --color-success: #70AD47;
+    --color-warning: #FFC000;
+    --color-danger: #C5504E;
+    --color-neutral: #A0A0A0;
+    --color-light: #F5F5F5;
+    --color-white: #FFFFFF;
+    --color-dark: #1F1F1F;
+    --color-border: #D9D9D9;
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-size-base: 13px;
+    --font-size-sm: 11px;
+    --font-size-lg: 15px;
+    --font-size-xl: 18px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 2px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-family);
+    background: #f9f9f9;
+    color: var(--color-dark);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+  }
+
+  /* === TOP BAR === */
+  .topbar {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #3d7ab8 100%);
+    color: var(--color-white);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-md);
+    border-bottom: 2px solid var(--color-primary);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: var(--spacing-md); }
+  .branding { font-size: var(--font-size-xl); font-weight: 700; letter-spacing: -0.5px; }
+  .branding span { color: #f28e2b; }
+  .branding-sub { font-size: var(--font-size-sm); color: rgba(255,255,255,0.75); margin-left: 12px; }
+  .topbar-right { display: flex; align-items: center; gap: var(--spacing-lg); }
+
+  .year-toggle { display: flex; gap: var(--spacing-xs); }
+  .year-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--color-white);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: all 0.2s;
+  }
+  .year-btn.active {
+    background: var(--color-white);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+  .year-btn:hover:not(.active) { background: rgba(255,255,255,0.3); }
+
+  .currency-selector {
+    padding: 6px 12px;
+    font-size: var(--font-size-sm);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.15);
+    color: var(--color-white);
+    cursor: pointer;
+  }
+  .currency-selector option { color: var(--color-dark); background: white; }
+
+  /* === SELECTOR BAR === */
+  .selector-bar {
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+  .selector-bar label { font-weight: 600; font-size: var(--font-size-base); color: var(--color-dark); }
+  .manager-select {
+    padding: 8px 14px;
+    font-size: var(--font-size-base);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-white);
+    min-width: 300px;
+    cursor: pointer;
+    color: var(--color-dark);
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  .manager-select:focus { outline: none; border-color: var(--color-secondary); box-shadow: 0 0 0 3px rgba(91,155,213,0.15); }
+  .manager-info { font-size: var(--font-size-sm); color: var(--color-neutral); display: flex; align-items: center; gap: var(--spacing-sm); }
+  .manager-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 12px; font-size: var(--font-size-sm); font-weight: 500;
+  }
+  .manager-badge--bu { background: #E2F0D9; color: #548235; }
+  .manager-badge--count { background: #E3F2FD; color: #1565C0; }
+
+  /* === CONTAINER === */
+  .container { max-width: 1300px; margin: 0 auto; padding: var(--spacing-xl) var(--spacing-lg); }
+
+  /* === KPI STRIP === */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
+  .kpi-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    border-top: 3px solid var(--color-primary);
+    transition: all 0.2s;
+  }
+  .kpi-card:hover { box-shadow: var(--shadow-md); border-color: var(--color-secondary); }
+  .kpi-label {
+    font-size: var(--font-size-sm); color: var(--color-neutral); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: var(--spacing-sm); font-weight: 600;
+  }
+  .kpi-value { font-size: 24px; font-weight: 700; color: var(--color-primary); }
+  .kpi-change { font-size: var(--font-size-sm); margin-top: var(--spacing-sm); }
+  .kpi-change.up { color: var(--color-success); }
+  .kpi-change.down { color: var(--color-danger); }
+
+  /* === SECTION CARDS === */
+  .section-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+  }
+  .section-title {
+    font-size: var(--font-size-lg); font-weight: 600; color: var(--color-dark);
+    margin-bottom: var(--spacing-lg); border-bottom: 2px solid var(--color-border);
+    padding-bottom: var(--spacing-md);
+  }
+
+  /* === TABLES === */
+  table { width: 100%; border-collapse: collapse; font-size: var(--font-size-base); }
+  thead th {
+    background: var(--color-light); color: var(--color-dark); font-weight: 600;
+    padding: var(--spacing-md); text-align: left; border-bottom: 2px solid var(--color-border);
+    font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  thead th.num { text-align: right; }
+  tbody td { padding: var(--spacing-md); border-bottom: 1px solid #f0f0f0; color: var(--color-dark); }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: #f8f9fc; }
+
+  /* === ATTAINMENT BAR === */
+  .attainment-bar { display: flex; align-items: center; gap: 8px; }
+  .attainment-track { flex: 1; height: 8px; background: #eef1f5; border-radius: 4px; overflow: hidden; }
+  .attainment-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .attainment-pct { font-size: var(--font-size-sm); font-weight: 600; min-width: 44px; text-align: right; }
+
+  /* === BADGES === */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: var(--font-size-sm); font-weight: 500; }
+  .badge--success { background: #D4EDDA; color: #155724; }
+  .badge--warning { background: #FFF3CD; color: #856404; }
+  .badge--danger { background: #F8D7DA; color: #721C24; }
+  .badge--info { background: #E3F2FD; color: #1565C0; }
+  .badge--neutral { background: #E2E3E5; color: #383D41; }
+
+  .stage-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .stage-badge.closed { background: #e8f5e9; color: #2e7d32; }
+  .stage-badge.engaged { background: #e3f2fd; color: #1565c0; }
+  .stage-badge.proposal { background: #f3e5f5; color: #7b1fa2; }
+  .stage-badge.inreview { background: #fff3e0; color: #e65100; }
+  .stage-badge.termsagreed { background: #e0f2f1; color: #00695c; }
+  .stage-badge.contractissued { background: #e8eaf6; color: #283593; }
+
+  /* === LINKS === */
+  .exec-link {
+    color: var(--color-primary); text-decoration: none; font-weight: 600; cursor: pointer;
+    transition: color 0.15s;
+  }
+  .exec-link:hover { color: var(--color-secondary); text-decoration: underline; }
+  .exec-link .link-arrow { font-size: 10px; margin-left: 4px; opacity: 0.5; transition: opacity 0.15s, transform 0.15s; display: inline-block; }
+  .exec-link:hover .link-arrow { opacity: 1; transform: translateX(2px); }
+
+  .deal-id-link { font-family: monospace; font-size: 11px; color: var(--color-primary); text-decoration: none; cursor: pointer; }
+  .deal-id-link:hover { text-decoration: underline; }
+
+  /* === MANAGER CARDS === */
+  .manager-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
+  .manager-card {
+    background: var(--color-white); border: 1px solid var(--color-border); border-radius: 8px;
+    overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.2s; cursor: pointer;
+  }
+  .manager-card:hover { box-shadow: var(--shadow-lg); border-color: var(--color-secondary); transform: translateY(-2px); }
+  .manager-card-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #3d7ab8 100%);
+    color: white; padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+  }
+  .manager-card-header h3 { font-size: var(--font-size-lg); font-weight: 700; margin-bottom: 2px; }
+  .manager-card-header .bu-label { font-size: var(--font-size-sm); opacity: 0.8; }
+  .manager-card-body { padding: var(--spacing-lg); }
+  .manager-card-kpi { display: flex; gap: var(--spacing-lg); margin-bottom: var(--spacing-md); }
+  .manager-card-kpi-item { flex: 1; }
+  .manager-card-kpi-item .k-label { font-size: 10px; color: var(--color-neutral); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  .manager-card-kpi-item .k-value { font-size: 16px; font-weight: 700; color: var(--color-primary); margin-top: 2px; }
+  .manager-card-members { font-size: var(--font-size-sm); color: var(--color-neutral); margin-top: var(--spacing-sm); border-top: 1px solid var(--color-border); padding-top: var(--spacing-sm); }
+  .manager-card-members strong { color: var(--color-dark); }
+
+  /* === CHARTS ROW === */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
+  .chart-card {
+    background: var(--color-white); border: 1px solid var(--color-border); border-radius: 8px;
+    padding: var(--spacing-lg); box-shadow: var(--shadow-sm);
+  }
+  .chart-title { font-size: 12px; font-weight: 700; color: var(--color-neutral); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: var(--spacing-lg); }
+
+  /* === BAR CHART ROWS === */
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .bar-label { font-weight: 500; font-size: 12px; color: var(--color-dark); min-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 22px; background: #f0f0f0; border-radius: 3px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; transition: width 0.4s ease; }
+  .bar-fill span { font-size: 10px; font-weight: 600; color: white; white-space: nowrap; }
+  .bar-target-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #333; z-index: 2; }
+  .bar-value { text-align: right; min-width: 70px; font-weight: 600; font-size: 12px; }
+
+  /* === BACK BUTTON === */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--color-light); border: 1px solid var(--color-border); color: var(--color-dark);
+    padding: var(--spacing-sm) var(--spacing-lg); border-radius: 4px;
+    cursor: pointer; font-size: var(--font-size-base); margin-bottom: var(--spacing-lg);
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: var(--color-dark); color: var(--color-white); }
+
+  .hidden { display: none !important; }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 900px) {
+    .manager-grid { grid-template-columns: 1fr; }
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .kpi-strip { grid-template-columns: 1fr; }
+  }
+
+  /* === STACKED BAR === */
+  .stacked-bar { display: flex; height: 24px; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .stacked-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: white; cursor: default; transition: opacity 0.2s; }
+  .stacked-segment:hover { opacity: 0.85; }
+  .stacked-legend { display: flex; gap: var(--spacing-lg); margin-top: var(--spacing-sm); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* === TOOLTIP === */
+  #tooltip { position: fixed; background: #333; color: white; padding: 8px 12px; border-radius: 4px; font-size: 11px; max-width: 220px; pointer-events: none; z-index: 1000; display: none; box-shadow: var(--shadow-lg); }
+  #tooltip.visible { display: block; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="branding">Cerebro <span>CRM</span></div>
+    <div class="branding-sub">Team Manager Dashboard</div>
+  </div>
+  <div class="topbar-right">
+    <div class="year-toggle">
+      <button class="year-btn" id="btnAll" onclick="setYear('all')">All Years</button>
+      <button class="year-btn" id="btn2025" onclick="setYear(2025)">FY 2025</button>
+      <button class="year-btn active" id="btn2026" onclick="setYear(2026)">FY 2026</button>
+    </div>
+    <select class="currency-selector" onchange="setCurrency(this.value)">
+      <option value="GBP" selected>GBP</option>
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+    </select>
+  </div>
+</div>
+
+<!-- SELECTOR BAR -->
+<div class="selector-bar">
+  <label>Manager:</label>
+  <select id="managerSelect" class="manager-select" onchange="selectManager(this.value)">
+    <option value="all">All Managers — Overview</option>
+  </select>
+  <div id="managerInfo" class="manager-info"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+  <div id="overview-view"></div>
+  <div id="detail-view" class="hidden"></div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+/* =============================================
+   DATA — mirrors existing CRM data model
+   ============================================= */
+const DATA = {
+  businessUnits: [
+    {
+      id: 'DIV001', name: 'Arts and Entertainment', head: 'James Crawford', status: 'Active',
+      properties: [
+        { id: 'P001', name: 'Winter Wonderland', category: 'Seasonal Events',
+          targets: { 2025: { original: 12000000, q1_revised: null, q2_revised: 12500000, q3_revised: null, q4_revised: null }, 2026: { original: 13500000, q1_revised: 13200000, q2_revised: null, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D1001', account: 'Merlin Entertainments', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2025-01-20', quarter: 'Q1', year: 2025, category: 'Hospitality' },
+            { id: 'D1002', account: 'Coca-Cola Europacific', owner: 'Tom Ngata', value: 1200000, stage: 'Closed', close_date: '2025-03-12', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D1003', account: 'Swarovski AG', owner: 'Rachel Adams', value: 1680000, stage: 'Closed', close_date: '2025-05-08', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D1004', account: 'Lindt & Sprungli', owner: 'Tom Ngata', value: 980000, stage: 'Closed', close_date: '2025-06-18', quarter: 'Q2', year: 2025, category: 'Hospitality' },
+            { id: 'D1005', account: 'Sky UK', owner: 'Rachel Adams', value: 1850000, stage: 'Closed', close_date: '2025-07-25', quarter: 'Q3', year: 2025, category: 'Sponsorship' },
+            { id: 'D1006', account: 'Haagen-Dazs', owner: 'Tom Ngata', value: 920000, stage: 'Closed', close_date: '2025-09-10', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D1007', account: 'Baileys (Diageo)', owner: 'Rachel Adams', value: 1550000, stage: 'Closed', close_date: '2025-10-28', quarter: 'Q4', year: 2025, category: 'Sponsorship' },
+            { id: 'D1008', account: 'EDF Energy', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-12-10', quarter: 'Q4', year: 2025, category: 'Exhibitors' },
+            { id: 'D1009', account: 'Unilever', owner: 'Rachel Adams', value: 1320000, stage: 'Closed', close_date: '2026-02-14', quarter: 'Q1', year: 2026, category: 'Hospitality' },
+            { id: 'D1010', account: 'Google', owner: 'Tom Ngata', value: 1670000, stage: 'Closed', close_date: '2026-03-20', quarter: 'Q1', year: 2026, category: 'Sponsorship' },
+            { id: 'D1095', account: 'Nike UK', owner: 'Rachel Adams', value: 1420000, stage: 'Closed', close_date: '2026-04-07', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'D1096', account: 'Dyson Ltd', owner: 'Tom Ngata', value: 960000, stage: 'Closed', close_date: '2026-04-04', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+          ],
+          opportunities: [
+            { id: 'OPP1001', account: 'Pepsi Co', owner: 'Rachel Adams', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP1002', account: 'Mercedes Benz', owner: 'Tom Ngata', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+            { id: 'OPP1003', account: 'Nike', owner: 'Rachel Adams', value: 2500000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-22', quarter: 'Q3', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP1004', account: 'Apple Inc', owner: 'Tom Ngata', value: 1800000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-20', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        },
+        { id: 'P002', name: 'Art Fair', category: 'Art Events',
+          targets: { 2025: { original: 8500000, q1_revised: null, q2_revised: null, q3_revised: 8800000, q4_revised: null }, 2026: { original: 9200000, q1_revised: null, q2_revised: 9400000, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D2001', account: 'Sotheby\'s', owner: 'Tom Ngata', value: 1100000, stage: 'Closed', close_date: '2025-02-10', quarter: 'Q1', year: 2025, category: 'Exhibitors' },
+            { id: 'D2002', account: 'Christie\'s', owner: 'Rachel Adams', value: 950000, stage: 'Closed', close_date: '2025-04-05', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D2003', account: 'Gagosian Gallery', owner: 'Tom Ngata', value: 1280000, stage: 'Closed', close_date: '2025-08-12', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D2004', account: 'Pace Gallery', owner: 'Rachel Adams', value: 1450000, stage: 'Closed', close_date: '2026-01-28', quarter: 'Q1', year: 2026, category: 'Exhibitors' },
+          ],
+          opportunities: [
+            { id: 'OPP2001', account: 'David Castillo Gallery', owner: 'Tom Ngata', value: 1650000, stage: 'In Review', probability: 0.5, expected_close: '2026-06-10', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP2002', account: 'Guggenheim', owner: 'Rachel Adams', value: 1400000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-25', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV002', name: 'Tennis', head: 'Sarah Mitchell', status: 'Active',
+      properties: [
+        { id: 'P003', name: 'Grand Slam Series', category: 'Sports Events',
+          targets: { 2025: { original: 15000000, q1_revised: null, q2_revised: 15200000, q3_revised: null, q4_revised: null }, 2026: { original: 16000000, q1_revised: null, q2_revised: null, q3_revised: 16500000, q4_revised: null } },
+          deals: [
+            { id: 'D3001', account: 'Uniqlo', owner: 'Marcus Lee', value: 2200000, stage: 'Closed', close_date: '2025-03-15', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D3002', account: 'Rolex', owner: 'Priya Patel', value: 1950000, stage: 'Closed', close_date: '2025-05-22', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D3003', account: 'Louis Vuitton', owner: 'Marcus Lee', value: 2400000, stage: 'Closed', close_date: '2025-07-10', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D3004', account: 'Lacoste', owner: 'Priya Patel', value: 1850000, stage: 'Closed', close_date: '2025-09-18', quarter: 'Q3', year: 2025, category: 'Exhibitors' },
+            { id: 'D3005', account: 'Subaru', owner: 'Marcus Lee', value: 1750000, stage: 'Closed', close_date: '2026-02-28', quarter: 'Q1', year: 2026, category: 'Sponsorship' },
+          ],
+          opportunities: [
+            { id: 'OPP3001', account: 'BMW', owner: 'Priya Patel', value: 2800000, stage: 'In Review', probability: 0.5, expected_close: '2026-05-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP3002', account: 'Mercedes-Benz', owner: 'Marcus Lee', value: 2300000, stage: 'Terms Agreed', probability: 0.75, expected_close: '2026-04-15', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+            { id: 'OPP3003', account: 'Audi', owner: 'Priya Patel', value: 2100000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-10', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV003', name: 'Frieze', head: 'Michael Chen', status: 'Active',
+      properties: [
+        { id: 'P004', name: 'Frieze Masters', category: 'Art Fair',
+          targets: { 2025: { original: 11000000, q1_revised: null, q2_revised: null, q3_revised: 11300000, q4_revised: null }, 2026: { original: 11800000, q1_revised: null, q2_revised: 12000000, q3_revised: null, q4_revised: null } },
+          deals: [
+            { id: 'D4001', account: 'LVMH', owner: 'Elena Rodriguez', value: 2100000, stage: 'Closed', close_date: '2025-04-10', quarter: 'Q2', year: 2025, category: 'Exhibitors' },
+            { id: 'D4002', account: 'Richemont', owner: 'James Park', value: 1850000, stage: 'Closed', close_date: '2025-06-20', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D4003', account: 'Kering', owner: 'Elena Rodriguez', value: 2300000, stage: 'Closed', close_date: '2025-09-05', quarter: 'Q3', year: 2025, category: 'Hospitality' },
+            { id: 'D4004', account: 'Hermes', owner: 'James Park', value: 1950000, stage: 'Closed', close_date: '2026-03-12', quarter: 'Q1', year: 2026, category: 'Exhibitors' },
+            { id: 'D4095', account: 'Cartier International', owner: 'Elena Rodriguez', value: 1850000, stage: 'Closed', close_date: '2026-04-08', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'D4096', account: 'Tiffany & Co.', owner: 'James Park', value: 1120000, stage: 'Closed', close_date: '2026-04-05', quarter: 'Q2', year: 2026, category: 'Hospitality' },
+          ],
+          opportunities: [
+            { id: 'OPP4001', account: 'Cartier', owner: 'Elena Rodriguez', value: 2650000, stage: 'Proposal', probability: 0.3, expected_close: '2026-07-20', quarter: 'Q3', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP4002', account: 'Van Cleef & Arpels', owner: 'James Park', value: 2200000, stage: 'Engaged', probability: 0.1, expected_close: '2026-08-30', quarter: 'Q3', year: 2026, category: 'Hospitality' },
+            { id: 'OPP4003', account: 'Piaget', owner: 'Elena Rodriguez', value: 1950000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-18', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'DIV004', name: 'Action Sports', head: 'David Williams', status: 'Active',
+      properties: [
+        { id: 'P005', name: 'X Games', category: 'Sports Events',
+          targets: { 2025: { original: 9500000, q1_revised: null, q2_revised: 9700000, q3_revised: null, q4_revised: null }, 2026: { original: 10200000, q1_revised: null, q2_revised: null, q3_revised: 10500000, q4_revised: null } },
+          deals: [
+            { id: 'D5001', account: 'Red Bull', owner: 'Alex Kumar', value: 1850000, stage: 'Closed', close_date: '2025-02-28', quarter: 'Q1', year: 2025, category: 'Sponsorship' },
+            { id: 'D5002', account: 'Monster Energy', owner: 'Nicole Hart', value: 1650000, stage: 'Closed', close_date: '2025-05-15', quarter: 'Q2', year: 2025, category: 'Sponsorship' },
+            { id: 'D5003', account: 'GoPro', owner: 'Alex Kumar', value: 1420000, stage: 'Closed', close_date: '2025-08-10', quarter: 'Q3', year: 2025, category: 'Exhibitors' },
+            { id: 'D5004', account: 'Nike SB', owner: 'Nicole Hart', value: 1680000, stage: 'Closed', close_date: '2026-01-20', quarter: 'Q1', year: 2026, category: 'Hospitality' },
+          ],
+          opportunities: [
+            { id: 'OPP5001', account: 'Redbull Media House', owner: 'Alex Kumar', value: 2100000, stage: 'In Review', probability: 0.5, expected_close: '2026-04-30', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+            { id: 'OPP5002', account: 'Puma', owner: 'Nicole Hart', value: 1900000, stage: 'Proposal', probability: 0.3, expected_close: '2026-06-15', quarter: 'Q2', year: 2026, category: 'Exhibitors' },
+            { id: 'OPP5003', account: 'Adidas', owner: 'Alex Kumar', value: 1750000, stage: 'Contract Issued', probability: 0.9, expected_close: '2026-04-12', quarter: 'Q2', year: 2026, category: 'Sponsorship' },
+          ]
+        }
+      ]
+    }
+  ],
+  salesExecs: [
+    { name: 'Rachel Adams', businessUnit: 'Arts and Entertainment', target: 4000000 },
+    { name: 'Tom Ngata', businessUnit: 'Arts and Entertainment', target: 3800000 },
+    { name: 'Marcus Lee', businessUnit: 'Tennis', target: 5200000 },
+    { name: 'Priya Patel', businessUnit: 'Tennis', target: 5000000 },
+    { name: 'Elena Rodriguez', businessUnit: 'Frieze', target: 4600000 },
+    { name: 'James Park', businessUnit: 'Frieze', target: 4400000 },
+    { name: 'Alex Kumar', businessUnit: 'Action Sports', target: 3900000 },
+    { name: 'Nicole Hart', businessUnit: 'Action Sports', target: 3700000 },
+  ]
+};
+
+/* =============================================
+   MANAGERS — derived from business unit heads
+   ============================================= */
+const MANAGERS = DATA.businessUnits.map(bu => ({
+  name: bu.head,
+  businessUnit: bu.name,
+  team: DATA.salesExecs.filter(e => e.businessUnit === bu.name)
+}));
+
+/* =============================================
+   UTILITY FUNCTIONS
+   ============================================= */
+let currentYear = 2026;
+let currentCurrency = 'GBP';
+let currentManager = 'all';
+
+const CURRENCY_CONFIG = {
+  GBP: { symbol: '\u00A3', locale: 'en-GB', rate: 1 },
+  USD: { symbol: '$', locale: 'en-US', rate: 1.27 },
+  EUR: { symbol: '\u20AC', locale: 'de-DE', rate: 1.16 }
+};
+const COLORS = ['#4e79a7','#f28e2b','#59a14f','#e15759','#b07aa1','#76b7b2','#edc948','#9c755f'];
+
+function convertCurrency(n) { return n * (CURRENCY_CONFIG[currentCurrency] || CURRENCY_CONFIG.GBP).rate; }
+function sym() { return (CURRENCY_CONFIG[currentCurrency] || CURRENCY_CONFIG.GBP).symbol; }
+
+function fmt(n) {
+  var c = convertCurrency(n), s = sym();
+  if (Math.abs(c) >= 1e6) return (c < 0 ? '-' : '') + s + (Math.abs(c) / 1e6).toFixed(2) + 'M';
+  if (Math.abs(c) >= 1e3) return (c < 0 ? '-' : '') + s + (Math.abs(c) / 1e3).toFixed(0) + 'K';
+  return s + c.toFixed(0);
+}
+function fmtFull(n) {
+  var c = convertCurrency(n), s = sym(), cfg = CURRENCY_CONFIG[currentCurrency] || CURRENCY_CONFIG.GBP;
+  return (c < 0 ? '-' : '') + s + Math.abs(c).toLocaleString(cfg.locale, { maximumFractionDigits: 0 });
+}
+function pct(n) { return (n * 100).toFixed(1) + '%'; }
+
+function attainColor(ratio) {
+  if (ratio >= 1) return 'var(--color-success)';
+  if (ratio >= 0.85) return 'var(--color-secondary)';
+  if (ratio >= 0.7) return 'var(--color-warning)';
+  return 'var(--color-danger)';
+}
+function attainBadge(ratio) {
+  if (ratio >= 1) return 'badge--success';
+  if (ratio >= 0.7) return 'badge--warning';
+  return 'badge--danger';
+}
+
+function filterByYear(items) {
+  if (currentYear === 'all') return items;
+  return items.filter(i => i.year === parseInt(currentYear));
+}
+
+/* Get all deals for a given exec name */
+function getExecDeals(name) {
+  var deals = [];
+  DATA.businessUnits.forEach(function(bu) {
+    bu.properties.forEach(function(prop) {
+      prop.deals.forEach(function(d) {
+        if (d.owner === name) deals.push(Object.assign({}, d, { property: prop.name, businessUnit: bu.name }));
+      });
+    });
+  });
+  return filterByYear(deals);
+}
+
+/* Get all opportunities for a given exec name */
+function getExecOpps(name) {
+  var opps = [];
+  DATA.businessUnits.forEach(function(bu) {
+    bu.properties.forEach(function(prop) {
+      if (!prop.opportunities) return;
+      prop.opportunities.forEach(function(o) {
+        if (o.owner === name) opps.push(Object.assign({}, o, { property: prop.name, businessUnit: bu.name }));
+      });
+    });
+  });
+  return filterByYear(opps);
+}
+
+/* Get exec revenue (closed deals) */
+function getExecRevenue(name) {
+  return getExecDeals(name).filter(d => d.stage === 'Closed').reduce((s, d) => s + d.value, 0);
+}
+
+/* Get exec pipeline (open opportunities) */
+function getExecPipeline(name) {
+  return getExecOpps(name).reduce((s, o) => s + o.value, 0);
+}
+
+/* Get exec weighted pipeline */
+function getExecWeightedPipeline(name) {
+  return getExecOpps(name).reduce((s, o) => s + (o.value * o.probability), 0);
+}
+
+/* Get exec deal count */
+function getExecDealCount(name) {
+  return getExecDeals(name).filter(d => d.stage === 'Closed').length;
+}
+
+/* Get team aggregate stats */
+function getTeamStats(manager) {
+  var target = 0, revenue = 0, pipeline = 0, weightedPipeline = 0, deals = 0;
+  manager.team.forEach(function(exec) {
+    target += exec.target;
+    revenue += getExecRevenue(exec.name);
+    pipeline += getExecPipeline(exec.name);
+    weightedPipeline += getExecWeightedPipeline(exec.name);
+    deals += getExecDealCount(exec.name);
+  });
+  return { target: target, revenue: revenue, pipeline: pipeline, weightedPipeline: weightedPipeline, deals: deals };
+}
+
+/* Populate manager dropdown */
+function populateManagerSelect() {
+  var sel = document.getElementById('managerSelect');
+  sel.innerHTML = '<option value="all">All Managers \u2014 Overview</option>';
+  MANAGERS.forEach(function(m) {
+    sel.innerHTML += '<option value="' + m.name + '">' + m.name + ' \u2014 ' + m.businessUnit + ' (' + m.team.length + ' staff)</option>';
+  });
+}
+
+/* Open the Sales Exec Dashboard filtered to a specific exec */
+function openExecDashboard(execName) {
+  window.open('Sales-Exec-Dashboard.html?exec=' + encodeURIComponent(execName), '_blank');
+}
+
+/* =============================================
+   TOOLTIP
+   ============================================= */
+var tooltipEl = document.getElementById('tooltip');
+function showTooltip(e, html) { tooltipEl.innerHTML = html; tooltipEl.classList.add('visible'); tooltipEl.style.left = (e.clientX + 12) + 'px'; tooltipEl.style.top = (e.clientY + 12) + 'px'; }
+function hideTooltip() { tooltipEl.classList.remove('visible'); }
+document.addEventListener('mousemove', function(e) { if (tooltipEl.classList.contains('visible')) { tooltipEl.style.left = (e.clientX + 12) + 'px'; tooltipEl.style.top = (e.clientY + 12) + 'px'; } });
+
+/* =============================================
+   EVENT HANDLERS
+   ============================================= */
+function setYear(y) {
+  currentYear = y;
+  document.querySelectorAll('.year-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (y === 'all') document.getElementById('btnAll').classList.add('active');
+  else document.getElementById('btn' + y).classList.add('active');
+  render();
+}
+
+function setCurrency(curr) {
+  currentCurrency = curr;
+  render();
+}
+
+function selectManager(val) {
+  currentManager = val;
+  render();
+}
+
+function render() {
+  var overviewView = document.getElementById('overview-view');
+  var detailView = document.getElementById('detail-view');
+  if (currentManager === 'all') {
+    overviewView.classList.remove('hidden');
+    detailView.classList.add('hidden');
+    renderOverview();
+  } else {
+    overviewView.classList.add('hidden');
+    detailView.classList.remove('hidden');
+    renderManagerDetail(currentManager);
+  }
+  updateManagerInfo();
+}
+
+function updateManagerInfo() {
+  var info = document.getElementById('managerInfo');
+  if (currentManager === 'all') {
+    info.innerHTML = '<span class="manager-badge manager-badge--count">' + MANAGERS.length + ' Managers</span>' +
+      '<span class="manager-badge manager-badge--count">' + DATA.salesExecs.length + ' Sales Staff</span>';
+  } else {
+    var mgr = MANAGERS.find(m => m.name === currentManager);
+    info.innerHTML = '<span class="manager-badge manager-badge--bu">' + mgr.businessUnit + '</span>' +
+      '<span class="manager-badge manager-badge--count">' + mgr.team.length + ' Staff</span>';
+  }
+}
+
+/* =============================================
+   OVERVIEW — All Managers Cards
+   ============================================= */
+function renderOverview() {
+  var html = '';
+
+  /* Global KPIs */
+  var totalTarget = 0, totalRevenue = 0, totalPipeline = 0, totalDeals = 0;
+  MANAGERS.forEach(function(m) {
+    var stats = getTeamStats(m);
+    totalTarget += stats.target;
+    totalRevenue += stats.revenue;
+    totalPipeline += stats.pipeline;
+    totalDeals += stats.deals;
+  });
+  var globalAttain = totalTarget > 0 ? totalRevenue / totalTarget : 0;
+
+  html += '<div class="kpi-strip">';
+  html += '<div class="kpi-card"><div class="kpi-label">Total Team Target</div><div class="kpi-value">' + fmt(totalTarget) + '</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Total Revenue (Closed)</div><div class="kpi-value">' + fmt(totalRevenue) + '</div><div class="kpi-change ' + (globalAttain >= 0.5 ? 'up' : 'down') + '">' + pct(globalAttain) + ' of target</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Total Pipeline</div><div class="kpi-value">' + fmt(totalPipeline) + '</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Total Deals Won</div><div class="kpi-value">' + totalDeals + '</div></div>';
+  html += '</div>';
+
+  /* Manager Cards Grid */
+  html += '<div class="manager-grid">';
+  MANAGERS.forEach(function(m, idx) {
+    var stats = getTeamStats(m);
+    var attain = stats.target > 0 ? stats.revenue / stats.target : 0;
+    var memberNames = m.team.map(function(e) { return e.name; }).join(', ');
+
+    html += '<div class="manager-card" onclick="selectManager(\'' + m.name + '\'); document.getElementById(\'managerSelect\').value=\'' + m.name + '\'">';
+    html += '<div class="manager-card-header"><h3>' + m.name + '</h3><div class="bu-label">' + m.businessUnit + '</div></div>';
+    html += '<div class="manager-card-body">';
+    html += '<div class="manager-card-kpi">';
+    html += '<div class="manager-card-kpi-item"><div class="k-label">Target</div><div class="k-value">' + fmt(stats.target) + '</div></div>';
+    html += '<div class="manager-card-kpi-item"><div class="k-label">Revenue</div><div class="k-value">' + fmt(stats.revenue) + '</div></div>';
+    html += '<div class="manager-card-kpi-item"><div class="k-label">Attainment</div><div class="k-value" style="color:' + attainColor(attain) + '">' + pct(attain) + '</div></div>';
+    html += '</div>';
+    html += '<div style="margin-bottom:8px"><div class="attainment-bar"><div class="attainment-track"><div class="attainment-fill" style="width:' + Math.min(attain * 100, 100).toFixed(1) + '%;background:' + attainColor(attain) + '"></div></div></div></div>';
+    html += '<div class="manager-card-kpi" style="margin-bottom:0">';
+    html += '<div class="manager-card-kpi-item"><div class="k-label">Pipeline</div><div class="k-value" style="font-size:14px;color:var(--color-secondary)">' + fmt(stats.pipeline) + '</div></div>';
+    html += '<div class="manager-card-kpi-item"><div class="k-label">Deals Won</div><div class="k-value" style="font-size:14px;color:var(--color-success)">' + stats.deals + '</div></div>';
+    html += '<div class="manager-card-kpi-item"><div class="k-label">Staff</div><div class="k-value" style="font-size:14px">' + m.team.length + '</div></div>';
+    html += '</div>';
+    html += '<div class="manager-card-members"><strong>Team:</strong> ' + memberNames + '</div>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  /* Revenue Comparison Chart */
+  html += '<div class="charts-row">';
+
+  /* Team Revenue vs Target */
+  html += '<div class="chart-card"><div class="chart-title">Team Revenue vs Target by Manager</div>';
+  var maxVal = 0;
+  MANAGERS.forEach(function(m) { var s = getTeamStats(m); maxVal = Math.max(maxVal, s.revenue, s.target); });
+  MANAGERS.forEach(function(m, idx) {
+    var stats = getTeamStats(m);
+    var revPct = maxVal > 0 ? (stats.revenue / maxVal * 100).toFixed(1) : 0;
+    var tgtPct = maxVal > 0 ? (stats.target / maxVal * 100).toFixed(1) : 0;
+    html += '<div class="bar-row">';
+    html += '<div class="bar-label">' + m.name.split(' ')[0] + '</div>';
+    html += '<div class="bar-track"><div class="bar-fill" style="width:' + revPct + '%;background:' + COLORS[idx % COLORS.length] + '"><span>' + fmt(stats.revenue) + '</span></div>';
+    html += '<div class="bar-target-line" style="left:' + tgtPct + '%" title="Target: ' + fmt(stats.target) + '"></div></div>';
+    html += '<div class="bar-value">' + fmt(stats.target) + '</div>';
+    html += '</div>';
+  });
+  html += '<div style="font-size:10px;color:var(--color-neutral);margin-top:8px">Black line = target</div>';
+  html += '</div>';
+
+  /* Attainment Ranking */
+  html += '<div class="chart-card"><div class="chart-title">Manager Attainment Ranking</div>';
+  var ranked = MANAGERS.map(function(m) { var s = getTeamStats(m); return { name: m.name, bu: m.businessUnit, attain: s.target > 0 ? s.revenue / s.target : 0, revenue: s.revenue, target: s.target }; });
+  ranked.sort(function(a, b) { return b.attain - a.attain; });
+  ranked.forEach(function(r, i) {
+    html += '<div class="bar-row">';
+    html += '<div class="bar-label">' + r.name.split(' ')[0] + '</div>';
+    html += '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(r.attain * 100, 100).toFixed(1) + '%;background:' + attainColor(r.attain) + '"><span>' + pct(r.attain) + '</span></div></div>';
+    html += '<div class="bar-value" style="color:' + attainColor(r.attain) + '">' + pct(r.attain) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '</div>';
+
+  document.getElementById('overview-view').innerHTML = html;
+}
+
+/* =============================================
+   MANAGER DETAIL VIEW
+   ============================================= */
+function renderManagerDetail(managerName) {
+  var mgr = MANAGERS.find(function(m) { return m.name === managerName; });
+  if (!mgr) return;
+  var stats = getTeamStats(mgr);
+  var attain = stats.target > 0 ? stats.revenue / stats.target : 0;
+
+  var html = '';
+
+  /* Back button */
+  html += '<button class="back-btn" onclick="selectManager(\'all\'); document.getElementById(\'managerSelect\').value=\'all\'"><span>\u2190</span> Back to All Managers</button>';
+
+  /* Manager Header */
+  html += '<div style="margin-bottom:20px"><h2 style="font-size:20px;font-weight:700;color:var(--color-dark)">' + mgr.name + '</h2>';
+  html += '<div style="font-size:13px;color:var(--color-neutral);margin-top:2px">' + mgr.businessUnit + ' \u2014 ' + mgr.team.length + ' direct reports</div></div>';
+
+  /* KPI Strip */
+  html += '<div class="kpi-strip">';
+  html += '<div class="kpi-card"><div class="kpi-label">Team Target</div><div class="kpi-value">' + fmt(stats.target) + '</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Revenue (Closed)</div><div class="kpi-value">' + fmt(stats.revenue) + '</div><div class="kpi-change ' + (attain >= 0.5 ? 'up' : 'down') + '">' + pct(attain) + ' attainment</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Pipeline</div><div class="kpi-value" style="color:var(--color-secondary)">' + fmt(stats.pipeline) + '</div><div class="kpi-change" style="color:var(--color-neutral)">Weighted: ' + fmt(stats.weightedPipeline) + '</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Deals Won</div><div class="kpi-value" style="color:var(--color-success)">' + stats.deals + '</div></div>';
+  html += '</div>';
+
+  /* Team Performance Table */
+  html += '<div class="section-card">';
+  html += '<div class="section-title">Team Performance</div>';
+  html += '<table><thead><tr>';
+  html += '<th>Sales Executive</th><th class="num">Target</th><th class="num">Revenue</th><th class="num">Attainment</th><th class="num">Deals Won</th><th class="num">Pipeline</th><th class="num">Weighted Pipeline</th><th style="text-align:center">Status</th>';
+  html += '</tr></thead><tbody>';
+
+  mgr.team.forEach(function(exec) {
+    var rev = getExecRevenue(exec.name);
+    var pip = getExecPipeline(exec.name);
+    var wPip = getExecWeightedPipeline(exec.name);
+    var dc = getExecDealCount(exec.name);
+    var ea = exec.target > 0 ? rev / exec.target : 0;
+
+    html += '<tr>';
+    html += '<td><a class="exec-link" href="javascript:void(0)" onclick="openExecDashboard(\'' + exec.name.replace(/'/g, "\\'") + '\')">' + exec.name + ' <span class="link-arrow">\u2192</span></a></td>';
+    html += '<td class="num">' + fmt(exec.target) + '</td>';
+    html += '<td class="num" style="font-weight:600">' + fmt(rev) + '</td>';
+    html += '<td class="num"><div class="attainment-bar"><div class="attainment-track"><div class="attainment-fill" style="width:' + Math.min(ea * 100, 100).toFixed(1) + '%;background:' + attainColor(ea) + '"></div></div><div class="attainment-pct" style="color:' + attainColor(ea) + '">' + pct(ea) + '</div></div></td>';
+    html += '<td class="num">' + dc + '</td>';
+    html += '<td class="num" style="color:var(--color-secondary)">' + fmt(pip) + '</td>';
+    html += '<td class="num">' + fmt(wPip) + '</td>';
+    html += '<td style="text-align:center"><span class="badge ' + attainBadge(ea) + '">' + (ea >= 1 ? 'On Track' : ea >= 0.7 ? 'At Risk' : 'Behind') + '</span></td>';
+    html += '</tr>';
+  });
+
+  /* Team totals row */
+  html += '<tr style="background:#f8f9fc;font-weight:700">';
+  html += '<td>Team Total</td>';
+  html += '<td class="num">' + fmt(stats.target) + '</td>';
+  html += '<td class="num">' + fmt(stats.revenue) + '</td>';
+  html += '<td class="num"><div class="attainment-bar"><div class="attainment-track"><div class="attainment-fill" style="width:' + Math.min(attain * 100, 100).toFixed(1) + '%;background:' + attainColor(attain) + '"></div></div><div class="attainment-pct" style="color:' + attainColor(attain) + '">' + pct(attain) + '</div></div></td>';
+  html += '<td class="num">' + stats.deals + '</td>';
+  html += '<td class="num" style="color:var(--color-secondary)">' + fmt(stats.pipeline) + '</td>';
+  html += '<td class="num">' + fmt(stats.weightedPipeline) + '</td>';
+  html += '<td></td>';
+  html += '</tr>';
+
+  html += '</tbody></table></div>';
+
+  /* Charts Row */
+  html += '<div class="charts-row">';
+
+  /* Exec Revenue vs Target */
+  html += '<div class="chart-card"><div class="chart-title">Individual Revenue vs Target</div>';
+  var maxExecVal = 0;
+  mgr.team.forEach(function(exec) { var r = getExecRevenue(exec.name); maxExecVal = Math.max(maxExecVal, r, exec.target); });
+  mgr.team.forEach(function(exec, idx) {
+    var rev = getExecRevenue(exec.name);
+    var revPct = maxExecVal > 0 ? (rev / maxExecVal * 100).toFixed(1) : 0;
+    var tgtPct = maxExecVal > 0 ? (exec.target / maxExecVal * 100).toFixed(1) : 0;
+    html += '<div class="bar-row">';
+    html += '<div class="bar-label">' + exec.name.split(' ')[0] + '</div>';
+    html += '<div class="bar-track"><div class="bar-fill" style="width:' + revPct + '%;background:' + COLORS[idx % COLORS.length] + '"><span>' + fmt(rev) + '</span></div>';
+    html += '<div class="bar-target-line" style="left:' + tgtPct + '%" title="Target: ' + fmt(exec.target) + '"></div></div>';
+    html += '<div class="bar-value">' + fmt(exec.target) + '</div>';
+    html += '</div>';
+  });
+  html += '<div style="font-size:10px;color:var(--color-neutral);margin-top:8px">Black line = target</div>';
+  html += '</div>';
+
+  /* Pipeline Composition */
+  html += '<div class="chart-card"><div class="chart-title">Pipeline by Stage</div>';
+  var stageMap = {};
+  var stageColors = { 'Engaged': '#e3f2fd', 'Proposal': '#f3e5f5', 'In Review': '#fff3e0', 'Terms Agreed': '#e0f2f1', 'Contract Issued': '#e8eaf6' };
+  var stageTextColors = { 'Engaged': '#1565c0', 'Proposal': '#7b1fa2', 'In Review': '#e65100', 'Terms Agreed': '#00695c', 'Contract Issued': '#283593' };
+  var stageBgs = { 'Engaged': '#4e79a7', 'Proposal': '#b07aa1', 'In Review': '#f28e2b', 'Terms Agreed': '#76b7b2', 'Contract Issued': '#59a14f' };
+
+  mgr.team.forEach(function(exec) {
+    getExecOpps(exec.name).forEach(function(o) {
+      if (!stageMap[o.stage]) stageMap[o.stage] = 0;
+      stageMap[o.stage] += o.value;
+    });
+  });
+
+  var stageTotal = Object.values(stageMap).reduce(function(s, v) { return s + v; }, 0);
+  if (stageTotal > 0) {
+    html += '<div class="stacked-bar">';
+    Object.keys(stageMap).forEach(function(stage) {
+      var pctVal = (stageMap[stage] / stageTotal * 100).toFixed(1);
+      var bg = stageBgs[stage] || '#999';
+      html += '<div class="stacked-segment" style="width:' + pctVal + '%;background:' + bg + '"' +
+        ' onmouseenter="showTooltip(event, \'<strong>' + stage + '</strong><br>' + fmt(stageMap[stage]) + ' (' + pctVal + '%)\u200B\')"' +
+        ' onmouseleave="hideTooltip()">' + (parseFloat(pctVal) > 12 ? fmt(stageMap[stage]) : '') + '</div>';
+    });
+    html += '</div>';
+    html += '<div class="stacked-legend">';
+    Object.keys(stageMap).forEach(function(stage) {
+      var bg = stageBgs[stage] || '#999';
+      html += '<div class="legend-item"><div class="legend-dot" style="background:' + bg + '"></div>' + stage + ': ' + fmt(stageMap[stage]) + '</div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="padding:40px;text-align:center;color:var(--color-neutral)">No pipeline data for this period</div>';
+  }
+  html += '</div>';
+
+  html += '</div>';
+
+  /* Recent Deals Table */
+  html += '<div class="section-card">';
+  html += '<div class="section-title">Recent Closed Deals</div>';
+  var allDeals = [];
+  mgr.team.forEach(function(exec) {
+    getExecDeals(exec.name).filter(function(d) { return d.stage === 'Closed'; }).forEach(function(d) { allDeals.push(d); });
+  });
+  allDeals.sort(function(a, b) { return new Date(b.close_date) - new Date(a.close_date); });
+  var recentDeals = allDeals.slice(0, 10);
+
+  if (recentDeals.length > 0) {
+    html += '<table><thead><tr><th>Deal ID</th><th>Account</th><th>Owner</th><th>Property</th><th class="num">Value</th><th>Close Date</th><th>Quarter</th></tr></thead><tbody>';
+    recentDeals.forEach(function(d) {
+      html += '<tr>';
+      html += '<td><a class="deal-id-link" href="javascript:void(0)" onclick="openDealDetail(\'' + d.id + '\')">' + d.id + '</a></td>';
+      html += '<td>' + d.account + '</td>';
+      html += '<td><a class="exec-link" href="javascript:void(0)" onclick="openExecDashboard(\'' + d.owner.replace(/'/g, "\\'") + '\')">' + d.owner + '</a></td>';
+      html += '<td>' + d.property + '</td>';
+      html += '<td class="num" style="font-weight:600">' + fmt(d.value) + '</td>';
+      html += '<td>' + d.close_date + '</td>';
+      html += '<td>' + d.quarter + ' ' + d.year + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="padding:40px;text-align:center;color:var(--color-neutral)">No closed deals for this period</div>';
+  }
+  html += '</div>';
+
+  /* Open Opportunities Table */
+  html += '<div class="section-card">';
+  html += '<div class="section-title">Open Opportunities</div>';
+  var allOpps = [];
+  mgr.team.forEach(function(exec) {
+    getExecOpps(exec.name).forEach(function(o) { allOpps.push(o); });
+  });
+  allOpps.sort(function(a, b) { return b.value - a.value; });
+
+  if (allOpps.length > 0) {
+    html += '<table><thead><tr><th>Opp ID</th><th>Account</th><th>Owner</th><th>Property</th><th class="num">Value</th><th>Stage</th><th class="num">Probability</th><th>Expected Close</th></tr></thead><tbody>';
+    allOpps.forEach(function(o) {
+      var stageClass = o.stage.toLowerCase().replace(/\s+/g, '').replace(/[()%]/g, '');
+      html += '<tr>';
+      html += '<td><a class="deal-id-link" href="javascript:void(0)" onclick="openDealDetail(\'' + o.id + '\')">' + o.id + '</a></td>';
+      html += '<td>' + o.account + '</td>';
+      html += '<td><a class="exec-link" href="javascript:void(0)" onclick="openExecDashboard(\'' + o.owner.replace(/'/g, "\\'") + '\')">' + o.owner + '</a></td>';
+      html += '<td>' + o.property + '</td>';
+      html += '<td class="num" style="font-weight:600">' + fmt(o.value) + '</td>';
+      html += '<td><span class="stage-badge ' + stageClass + '">' + o.stage + '</span></td>';
+      html += '<td class="num">' + (o.probability * 100).toFixed(0) + '%</td>';
+      html += '<td>' + o.expected_close + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="padding:40px;text-align:center;color:var(--color-neutral)">No open opportunities for this period</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('detail-view').innerHTML = html;
+}
+
+/* Deal detail popup (same as other dashboards) */
+function openDealDetail(id) {
+  var item = null, itemType = id.startsWith('O') ? 'Opportunity' : 'Deal', propName = '', buName = '';
+  DATA.businessUnits.forEach(function(bu) {
+    bu.properties.forEach(function(prop) {
+      var found = (prop.deals || []).find(function(d) { return d.id === id; }) || (prop.opportunities || []).find(function(o) { return o.id === id; });
+      if (found) { item = found; propName = prop.name; buName = bu.name; }
+    });
+  });
+  if (!item) return;
+  var isOpp = id.startsWith('O');
+  var s = sym();
+  var val = convertCurrency(item.value);
+  var fmtVal = s + val.toLocaleString(undefined, {maximumFractionDigits:0});
+  var w = window.open('', '_blank', 'width=640,height=600,scrollbars=yes');
+  w.document.write('<!DOCTYPE html><html><head><title>' + itemType + ' ' + id + ' \u2014 CerebroCRM</title>' +
+    '<style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:#f5f6f8;color:#333}' +
+    '.header{background:linear-gradient(135deg,#2E5C8A,#5B9BD5);color:#fff;padding:20px 24px}.header h1{font-size:18px;margin:0}.header .sub{font-size:12px;opacity:.7;margin-top:4px}' +
+    '.body{padding:24px}.field{display:flex;padding:10px 0;border-bottom:1px solid #eee}.label{width:160px;font-weight:600;color:#666;font-size:12px;text-transform:uppercase;letter-spacing:.3px}.val{flex:1;font-size:14px}' +
+    '.stage{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:#e8f5e9;color:#2e7d32}' +
+    '.actions{margin-top:20px;padding-top:16px;border-top:1px solid #ddd;text-align:right}.actions button{padding:8px 20px;border:none;border-radius:4px;cursor:pointer;font-size:13px}' +
+    '.btn-primary{background:#4e79a7;color:#fff}.btn-secondary{background:#eee;color:#333;margin-right:8px}</style></head><body>' +
+    '<div class="header"><h1>' + itemType + ': ' + id + '</h1><div class="sub">' + item.account + ' \u2014 ' + propName + '</div></div>' +
+    '<div class="body">' +
+    '<div class="field"><div class="label">Account</div><div class="val">' + item.account + '</div></div>' +
+    '<div class="field"><div class="label">Business Unit</div><div class="val">' + buName + '</div></div>' +
+    '<div class="field"><div class="label">Property</div><div class="val">' + propName + '</div></div>' +
+    '<div class="field"><div class="label">Owner</div><div class="val">' + item.owner + '</div></div>' +
+    '<div class="field"><div class="label">Value</div><div class="val">' + fmtVal + '</div></div>' +
+    '<div class="field"><div class="label">Stage</div><div class="val"><span class="stage">' + item.stage + '</span></div></div>' +
+    '<div class="field"><div class="label">' + (isOpp ? 'Expected Close' : 'Close Date') + '</div><div class="val">' + (isOpp ? item.expected_close : item.close_date) + '</div></div>' +
+    '<div class="field"><div class="label">Quarter / Year</div><div class="val">' + item.quarter + ' ' + item.year + '</div></div>' +
+    (isOpp ? '<div class="field"><div class="label">Probability</div><div class="val">' + (item.probability * 100).toFixed(0) + '%</div></div>' : '') +
+    '<div class="actions"><button class="btn-secondary" onclick="window.print()">Print</button><button class="btn-primary" onclick="window.close()">Close</button></div>' +
+    '</div></body></html>');
+  w.document.close();
+}
+
+/* =============================================
+   INIT
+   ============================================= */
+populateManagerSelect();
+render();
+</script>
+</body>
+</html>

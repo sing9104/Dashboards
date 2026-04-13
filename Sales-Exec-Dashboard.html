@@ -52,7 +52,7 @@
   .dashboard { max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
   .section-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--tableau-blue); display: inline-block; }
 
-  .kpi-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
   .kpi-card { background: var(--bg-card); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--tableau-blue); }
   .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
   .kpi-value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
@@ -1029,6 +1029,7 @@ function renderExecDashboard() {
   html += '<div class="kpi-card"><div class="kpi-label">Target</div><div class="kpi-value">' + fmt(target) + '</div><div class="kpi-compare" style="color:var(--text-muted)">Current FY target</div></div>';
   html += '<div class="kpi-card"><div class="kpi-label">Sales</div><div class="kpi-value">' + fmt(totalSales) + '</div><div class="kpi-compare" style="color:var(--text-muted)">' + closedDeals.length + ' closed deals</div></div>';
   html += '<div class="kpi-card"><div class="kpi-label">Left to Achieve</div><div class="kpi-value" style="color:' + (leftToAchieve < 0 ? 'var(--tableau-red)' : 'var(--tableau-green)') + '">' + (leftToAchieve < 0 ? '-' + fmt(Math.abs(leftToAchieve)) : '+' + fmt(leftToAchieve)) + '</div><div class="kpi-compare" style="color:var(--text-muted)">' + (leftToAchieve >= 0 ? 'Target exceeded!' : 'To reach target') + '</div></div>';
+  html += '<div class="kpi-card" style="border-top-color:var(--tableau-purple)"><div class="kpi-label">Pipeline Total</div><div class="kpi-value" style="color:var(--tableau-purple)">' + fmt(pipelineVal) + '</div><div class="kpi-compare" style="color:var(--text-muted)">' + opps.length + ' open opportunit' + (opps.length === 1 ? 'y' : 'ies') + '</div></div>';
   html += '</div>';
 
   // === TARGET BREAKDOWN BY PROPERTY ===
@@ -1228,7 +1229,7 @@ function populatePropChart(closedDeals, exec, year) {
   var salesByProp = {};
   closedDeals.forEach(function(d) { salesByProp[d.property] = (salesByProp[d.property] || 0) + d.value; });
 
-  // Build combined data: merge targets, exec sales, and total property sales
+  // Build combined data: merge exec sales and total property sales
   var propMap = {};
   propTargets.forEach(function(pt) {
     propMap[pt.property] = { target: pt.target, sales: 0, pctOfTotal: pt.pctOfTotal, totalPropSales: 0 };
@@ -1242,54 +1243,78 @@ function populatePropChart(closedDeals, exec, year) {
     propMap[name].totalPropSales = getTotalPropertySales(name, year);
   });
 
-  var propArr = Object.entries(propMap).sort(function(a, b) { return b[1].target - a[1].target; });
-  var maxVal = 1;
-  propArr.forEach(function(entry) {
-    if (entry[1].target > maxVal) maxVal = entry[1].target;
-    if (entry[1].sales > maxVal) maxVal = entry[1].sales;
-    if (entry[1].totalPropSales > maxVal) maxVal = entry[1].totalPropSales;
+  // Compute total property target (sum of all execs' targets for each property)
+  Object.keys(propMap).forEach(function(name) {
+    var totalPropTarget = 0;
+    var years = year === 'all' ? [2025, 2026] : [parseInt(year)];
+    SALES_EXECS.forEach(function(ex) {
+      if (!ex.propertyTargets) return;
+      years.forEach(function(yr) {
+        var pt = ex.propertyTargets[yr] || {};
+        if (pt[name]) totalPropTarget += pt[name];
+      });
+    });
+    propMap[name].totalPropTarget = totalPropTarget;
   });
 
-  var h = '';
+  var propArr = Object.entries(propMap).sort(function(a, b) { return b[1].totalPropSales - a[1].totalPropSales; });
+  var maxVal = 1;
+  propArr.forEach(function(entry) {
+    if (entry[1].sales > maxVal) maxVal = entry[1].sales;
+    if (entry[1].totalPropSales > maxVal) maxVal = entry[1].totalPropSales;
+    if (entry[1].target > maxVal) maxVal = entry[1].target;
+    if (entry[1].totalPropTarget > maxVal) maxVal = entry[1].totalPropTarget;
+  });
+
+  // Legend
+  var h = '<div style="display:flex;gap:16px;margin-bottom:12px;padding:0 4px">';
+  h += '<div style="display:flex;align-items:center;gap:5px"><div style="width:12px;height:12px;border-radius:2px;background:var(--tableau-green)"></div><span style="font-size:11px;color:#555">My Sales</span></div>';
+  h += '<div style="display:flex;align-items:center;gap:5px"><div style="width:12px;height:12px;border-radius:2px;background:#7986cb"></div><span style="font-size:11px;color:#555">Property Sales</span></div>';
+  h += '<div style="display:flex;align-items:center;gap:5px"><div style="width:2px;height:12px;background:#e53935"></div><span style="font-size:11px;color:#555">Target</span></div>';
+  h += '</div>';
+
   propArr.forEach(function(entry, i) {
     var name = entry[0];
     var data = entry[1];
     var leftToAchieve = data.sales - data.target;
-    var attainment = data.target > 0 ? data.sales / data.target : (data.sales > 0 ? 1 : 0);
-    var attColor = attainmentColor(attainment);
-    var tPct = (data.target / maxVal * 100).toFixed(1);
     var sPct = (data.sales / maxVal * 100).toFixed(1);
+    var tpPct = (data.totalPropSales / maxVal * 100).toFixed(1);
+    var myTargetPct = (data.target / maxVal * 100).toFixed(1);
+    var propTargetPct = (data.totalPropTarget / maxVal * 100).toFixed(1);
 
-    h += '<div style="margin-bottom:16px">';
-    h += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">';
+    h += '<div style="margin-bottom:14px">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">';
     h += '<span style="font-weight:600;font-size:12px;color:#333">' + name + '</span>';
-    var headerLeftPct = data.target > 0 ? (Math.abs(leftToAchieve) / data.target * 100).toFixed(1) : '0.0';
-    h += '<span style="font-size:11px;font-weight:700;color:' + (leftToAchieve < 0 ? 'var(--tableau-red)' : 'var(--tableau-green)') + '">' + (leftToAchieve < 0 ? '-' + fmt(Math.abs(leftToAchieve)) + ' (' + headerLeftPct + '%)' : '+' + fmt(leftToAchieve) + ' exceeded') + '</span>';
     h += '</div>';
 
-    // Target bar (muted)
-    h += '<div style="display:flex;align-items:center;margin-bottom:2px">';
-    h += '<span style="width:70px;font-size:9px;color:#999;text-transform:uppercase">Target</span>';
-    h += '<div style="flex:1;height:14px;background:#f0f0f0;border-radius:2px;overflow:hidden">';
-    h += '<div style="width:' + tPct + '%;height:100%;background:#b0bec5;border-radius:2px"></div></div>';
-    h += '<span style="width:70px;text-align:right;font-size:10px;font-weight:600;color:#78909c">' + fmt(data.target) + '</span></div>';
-
-    // Sales bar (exec, colored by attainment)
-    h += '<div style="display:flex;align-items:center;margin-bottom:2px"';
-    h += ' onmouseenter="showTooltip(event, \'<div class=tt-title>' + name + '</div><div class=tt-row><span class=tt-label>Target:</span><span class=tt-val>' + fmtFull(data.target) + '</span></div><div class=tt-row><span class=tt-label>My Sales:</span><span class=tt-val>' + fmtFull(data.sales) + '</span></div><div class=tt-row><span class=tt-label>Property Total:</span><span class=tt-val>' + fmtFull(data.totalPropSales) + '</span></div><div class=tt-row><span class=tt-label>Left:</span><span class=tt-val>' + (leftToAchieve < 0 ? '-' + fmtFull(Math.abs(leftToAchieve)) : '+' + fmtFull(leftToAchieve)) + '</span></div>\')"';
+    // My Sales bar with target marker
+    h += '<div style="display:flex;align-items:center;margin-bottom:3px"';
+    h += ' onmouseenter="showTooltip(event, \'<div class=tt-title>' + name + '</div><div class=tt-row><span class=tt-label>My Target:</span><span class=tt-val>' + fmtFull(data.target) + '</span></div><div class=tt-row><span class=tt-label>My Sales:</span><span class=tt-val>' + fmtFull(data.sales) + '</span></div><div class=tt-row><span class=tt-label>vs Target:</span><span class=tt-val style=color:' + (leftToAchieve >= 0 ? 'green' : 'red') + '>' + (leftToAchieve >= 0 ? '+' : '-') + fmtFull(Math.abs(leftToAchieve)) + '</span></div>\')"';
     h += ' onmouseleave="hideTooltip()">';
-    h += '<span style="width:70px;font-size:9px;color:#999;text-transform:uppercase">My Sales</span>';
-    h += '<div style="flex:1;height:14px;background:#f0f0f0;border-radius:2px;overflow:hidden">';
-    h += '<div style="width:' + sPct + '%;height:100%;background:' + attColor + ';border-radius:2px"></div></div>';
-    h += '<span style="width:70px;text-align:right;font-size:10px;font-weight:600;color:' + attColor + '">' + fmt(data.sales) + '</span></div>';
+    h += '<span style="width:90px;font-size:10px;color:#666;font-weight:500">My Sales</span>';
+    h += '<div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;position:relative">';
+    h += '<div style="width:' + sPct + '%;height:100%;background:var(--tableau-green);border-radius:3px"></div>';
+    if (data.target > 0) {
+      h += '<div style="position:absolute;left:' + myTargetPct + '%;top:-1px;bottom:-1px;width:2px;background:#e53935;z-index:1" title="Target: ' + fmt(data.target) + '"></div>';
+    }
+    h += '</div>';
+    h += '<span style="width:75px;text-align:right;font-size:10px;font-weight:600;color:var(--tableau-green)">' + fmt(data.sales) + '</span>';
+    h += '<span style="width:75px;text-align:right;font-size:9px;color:#999">T: ' + fmt(data.target) + '</span></div>';
 
-    // Total property sales bar (all execs)
-    var tpPct = (data.totalPropSales / maxVal * 100).toFixed(1);
-    h += '<div style="display:flex;align-items:center;margin-bottom:2px">';
-    h += '<span style="width:70px;font-size:9px;color:#999;text-transform:uppercase">Prop Total</span>';
-    h += '<div style="flex:1;height:14px;background:#f0f0f0;border-radius:2px;overflow:hidden">';
-    h += '<div style="width:' + tpPct + '%;height:100%;background:#7986cb;border-radius:2px"></div></div>';
-    h += '<span style="width:70px;text-align:right;font-size:10px;font-weight:600;color:#5c6bc0">' + fmt(data.totalPropSales) + '</span></div>';
+    // Property Sales bar with target marker
+    var propLeftToAchieve = data.totalPropSales - data.totalPropTarget;
+    h += '<div style="display:flex;align-items:center;margin-bottom:2px"';
+    h += ' onmouseenter="showTooltip(event, \'<div class=tt-title>' + name + '</div><div class=tt-row><span class=tt-label>Property Target:</span><span class=tt-val>' + fmtFull(data.totalPropTarget) + '</span></div><div class=tt-row><span class=tt-label>Property Sales:</span><span class=tt-val>' + fmtFull(data.totalPropSales) + '</span></div><div class=tt-row><span class=tt-label>vs Target:</span><span class=tt-val style=color:' + (propLeftToAchieve >= 0 ? 'green' : 'red') + '>' + (propLeftToAchieve >= 0 ? '+' : '-') + fmtFull(Math.abs(propLeftToAchieve)) + '</span></div>\')"';
+    h += ' onmouseleave="hideTooltip()">';
+    h += '<span style="width:90px;font-size:10px;color:#666;font-weight:500">Property Sales</span>';
+    h += '<div style="flex:1;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden;position:relative">';
+    h += '<div style="width:' + tpPct + '%;height:100%;background:#7986cb;border-radius:3px"></div>';
+    if (data.totalPropTarget > 0) {
+      h += '<div style="position:absolute;left:' + propTargetPct + '%;top:-1px;bottom:-1px;width:2px;background:#e53935;z-index:1" title="Target: ' + fmt(data.totalPropTarget) + '"></div>';
+    }
+    h += '</div>';
+    h += '<span style="width:75px;text-align:right;font-size:10px;font-weight:600;color:#5c6bc0">' + fmt(data.totalPropSales) + '</span>';
+    h += '<span style="width:75px;text-align:right;font-size:9px;color:#999">T: ' + fmt(data.totalPropTarget) + '</span></div>';
 
     h += '</div>';
   });

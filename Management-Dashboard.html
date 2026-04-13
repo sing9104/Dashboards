@@ -664,6 +664,16 @@
     color: #721C24;
   }
 
+  .prop-deal-stage.termsagreed {
+    background: #e0f2f1;
+    color: #00695c;
+  }
+
+  .prop-deal-stage.contractissued {
+    background: #e8eaf6;
+    color: #283593;
+  }
+
   /* Filter Bar */
   .prop-filter-bar {
     display: flex;
@@ -1056,6 +1066,29 @@
           </tr>
         </thead>
         <tbody id="prop-overview-tbody"></tbody>
+      </table>
+    </div>
+    <div class="prop-chart-card">
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Latest Deals</span>
+        <span id="prop-deals-count" style="font-size:11px;font-weight:400;color:var(--color-neutral)"></span>
+      </div>
+      <div id="prop-deals-filters" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"></div>
+      <table class="prop-data-table" id="prop-deals-table">
+        <thead>
+          <tr>
+            <th>Deal ID</th>
+            <th>Property</th>
+            <th>Account</th>
+            <th>Owner</th>
+            <th>Category</th>
+            <th>Value</th>
+            <th>Stage</th>
+            <th>Close Date</th>
+            <th>Quarter</th>
+          </tr>
+        </thead>
+        <tbody id="prop-deals-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -2328,10 +2361,13 @@ function renderPropertyOverview() {
     if (combined > globalMax) globalMax = combined;
   });
 
-  let barHTML = '<div style="margin-bottom:12px;display:flex;gap:14px;font-size:10px;color:var(--color-neutral)">';
+  let barHTML = '<div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">';
+  barHTML += '<div style="display:flex;gap:14px;font-size:10px;color:var(--color-neutral)">';
   barHTML += '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--color-success);margin-right:4px;vertical-align:middle"></span>Closed</span>';
   barHTML += '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#7986cb;margin-right:4px;vertical-align:middle"></span>Pipeline</span>';
   barHTML += '<span><span style="display:inline-block;width:2px;height:10px;background:#333;margin-right:4px;vertical-align:middle"></span>Target</span>';
+  barHTML += '</div>';
+  barHTML += '<div style="font-size:10px;color:var(--color-neutral);font-weight:600;letter-spacing:0.3px"><span style="color:var(--color-success)">Closed</span> / <span style="color:#5c6bc0">Pipeline</span> / <span style="color:#333">Target</span></div>';
   barHTML += '</div>';
 
   props.forEach((prop, idx) => {
@@ -2357,12 +2393,13 @@ function renderPropertyOverview() {
     // Target marker line
     barHTML += '<div style="position:absolute;left:' + tMarker + '%;top:-3px;bottom:-3px;width:2px;background:#333;z-index:2;border-radius:1px"></div>';
     barHTML += '</div>';
-    // Values
-    barHTML += '<div style="min-width:260px;text-align:right;font-size:10px;white-space:nowrap;flex-shrink:0">';
+    // Values: Closed / Pipeline / Target
+    barHTML += '<div style="min-width:320px;text-align:right;font-size:10px;white-space:nowrap;flex-shrink:0;display:flex;justify-content:flex-end;gap:4px;align-items:baseline">';
     barHTML += '<span style="font-weight:600;color:var(--color-success)">' + formatCurrency(sales) + '</span>';
-    barHTML += '<span style="color:var(--color-neutral);margin:0 3px">/</span>';
-    barHTML += '<span style="font-weight:600;color:#78909c">' + formatCurrency(target) + '</span>';
-    barHTML += '<span style="color:#5c6bc0;margin-left:6px">+' + formatCurrency(pipeline) + '</span>';
+    barHTML += '<span style="color:var(--color-neutral)">/</span>';
+    barHTML += '<span style="font-weight:600;color:#5c6bc0">' + formatCurrency(pipeline) + '</span>';
+    barHTML += '<span style="color:var(--color-neutral)">/</span>';
+    barHTML += '<span style="font-weight:700;color:#333">' + formatCurrency(target) + '</span>';
     barHTML += '</div>';
     barHTML += '</div>';
   });
@@ -2394,6 +2431,82 @@ function renderPropertyOverview() {
     `;
     tbody.appendChild(row);
   });
+
+  // Latest Deals Grid
+  renderPropertyDealsGrid(props, year);
+}
+
+var currentPropDealStageFilter = 'all';
+
+function renderPropertyDealsGrid(props, year) {
+  var allDeals = [];
+  props.forEach(function(prop) {
+    var propDeals = getDeals(prop.id, year);
+    propDeals.forEach(function(d) {
+      allDeals.push(Object.assign({}, d, { propertyName: prop.name, propertyId: prop.id }));
+    });
+    var propOpps = getOpportunities(prop.id, year);
+    propOpps.forEach(function(o) {
+      allDeals.push(Object.assign({}, o, { propertyName: prop.name, propertyId: prop.id, isOpp: true }));
+    });
+  });
+
+  // Sort by close date descending (most recent first)
+  allDeals.sort(function(a, b) {
+    var dateA = new Date(a.close_date || a.expected_close || '2000-01-01');
+    var dateB = new Date(b.close_date || b.expected_close || '2000-01-01');
+    return dateB - dateA;
+  });
+
+  // Build stage filter pills
+  var stages = {};
+  allDeals.forEach(function(d) { stages[d.stage] = (stages[d.stage] || 0) + 1; });
+  var filterHTML = '<span style="font-size:11px;font-weight:600;color:var(--color-dark);margin-right:4px">Stage:</span>';
+  filterHTML += '<button class="prop-filter-pill' + (currentPropDealStageFilter === 'all' ? ' active' : '') + '" onclick="filterPropDeals(\'all\', this)">All (' + allDeals.length + ')</button>';
+  Object.keys(stages).sort().forEach(function(stage) {
+    filterHTML += '<button class="prop-filter-pill' + (currentPropDealStageFilter === stage ? ' active' : '') + '" onclick="filterPropDeals(\'' + stage.replace(/'/g, "\\'") + '\', this)">' + stage + ' (' + stages[stage] + ')</button>';
+  });
+  document.getElementById('prop-deals-filters').innerHTML = filterHTML;
+
+  // Filter deals
+  var filtered = currentPropDealStageFilter === 'all' ? allDeals : allDeals.filter(function(d) { return d.stage === currentPropDealStageFilter; });
+
+  document.getElementById('prop-deals-count').textContent = filtered.length + ' deal' + (filtered.length !== 1 ? 's' : '') + (filtered.length !== allDeals.length ? ' (filtered)' : '');
+
+  var dtbody = document.getElementById('prop-deals-tbody');
+  dtbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    dtbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--color-neutral)">No deals found for this filter</td></tr>';
+    return;
+  }
+
+  filtered.forEach(function(d) {
+    var stageClass = d.stage === 'Closed' ? 'closed' : d.stage.toLowerCase().replace(/\s+/g, '').replace(/[()%]/g, '');
+    var dateVal = d.close_date || d.expected_close || '—';
+    var dealId = d.id;
+    var row = document.createElement('tr');
+    row.style.cursor = 'pointer';
+    row.onclick = function() { openDealDetail(dealId); };
+    row.innerHTML =
+      '<td><a class="deal-id-link" href="javascript:void(0)" onclick="event.stopPropagation(); openDealDetail(\'' + dealId + '\')">' + dealId + ' <span class="link-arrow" style="font-size:9px;margin-left:2px;opacity:0.6">\u2192</span></a></td>' +
+      '<td>' + d.propertyName + '</td>' +
+      '<td style="font-weight:500">' + d.account + '</td>' +
+      '<td>' + d.owner + '</td>' +
+      '<td>' + (d.category || '—') + '</td>' +
+      '<td style="font-weight:600">' + formatCurrency(d.value) + '</td>' +
+      '<td><span class="prop-deal-stage ' + stageClass + '">' + d.stage + (d.isOpp ? ' (' + Math.round((d.probability || 0) * 100) + '%)' : '') + '</span></td>' +
+      '<td>' + dateVal + '</td>' +
+      '<td>' + d.quarter + ' ' + d.year + '</td>';
+    dtbody.appendChild(row);
+  });
+}
+
+function filterPropDeals(stage, el) {
+  currentPropDealStageFilter = stage;
+  var year = currentYear === 'all' ? 2026 : parseInt(currentYear);
+  var props = getFilteredProperties();
+  renderPropertyDealsGrid(props, year);
 }
 
 function showPropertyDetail(propId) {
