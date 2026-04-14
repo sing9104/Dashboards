@@ -1061,10 +1061,12 @@ function renderExecDashboard() {
   var dealProperties = Object.keys(execPropSet).sort();
   html += '<div class="filter-bar" id="dealStageFilters"><span class="filter-label">Stage:</span>';
   html += '<div class="filter-pill active" onclick="filterDeals(\'all\', this)">All</div>';
-  html += '<div class="filter-pill" onclick="filterDeals(\'Closed\', this)">Closed</div>';
-  html += '<div class="filter-pill" onclick="filterDeals(\'Proposal\', this)">Proposal</div>';
-  html += '<div class="filter-pill" onclick="filterDeals(\'In Review\', this)">In Review</div>';
-  html += '<div class="filter-pill" onclick="filterDeals(\'Lost\', this)">Lost</div>';
+  html += '<div class="filter-pill" onclick="filterDeals(\'Closed (100%)\', this)">Closed (100%)</div>';
+  html += '<div class="filter-pill" onclick="filterDeals(\'Contract Issued (90%)\', this)">Contract Issued (90%)</div>';
+  html += '<div class="filter-pill" onclick="filterDeals(\'Terms Agreed (75%)\', this)">Terms Agreed (75%)</div>';
+  html += '<div class="filter-pill" onclick="filterDeals(\'In Review (50%)\', this)">In Review (50%)</div>';
+  html += '<div class="filter-pill" onclick="filterDeals(\'Proposal (30%)\', this)">Proposal (30%)</div>';
+  html += '<div class="filter-pill" onclick="filterDeals(\'Engaged (10%)\', this)">Engaged (10%)</div>';
   html += '<span style="margin-left:12px;border-left:1px solid #ddd;padding-left:12px"></span>';
   html += '<span class="filter-label" id="dealPropertyFilters">Property:</span>';
   html += '<div class="filter-pill active" onclick="filterDealProperty(\'all\', this)">All</div>';

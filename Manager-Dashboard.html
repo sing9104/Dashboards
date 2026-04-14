@@ -742,10 +742,12 @@ function renderManagerDetail(managerName) {
   html += '<div style="font-size:13px;color:var(--color-neutral);margin-top:2px">' + mgr.businessUnit + ' \u2014 ' + directReports + ' direct reports</div></div>';
 
   /* KPI Strip */
-  html += '<div class="kpi-strip">';
+  var leftToAchieve = stats.target - stats.revenue;
+  html += '<div class="kpi-strip" style="grid-template-columns:repeat(5,1fr)">';
   html += '<div class="kpi-card"><div class="kpi-label">Team Target</div><div class="kpi-value">' + fmt(stats.target) + '</div></div>';
   html += '<div class="kpi-card"><div class="kpi-label">Revenue (Closed)</div><div class="kpi-value">' + fmt(stats.revenue) + '</div><div class="kpi-change ' + (attain >= 0.5 ? 'up' : 'down') + '">' + pct(attain) + ' attainment</div></div>';
-  html += '<div class="kpi-card"><div class="kpi-label">Pipeline</div><div class="kpi-value" style="color:var(--color-secondary)">' + fmt(stats.pipeline) + '</div><div class="kpi-change" style="color:var(--color-neutral)">Weighted: ' + fmt(stats.weightedPipeline) + '</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Left to Achieve</div><div class="kpi-value" style="color:' + (leftToAchieve > 0 ? 'var(--color-danger)' : 'var(--color-success)') + '">' + (leftToAchieve > 0 ? fmt(leftToAchieve) : 'Target Met') + '</div></div>';
+  html += '<div class="kpi-card"><div class="kpi-label">Pipeline</div><div class="kpi-value" style="color:var(--color-secondary)">' + fmt(stats.pipeline) + '</div></div>';
   html += '<div class="kpi-card"><div class="kpi-label">Deals Won</div><div class="kpi-value" style="color:var(--color-success)">' + stats.deals + '</div></div>';
   html += '</div>';
 
@@ -753,7 +755,7 @@ function renderManagerDetail(managerName) {
   html += '<div class="section-card">';
   html += '<div class="section-title">Team Performance</div>';
   html += '<table><thead><tr>';
-  html += '<th>Sales Executive</th><th class="num">Target</th><th class="num">Revenue</th><th class="num">Attainment</th><th class="num">Deals Won</th><th class="num">Pipeline</th><th class="num">Weighted Pipeline</th><th style="text-align:center">Status</th>';
+  html += '<th>Sales Executive</th><th class="num">Target</th><th class="num">Revenue</th><th class="num">Attainment</th><th class="num">Deals Won</th><th class="num">Pipeline</th><th style="text-align:center">Status</th>';
   html += '</tr></thead><tbody>';
 
   /* Manager's own row first */
@@ -771,7 +773,6 @@ function renderManagerDetail(managerName) {
     html += '<td class="num"><div class="attainment-bar"><div class="attainment-track"><div class="attainment-fill" style="width:' + Math.min(hAtt * 100, 100).toFixed(1) + '%;background:' + attainColor(hAtt) + '"></div></div><div class="attainment-pct" style="color:' + attainColor(hAtt) + '">' + pct(hAtt) + '</div></div></td>';
     html += '<td class="num">' + hDc + '</td>';
     html += '<td class="num" style="color:var(--color-secondary)">' + fmt(hPip) + '</td>';
-    html += '<td class="num">' + fmt(hWPip) + '</td>';
     html += '<td style="text-align:center"><span class="badge ' + attainBadge(hAtt) + '">' + (hAtt >= 1 ? 'On Track' : hAtt >= 0.7 ? 'At Risk' : 'Behind') + '</span></td>';
     html += '</tr>';
   }
@@ -791,7 +792,6 @@ function renderManagerDetail(managerName) {
     html += '<td class="num"><div class="attainment-bar"><div class="attainment-track"><div class="attainment-fill" style="width:' + Math.min(ea * 100, 100).toFixed(1) + '%;background:' + attainColor(ea) + '"></div></div><div class="attainment-pct" style="color:' + attainColor(ea) + '">' + pct(ea) + '</div></div></td>';
     html += '<td class="num">' + dc + '</td>';
     html += '<td class="num" style="color:var(--color-secondary)">' + fmt(pip) + '</td>';
-    html += '<td class="num">' + fmt(wPip) + '</td>';
     html += '<td style="text-align:center"><span class="badge ' + attainBadge(ea) + '">' + (ea >= 1 ? 'On Track' : ea >= 0.7 ? 'At Risk' : 'Behind') + '</span></td>';
     html += '</tr>';
   });
@@ -804,7 +804,6 @@ function renderManagerDetail(managerName) {
   html += '<td class="num"><div class="attainment-bar"><div class="attainment-track"><div class="attainment-fill" style="width:' + Math.min(attain * 100, 100).toFixed(1) + '%;background:' + attainColor(attain) + '"></div></div><div class="attainment-pct" style="color:' + attainColor(attain) + '">' + pct(attain) + '</div></div></td>';
   html += '<td class="num">' + stats.deals + '</td>';
   html += '<td class="num" style="color:var(--color-secondary)">' + fmt(stats.pipeline) + '</td>';
-  html += '<td class="num">' + fmt(stats.weightedPipeline) + '</td>';
   html += '<td></td>';
   html += '</tr>';
 
