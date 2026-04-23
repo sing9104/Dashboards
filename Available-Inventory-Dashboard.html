@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Available Inventory Dashboard | CerebroCRM</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --blue: #3b6b9a;
+    --blue-light: #e8f0f8;
+    --green: #3a8a6e;
+    --green-light: #e6f4ef;
+    --amber: #d4813e;
+    --amber-light: #fdf0e4;
+    --purple: #7c6b9e;
+    --purple-light: #f0ecf6;
+    --teal: #5a9ea6;
+    --teal-light: #e6f3f5;
+    --red: #c4524a;
+    --red-light: #fbe9e8;
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #2d3748;
+    --text-secondary: #5a6577;
+    --text-muted: #94a0b4;
+    --border: #e2e6ed;
+    --header-bg: #1e2a3a;
+    --radius: 10px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* === TOP BAR === */
+  .topbar {
+    background: var(--header-bg);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 24px; }
+  .topbar .nav-item {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 0;
+  }
+  .topbar .nav-item.active { color: #fff; border-bottom: 2px solid var(--amber); }
+  .topbar-search {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    padding: 6px 14px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    width: 200px;
+    outline: none;
+  }
+  .topbar-search::placeholder { color: rgba(255,255,255,0.35); }
+
+  /* === PAGE HEADER === */
+  .page-header {
+    padding: 28px 32px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .page-header .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .breadcrumb a:hover { color: var(--blue); }
+
+  /* === FILTER BAR === */
+  .filter-bar {
+    padding: 16px 32px 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .filter-select {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 7px 28px 7px 10px;
+    font-size: 13px;
+    color: var(--text);
+    min-width: 180px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3e%3cpath fill='%2394a0b4' d='M0 0l5 6 5-6z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+  }
+  .filter-select:focus { outline: none; border-color: var(--blue); }
+  .filter-reset {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 7px 4px;
+    align-self: flex-end;
+  }
+  .filter-reset:hover { color: var(--red); }
+
+  /* === MAIN CARD === */
+  .main-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 18px 32px 48px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .main-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .main-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .main-card-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .legend {
+    display: inline-flex;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .legend-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 5px; vertical-align: middle;
+  }
+  .legend-used { background: var(--amber); }
+  .legend-avail { background: var(--green); }
+
+  /* === PROPERTY ACCORDION === */
+  .prop-row {
+    border-bottom: 1px solid var(--border);
+  }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 22px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+  }
+  .prop-header:hover { background: #f9fafc; }
+  .prop-chevron {
+    width: 18px; height: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .prop-row.open .prop-chevron { transform: rotate(90deg); }
+  .prop-meta { flex: 1; min-width: 0; }
+  .prop-meta-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .prop-meta-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .prop-count-pill {
+    display: inline-block;
+    background: var(--blue-light); color: var(--blue);
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px;
+    letter-spacing: 0.04em; margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* Inventory item grid inside expanded property */
+  .prop-body { display: none; }
+  .prop-row.open .prop-body { display: block; }
+  .inv-table { width: 100%; border-collapse: collapse; background: #fafbfd; }
+  .inv-table th, .inv-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .inv-table th {
+    background: #eef1f5;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .inv-table td { border-bottom: 1px solid #edf0f4; }
+  .inv-table tr:last-child td { border-bottom: none; }
+  .inv-table th:first-child, .inv-table td:first-child { text-align: left; padding-left: 46px; }
+  .inv-table th:nth-child(2), .inv-table td:nth-child(2) { text-align: left; }
+  .inv-table td.item-name { font-weight: 600; color: var(--text); }
+  .inv-cat-tag {
+    display: inline-block;
+    background: var(--purple-light); color: var(--purple);
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .sold-out-pill {
+    display: inline-block;
+    background: var(--red-light); color: var(--red);
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .avail-pill {
+    display: inline-block;
+    background: var(--green-light); color: var(--green);
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 720px) {
+    .filter-select { min-width: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="index.html" class="nav-item">Reporting</a>
+    <span class="nav-item active">Available Inventory</span>
+  </div>
+  <input type="text" class="topbar-search" placeholder="Search...">
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <div class="breadcrumb"><a href="index.html">Reports</a> &nbsp;›&nbsp; Available Inventory</div>
+    <h1>Available Inventory</h1>
+    <div class="subtitle">Unsold inventory across every event, rolled up by property. "Used" counts deals at <strong>100% signed</strong> only (Signed Agreement or Fully Contracted).</div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <label class="filter-label" for="f-division">Division</label>
+    <select class="filter-select" id="f-division" onchange="applyFilters()">
+      <option value="">All Divisions</option>
+      <option value="160/90">160/90</option>
+      <option value="On Location">On Location</option>
+      <option value="Mari Events">Mari Events</option>
+      <option value="IMG Focus">IMG Focus</option>
+      <option value="WME Sports">WME Sports</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label class="filter-label" for="f-year">Year</label>
+    <select class="filter-select" id="f-year" onchange="applyFilters()">
+      <option value="">All Years</option>
+      <option value="FY26" selected>FY26</option>
+      <option value="FY25">FY25</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label class="filter-label" for="f-property">Property</label>
+    <select class="filter-select" id="f-property" onchange="applyFilters()">
+      <option value="">All Properties</option>
+      <!-- Populated by JS -->
+    </select>
+  </div>
+  <button class="filter-reset" onclick="resetFilters()">Reset filters</button>
+</div>
+
+<!-- MAIN TABLE -->
+<div class="main-card">
+  <div class="main-card-header">
+    <div>
+      <div class="main-card-title">Property breakdown</div>
+      <div class="main-card-sub">Click a row to expand and see every inventory item and its availability.</div>
+    </div>
+  </div>
+  <div id="propertyList"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">No properties match the current filters.</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA MODEL
+// Each property has inventory items with a `total` capacity.
+// Each deal consumes inventory via `consumed` (qty per itemId).
+// Only deals with status 'signed' or 'fully-contracted' are counted as used.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PROPERTIES = [
+  // ─── FY26 ───
+  {
+    id: 'taste-26', name: 'Taste of London', year: 'FY26', division: '160/90',
+    eventDate: '17–21 Jun 2026', location: 'Regent\'s Park, London',
+    items: [
+      { id: 'tol26-wed-eve-p',  name: 'Wed Eve — Premium Hospitality',  category: 'Hospitality', total: 120 },
+      { id: 'tol26-wed-eve-v',  name: 'Wed Eve — VIP Table',             category: 'Hospitality', total: 40  },
+      { id: 'tol26-thu-lun',    name: 'Thu Lunch — Standard',            category: 'Hospitality', total: 200 },
+      { id: 'tol26-fri-eve',    name: 'Fri Eve — Premium Hospitality',   category: 'Hospitality', total: 120 },
+      { id: 'tol26-sat-lun',    name: 'Sat Lunch — Premium Hospitality', category: 'Hospitality', total: 160 },
+      { id: 'tol26-sun-lun',    name: 'Sun Lunch — Family Package',      category: 'Hospitality', total: 80  },
+      { id: 'tol26-title-spn',  name: 'Title Sponsorship',               category: 'Sponsorship', total: 1   },
+      { id: 'tol26-assoc-spn',  name: 'Associate Sponsorship',           category: 'Sponsorship', total: 6   },
+      { id: 'tol26-brand-act',  name: 'Brand Activation Zone',           category: 'Activation',  total: 12  },
+      { id: 'tol26-chef-meet',  name: 'Chef Meet & Greet Slot',          category: 'Experience',  total: 24  },
+    ],
+  },
+  {
+    id: 'frieze-26', name: 'Frieze London', year: 'FY26', division: 'On Location',
+    eventDate: '15–19 Oct 2026', location: 'Regent\'s Park, London',
+    items: [
+      { id: 'fzl26-preview',    name: 'VIP Preview Day Access',          category: 'Access',      total: 400 },
+      { id: 'fzl26-collector',  name: 'Collector Lounge Pass',           category: 'Access',      total: 80  },
+      { id: 'fzl26-private-v',  name: 'Private Viewing Slot',            category: 'Experience',  total: 24  },
+      { id: 'fzl26-dinner',     name: 'Gala Dinner Seat',                category: 'Hospitality', total: 200 },
+      { id: 'fzl26-title-spn',  name: 'Principal Partner Slot',          category: 'Sponsorship', total: 1   },
+      { id: 'fzl26-booth',      name: 'Brand Partner Booth',             category: 'Activation',  total: 18  },
+    ],
+  },
+  {
+    id: 'hyde-26', name: 'Hyde Park Winter Wonderland', year: 'FY26', division: 'Mari Events',
+    eventDate: '21 Nov 2026 – 1 Jan 2027', location: 'Hyde Park, London',
+    items: [
+      { id: 'hpw26-vip-ent',    name: 'VIP Entry Pass',                  category: 'Access',      total: 2000 },
+      { id: 'hpw26-ice-priv',   name: 'Ice Rink — Private Session',      category: 'Experience',  total: 60   },
+      { id: 'hpw26-bav-cabin',  name: 'Bavarian Village Cabin Package',  category: 'Hospitality', total: 30   },
+      { id: 'hpw26-title-spn',  name: 'Presenting Sponsor',              category: 'Sponsorship', total: 1    },
+      { id: 'hpw26-cat-spn',    name: 'Category Sponsorship',            category: 'Sponsorship', total: 8    },
+      { id: 'hpw26-santa',      name: 'Meet Santa — Premium Package',    category: 'Experience',  total: 500  },
+    ],
+  },
+  {
+    id: 'summit-26', name: 'Summer Summit', year: 'FY26', division: 'IMG Focus',
+    eventDate: '04–06 Jul 2026', location: 'Cotswolds, UK',
+    items: [
+      { id: 'sum26-del-pass',   name: 'Delegate Pass',                   category: 'Access',      total: 600 },
+      { id: 'sum26-vip-dinner', name: 'VIP Speaker Dinner',              category: 'Hospitality', total: 60  },
+      { id: 'sum26-lead-spn',   name: 'Lead Sponsor',                    category: 'Sponsorship', total: 1   },
+      { id: 'sum26-stream-spn', name: 'Stream Sponsorship',              category: 'Sponsorship', total: 4   },
+      { id: 'sum26-workshop',   name: 'Workshop Host Slot',              category: 'Activation',  total: 10  },
+    ],
+  },
+  {
+    id: 'gala-26', name: 'Gala London', year: 'FY26', division: 'WME Sports',
+    eventDate: '12 Dec 2026', location: 'The Savoy, London',
+    items: [
+      { id: 'gal26-table',      name: 'Gala Table (10 covers)',          category: 'Hospitality', total: 40 },
+      { id: 'gal26-cover',      name: 'Individual Cover',                category: 'Hospitality', total: 60 },
+      { id: 'gal26-title-spn',  name: 'Title Sponsor',                   category: 'Sponsorship', total: 1  },
+      { id: 'gal26-auction',    name: 'Auction Lot Donation Slot',       category: 'Activation',  total: 20 },
+    ],
+  },
+
+  // ─── FY25 ───
+  {
+    id: 'taste-25', name: 'Taste of London', year: 'FY25', division: '160/90',
+    eventDate: '18–22 Jun 2025', location: 'Regent\'s Park, London',
+    items: [
+      { id: 'tol25-wed-eve-p',  name: 'Wed Eve — Premium Hospitality',   category: 'Hospitality', total: 120 },
+      { id: 'tol25-thu-lun',    name: 'Thu Lunch — Standard',            category: 'Hospitality', total: 200 },
+      { id: 'tol25-sat-lun',    name: 'Sat Lunch — Premium Hospitality', category: 'Hospitality', total: 160 },
+      { id: 'tol25-title-spn',  name: 'Title Sponsorship',               category: 'Sponsorship', total: 1   },
+      { id: 'tol25-brand-act',  name: 'Brand Activation Zone',           category: 'Activation',  total: 12  },
+    ],
+  },
+  {
+    id: 'frieze-25', name: 'Frieze London', year: 'FY25', division: 'On Location',
+    eventDate: '09–13 Oct 2025', location: 'Regent\'s Park, London',
+    items: [
+      { id: 'fzl25-preview',   name: 'VIP Preview Day Access',          category: 'Access',      total: 400 },
+      { id: 'fzl25-dinner',    name: 'Gala Dinner Seat',                category: 'Hospitality', total: 200 },
+      { id: 'fzl25-title-spn', name: 'Principal Partner Slot',          category: 'Sponsorship', total: 1   },
+    ],
+  },
+  {
+    id: 'hyde-25', name: 'Hyde Park Winter Wonderland', year: 'FY25', division: 'Mari Events',
+    eventDate: '22 Nov 2025 – 1 Jan 2026', location: 'Hyde Park, London',
+    items: [
+      { id: 'hpw25-vip-ent',   name: 'VIP Entry Pass',                  category: 'Access',      total: 2000 },
+      { id: 'hpw25-bav-cabin', name: 'Bavarian Village Cabin Package',  category: 'Hospitality', total: 30   },
+      { id: 'hpw25-title-spn', name: 'Presenting Sponsor',              category: 'Sponsorship', total: 1    },
+    ],
+  },
+];
+
+// Deals — only status 'signed' (Signed Agreement) OR 'fully-contracted' (100% signed)
+// are counted as used. All other statuses are ignored.
+const DEALS = [
+  // FY26 signed / fully-contracted
+  { id: 'DEAL-2026-01847', account: 'Red Global',          status: 'fully-contracted', propertyId: 'taste-26', consumed: { 'tol26-wed-eve-p': 30 } },
+  { id: 'DEAL-2026-01912', account: 'Barclays Corporate',  status: 'signed',           propertyId: 'taste-26', consumed: { 'tol26-wed-eve-p': 50, 'tol26-brand-act': 1 } },
+  { id: 'DEAL-2026-02033', account: 'Diageo PLC',          status: 'fully-contracted', propertyId: 'taste-26', consumed: { 'tol26-wed-eve-v': 20, 'tol26-title-spn': 1 } },
+  { id: 'DEAL-2026-02111', account: 'HSBC',                status: 'signed',           propertyId: 'taste-26', consumed: { 'tol26-sat-lun': 80 } },
+  { id: 'DEAL-2026-02145', account: 'Unilever',            status: 'signed',           propertyId: 'taste-26', consumed: { 'tol26-thu-lun': 120, 'tol26-assoc-spn': 2 } },
+  { id: 'DEAL-2026-02277', account: 'Aviva',               status: 'fully-contracted', propertyId: 'taste-26', consumed: { 'tol26-fri-eve': 60, 'tol26-chef-meet': 6 } },
+  { id: 'DEAL-2026-02301', account: 'Sky Media',           status: 'signed',           propertyId: 'frieze-26', consumed: { 'fzl26-preview': 140, 'fzl26-dinner': 80, 'fzl26-title-spn': 1 } },
+  { id: 'DEAL-2026-02318', account: 'LVMH',                status: 'fully-contracted', propertyId: 'frieze-26', consumed: { 'fzl26-collector': 40, 'fzl26-private-v': 12 } },
+  { id: 'DEAL-2026-02402', account: 'Rolls-Royce',         status: 'signed',           propertyId: 'frieze-26', consumed: { 'fzl26-booth': 8, 'fzl26-dinner': 40 } },
+  { id: 'DEAL-2026-02500', account: 'Coca-Cola Europe',    status: 'fully-contracted', propertyId: 'hyde-26',  consumed: { 'hpw26-title-spn': 1, 'hpw26-vip-ent': 600 } },
+  { id: 'DEAL-2026-02511', account: 'JD Sports',           status: 'signed',           propertyId: 'hyde-26',  consumed: { 'hpw26-cat-spn': 3, 'hpw26-bav-cabin': 10, 'hpw26-ice-priv': 12 } },
+  { id: 'DEAL-2026-02534', account: 'Tesco',               status: 'signed',           propertyId: 'hyde-26',  consumed: { 'hpw26-santa': 180, 'hpw26-vip-ent': 400 } },
+  { id: 'DEAL-2026-02600', account: 'Deloitte',            status: 'fully-contracted', propertyId: 'summit-26',consumed: { 'sum26-del-pass': 220, 'sum26-lead-spn': 1 } },
+  { id: 'DEAL-2026-02641', account: 'Accenture',           status: 'signed',           propertyId: 'summit-26',consumed: { 'sum26-del-pass': 150, 'sum26-stream-spn': 2, 'sum26-workshop': 3 } },
+  { id: 'DEAL-2026-02700', account: 'Bloomberg',           status: 'signed',           propertyId: 'gala-26',  consumed: { 'gal26-table': 12, 'gal26-auction': 4 } },
+  { id: 'DEAL-2026-02711', account: 'Goldman Sachs',       status: 'fully-contracted', propertyId: 'gala-26',  consumed: { 'gal26-table': 8, 'gal26-title-spn': 1 } },
+
+  // FY26 deals NOT counted (in-play / proposal / verbal)
+  { id: 'DEAL-2026-02999', account: 'Nike',                status: 'in-play',          propertyId: 'taste-26', consumed: { 'tol26-wed-eve-p': 40 } },
+  { id: 'DEAL-2026-03012', account: 'Adidas',              status: 'in-play',          propertyId: 'frieze-26',consumed: { 'fzl26-dinner': 60 } },
+  { id: 'DEAL-2026-03045', account: 'PwC',                 status: 'proposal',         propertyId: 'summit-26',consumed: { 'sum26-del-pass': 100 } },
+
+  // FY25 signed / fully-contracted (mostly closed out)
+  { id: 'DEAL-2025-01001', account: 'Red Global',          status: 'fully-contracted', propertyId: 'taste-25', consumed: { 'tol25-wed-eve-p': 100, 'tol25-brand-act': 10 } },
+  { id: 'DEAL-2025-01025', account: 'BT Group',            status: 'fully-contracted', propertyId: 'taste-25', consumed: { 'tol25-thu-lun': 180, 'tol25-sat-lun': 150, 'tol25-title-spn': 1 } },
+  { id: 'DEAL-2025-01104', account: 'Vodafone',            status: 'fully-contracted', propertyId: 'frieze-25',consumed: { 'fzl25-preview': 380, 'fzl25-dinner': 190, 'fzl25-title-spn': 1 } },
+  { id: 'DEAL-2025-01305', account: 'Tesco',               status: 'fully-contracted', propertyId: 'hyde-25',  consumed: { 'hpw25-title-spn': 1, 'hpw25-vip-ent': 1800, 'hpw25-bav-cabin': 28 } },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOGIC
+// ═══════════════════════════════════════════════════════════════════════════
+const SIGNED_STATUSES = new Set(['signed', 'fully-contracted']);
+const state = { filters: { division: '', year: 'FY26', property: '' } };
+
+function computeUsageForProperty(prop) {
+  // Sum up consumed quantities from deals that are 100% signed only
+  const usage = {}; // itemId -> used qty
+  for (const deal of DEALS) {
+    if (deal.propertyId !== prop.id) continue;
+    if (!SIGNED_STATUSES.has(deal.status)) continue;
+    for (const [itemId, qty] of Object.entries(deal.consumed || {})) {
+      usage[itemId] = (usage[itemId] || 0) + qty;
+    }
+  }
+  return { usage };
+}
+
+function getFilteredProperties() {
+  const { division, year, property } = state.filters;
+  return PROPERTIES.filter(p =>
+    (!division || p.division === division) &&
+    (!year     || p.year === year) &&
+    (!property || p.id === property)
+  );
+}
+
+function fmtNum(n) { return n.toLocaleString('en-GB'); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function populatePropertyFilter() {
+  const sel = document.getElementById('f-property');
+  const existing = sel.value;
+  // Distinct properties by id respecting currently-selected division/year (except property itself)
+  const { division, year } = state.filters;
+  const list = PROPERTIES.filter(p =>
+    (!division || p.division === division) &&
+    (!year     || p.year === year)
+  );
+  sel.innerHTML = '<option value="">All Properties</option>' +
+    list.map(p => `<option value="${p.id}">${p.name} (${p.year})</option>`).join('');
+  // Preserve if still valid
+  if (list.some(p => p.id === existing)) sel.value = existing;
+}
+
+function renderAll() {
+  const filtered = getFilteredProperties();
+  const emptyState = document.getElementById('emptyState');
+  const propertyList = document.getElementById('propertyList');
+
+  // Resolve usage per property for the nested inventory table
+  const perProp = filtered.map(p => {
+    const { usage } = computeUsageForProperty(p);
+    return { prop: p, usage };
+  });
+
+  // Property rows
+  if (filtered.length === 0) {
+    propertyList.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  propertyList.innerHTML = perProp.map(({ prop, usage }) => {
+    const itemRows = prop.items.map(it => {
+      const used = Math.min(it.total, usage[it.id] || 0);
+      const availIt = Math.max(0, it.total - used);
+      const availPill = availIt === 0
+        ? '<span class="sold-out-pill">Sold out</span>'
+        : `<span class="avail-pill">${fmtNum(availIt)} avail</span>`;
+      return `
+        <tr>
+          <td class="item-name">${it.name}</td>
+          <td><span class="inv-cat-tag">${it.category}</span></td>
+          <td>${fmtNum(it.total)}</td>
+          <td>${fmtNum(used)}</td>
+          <td>${fmtNum(availIt)}</td>
+          <td>${availPill}</td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <div class="prop-row" data-prop-id="${prop.id}">
+        <div class="prop-header" onclick="this.parentNode.classList.toggle('open')">
+          <span class="prop-chevron">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 2 8 6 4 10"/></svg>
+          </span>
+          <div class="prop-meta">
+            <div class="prop-meta-title">
+              ${prop.name}
+              <span class="prop-count-pill">${prop.year}</span>
+            </div>
+            <div class="prop-meta-sub">${prop.eventDate} · ${prop.location} · ${prop.division} · ${prop.items.length} items</div>
+          </div>
+        </div>
+        <div class="prop-body">
+          <table class="inv-table">
+            <thead>
+              <tr>
+                <th>Inventory Item</th>
+                <th>Category</th>
+                <th>Total</th>
+                <th>Used</th>
+                <th>Available</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>${itemRows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function applyFilters() {
+  state.filters.division = document.getElementById('f-division').value;
+  state.filters.year     = document.getElementById('f-year').value;
+  // Re-populate property filter within current division/year scope
+  const beforeProp = document.getElementById('f-property').value;
+  populatePropertyFilter();
+  // Preserve property if still valid
+  const validValues = Array.from(document.getElementById('f-property').options).map(o => o.value);
+  state.filters.property = validValues.includes(beforeProp) ? beforeProp : '';
+  document.getElementById('f-property').value = state.filters.property;
+  // If the user changed f-property directly, read it now
+  state.filters.property = document.getElementById('f-property').value;
+  renderAll();
+}
+
+function resetFilters() {
+  document.getElementById('f-division').value = '';
+  document.getElementById('f-year').value = 'FY26';
+  state.filters = { division: '', year: 'FY26', property: '' };
+  populatePropertyFilter();
+  document.getElementById('f-property').value = '';
+  renderAll();
+}
+
+// Init
+populatePropertyFilter();
+renderAll();
+</script>
+
+</body>
+</html>
